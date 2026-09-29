@@ -1,0 +1,525 @@
+<!doctype html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>KeyCam — Size Guide</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link
+        href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+
+<style id="artwork-checker-fixes">
+/* Fix the empty artwork preview and prevent the hidden image's alt text
+   from appearing when site-wide img rules override [hidden]. */
+#artworkPreviewImage[hidden] {
+    display: none !important;
+}
+
+/* Keep the artwork placeholder clean until an image is selected. */
+#artworkPreviewImage[hidden] ~ .artwork-cut-label,
+#artworkPreviewImage[hidden] ~ .artwork-safe-label,
+#artworkPreviewImage[hidden] ~ .artwork-safe-guide {
+    display: none !important;
+}
+
+/* Make the preview image fill the print shape cleanly once selected. */
+#artworkPreviewImage:not([hidden]) {
+    display: block !important;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    object-position: center;
+}
+
+/* A clean, centered empty state. */
+.artwork-preview-empty {
+    position: absolute;
+    inset: 0;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    text-align: center;
+    padding: 32px;
+    box-sizing: border-box;
+}
+
+.artwork-preview-empty strong {
+    font-size: 22px;
+}
+
+.artwork-preview-empty span {
+    font-size: 16px;
+    max-width: 240px;
+}
+
+/* Give the preview a stable positioning context for overlays. */
+#artworkPreview {
+    position: relative;
+    overflow: hidden;
+}
+
+/* MOBILE PRICE TABLE FIX
+   Keeps every column inside the phone viewport instead of clipping horizontally. */
+@media (max-width: 700px) {
+    .format-table {
+        width: 100%;
+        max-width: 100%;
+        overflow: hidden;
+    }
+
+    .price-table {
+        width: 100% !important;
+        max-width: 100% !important;
+        min-width: 0 !important;
+        table-layout: fixed;
+        border-collapse: collapse;
+    }
+
+    .price-table th,
+    .price-table td {
+        min-width: 0 !important;
+        max-width: none !important;
+        white-space: normal !important;
+        overflow-wrap: anywhere;
+        word-break: normal;
+        box-sizing: border-box;
+    }
+
+    .price-table th:first-child,
+    .price-table td:first-child {
+        width: 58%;
+        text-align: left;
+    }
+
+    .price-table th:not(:first-child),
+    .price-table td:not(:first-child) {
+        width: 21%;
+        text-align: right;
+    }
+
+    .price-table th {
+        padding: 13px 12px;
+        font-size: 13px;
+    }
+
+    .price-table td {
+        padding: 14px 12px;
+        font-size: 14px;
+    }
+
+    /* The 1-column FPS/Glass tables use the available space cleanly. */
+    .format-table .price-table:has(th:nth-child(2):last-child) th:first-child,
+    .format-table .price-table:has(th:nth-child(2):last-child) td:first-child {
+        width: 68%;
+    }
+
+    .format-table .price-table:has(th:nth-child(2):last-child) th:nth-child(2),
+    .format-table .price-table:has(th:nth-child(2):last-child) td:nth-child(2) {
+        width: 32%;
+    }
+}
+
+
+</style>
+
+</head>
+
+<body>
+    <header class="site-header">
+        <div class="container nav-wrap"><a class="brand" href="../index.html"><img src="assets/keycam-logo.jpg"
+                    alt="KeyCam logo"><span>KEYCAM</span></a>
+            <nav class="desktop-nav"><a href="../keyboard/index.html">Keyboard</a><a
+                    href="../accessories/collection.html">Accessories</a><a href="../mouse/collection.html">Mouse</a><a
+                    href="index.html" class="active">Deskmat</a>
+            </nav>
+            <div class="header-actions"><button class="icon-btn" id="searchOpen" aria-label="Search">⌕</button><button
+                    class="order-pill" id="orderOpen">My Order <b id="orderCount">0</b></button><button class="menu-btn"
+                    id="menuOpen" aria-label="Open menu">☰</button></div>
+        </div>
+        <div class="container sub-nav"><a class="nav-menu" href="index.html#collections">Collections</a><a
+                class="nav-menu" href="index.html#products">Design Your Own</a><a href="collection.html?c=stock">Stock Mousepad</a><a href="size-guide.html">Size Guide</a>
+        </div>
+    </header>
+    <main class="listing">
+        <div class="container">
+            <div class="breadcrumbs"><a href="index.html">Home</a><span>›</span><span>Size Guide</span></div>
+            <div class="listing-head">
+                <div>
+                    <p class="eyebrow">REGULAR MOUSE PAD</p>
+                    <h1>Size &amp; price guide</h1>
+                    <p id="maintenanceStatus">Everyday/original prices.</p>
+                </div>
+            </div>
+            <!-- REGULAR MOUSE PAD -->
+<div id="catalogAvailability">
+<div class="format-table">
+    <h2>Regular Mouse Pad</h2>
+
+    <table class="price-table">
+        <thead>
+            <tr>
+                <th>DIMENSIONS</th>
+                <th>3MM</th>
+                <th>5MM</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>1000 × 500 mm</td>
+                <td class="unavailable">—</td>
+                <td data-type="mousepad" data-price="22">$22</td>
+            </tr>
+            <tr>
+                <td>900 × 400 mm</td>
+                <td data-type="mousepad" data-price="12">$12</td>
+                <td data-type="mousepad" data-price="16">$16</td>
+            </tr>
+            <tr>
+                <td>800 × 400 mm</td>
+                <td data-type="mousepad" data-price="11">$11</td>
+                <td data-type="mousepad" data-price="14.50">$14.50</td>
+            </tr>
+            <tr>
+                <td>800 × 300 mm</td>
+                <td data-type="mousepad" data-price="9.50">$9.50</td>
+                <td data-type="mousepad" data-price="13">$13</td>
+            </tr>
+            <tr>
+                <td>600 × 300 mm</td>
+                <td data-type="mousepad" data-price="8.50">$8.50</td>
+                <td class="unavailable">—</td>
+            </tr>
+            <tr>
+                <td>450 × 400 mm</td>
+                <td class="unavailable">—</td>
+                <td data-type="mousepad" data-price="9.50">$9.50</td>
+            </tr>
+            <tr>
+                <td>300 × 250 mm</td>
+                <td data-type="mousepad" data-price="4.50">$4.50</td>
+                <td data-type="mousepad" data-price="7.50">$7.50</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+<!-- FPS MOUSE PAD -->
+<div class="format-table">
+    <h2>FPS Mouse Pad</h2>
+
+    <table class="price-table">
+        <thead>
+            <tr>
+                <th>DIMENSIONS</th>
+                <th>5MM</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>450 × 400 mm</td>
+                <td data-type="fps" data-price="10">$10</td>
+            </tr>
+            <tr>
+                <td>360 × 320 mm</td>
+                <td data-type="fps" data-price="8.50">$8.50</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+</div>
+
+
+<!-- GLASS MOUSE PAD (unaffected by the discount) -->
+<div class="format-table">
+    <h2>Glass Mouse Pad</h2>
+
+    <table class="price-table">
+        <thead>
+            <tr>
+                <th>DIMENSIONS</th>
+                <th>3MM GLASS</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>360 × 320 mm</td>
+                <td>$18</td>
+            </tr>
+            <tr>
+                <td>490 × 420 mm</td>
+                <td>$24</td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+
+
+
+            <section class="fit-finder">
+                <div class="section-head">
+                    <div>
+                        <p class="eyebrow">FIT FINDER</p>
+                        <h2>Find your fitting size</h2>
+                    </div>
+                    <p>Enter your desk size below and we'll find the mat that fits it best.</p>
+                </div>
+                <div class="fit-finder-grid">
+                    <div class="fit-finder-form">
+                        <div class="fit-finder-row"><label>Usable width<div class="fit-input"><input type="number"
+                                        id="fitWidth" placeholder="e.g. 120" min="20" max="250"><span>cm</span></div>
+                                </label><label>Usable depth<div class="fit-input"><input type="number" id="fitDepth"
+                                        placeholder="e.g. 60" min="20" max="100"><span>cm</span></div></label></div>
+                        <p class="fit-tip">Tip: measure the flat, open space on your desk — around monitor stands,
+                            shelves, and cable openings.</p><label class="fit-coverage-label">What should it cover?
+                            <span class="fit-optional">(choose one)</span>
+                            <div class="fit-select"><select id="fitCoverage">
+                                    <option value="deskmat" selected>Desk mat — keyboard + mouse</option>
+                                    <option value="mousepad">Mouse pad — mouse only</option>
+                                </select></div>
+                        </label>
+
+                        <label class="fit-coverage-label">What type of pad?
+                            <span class="fit-optional">(choose one)</span>
+                            <div class="fit-select"><select id="fitType">
+                                    <option value="regular" selected>Regular Mouse Pad</option>
+                                    <option value="fps">FPS Mouse Pad</option>
+                                    <option value="glass">Glass Mouse Pad</option>
+                                </select></div>
+                        </label><button class="btn btn-primary btn-wide" id="fitFindBtn">Find fitting sizes</button>
+                        <p class="small-note" id="fitError"></p>
+                        <div class="fit-finder-results" id="fitResults"></div>
+                    </div>
+                    <div class="fit-finder-visual">
+                        <div class="desk-texture-switch" id="deskTextureSwitch" role="group" aria-label="Desk texture">
+                            <button type="button" class="desk-texture-btn" data-desk="desk-texture.jpg">Default</button>
+                            <button type="button" class="desk-texture-btn" data-desk="desk-texture-blackwood.jpg">Black wood</button>
+                            <button type="button" class="desk-texture-btn" data-desk="desk-texture-lightwood.jpg">Light wood</button>
+                            <button type="button" class="desk-texture-btn" data-desk="desk-texture-whitewood.jpg">White wood</button>
+                        </div>
+
+                        <div class="fit-desk" id="fitDesk">
+                            <div class="fit-mat" id="fitMat"><span id="fitMatLabel"></span></div>
+                            <div class="fit-keyboard" id="fitKeyboard"></div>
+                            <div class="fit-mouse" id="fitMouseShape"></div>
+                        </div>
+                        <p class="small-note" id="fitCaption">Enter your desk size and press Find fitting sizes to see
+                            the preview.</p>
+                    </div>
+                </div>
+            </section>
+            <section class="artwork-checker" id="artworkChecker">
+                <div class="section-head">
+                    <div>
+                        <p class="eyebrow">ARTWORK CHECKER</p>
+                        <h2>Check your image against the print shape</h2>
+                    </div>
+                    <p>This planning check compares pixel dimensions, physical size, and aspect ratio. It cannot detect every compression artifact, tiny text problem, or design issue.</p>
+                </div>
+
+                <div class="artwork-checker-grid">
+                    <div class="artwork-checker-form">
+                        <label class="artwork-field-label" for="artworkPrintSize">Print size</label>
+                        <div class="fit-select artwork-select-wrap">
+                            <select id="artworkPrintSize" aria-label="Print size">
+                                <option value="900x400" selected>90 × 40 cm</option>
+                                <option value="1000x500">100 × 50 cm</option>
+                                <option value="800x400">80 × 40 cm</option>
+                                <option value="800x300">80 × 30 cm</option>
+                                <option value="600x300">60 × 30 cm</option>
+                                <option value="450x400">45 × 40 cm</option>
+                                <option value="300x250">30 × 25 cm</option>
+                                <option value="360x320">36 × 32 cm</option>
+                                <option value="490x420">49 × 42 cm</option>
+                            </select>
+                        </div>
+
+                        <label class="artwork-upload" for="artworkFile">
+                            <span class="artwork-upload-icon">+</span>
+                            <strong>Choose a JPG, PNG, or WebP image</strong>
+                            <span>The file is read locally. Nothing is sent to KeyCam by this checker.</span>
+                        </label>
+                        <input id="artworkFile" type="file" accept="image/jpeg,image/png,image/webp" hidden>
+
+                        <div class="artwork-private-note">
+                            <strong>Private by design</strong>
+                            <span>The checker uses your browser's image decoder. Refreshing or closing this page clears the preview.</span>
+                        </div>
+                    </div>
+
+                    <div class="artwork-preview-column">
+                        <div class="artwork-preview" id="artworkPreview">
+                            <div class="artwork-preview-empty">
+                                <strong>Artwork preview</strong>
+                                <span>Choose an image to begin</span>
+                            </div>
+                            <img id="artworkPreviewImage" alt="Artwork preview" hidden>
+                            <div class="artwork-cut-label">Approx. cut edge</div>
+                            <div class="artwork-safe-label">1 cm safe area</div>
+                            <div class="artwork-safe-guide" aria-hidden="true"></div>
+                        </div>
+
+                        <div class="artwork-legend">
+                            <div class="artwork-legend-row">
+                                <span><i class="artwork-line artwork-line-cut"></i> Approximate cut edge</span>
+                                <span><i class="artwork-line artwork-line-safe"></i> 1 cm safe-area guide</span>
+                            </div>
+                            <p><strong>What is bleed?</strong> Extend backgrounds, colors, and patterns through the shaded edge zone to every outer edge. Keep faces, logos, text, and other important details inside the dashed safe-area line. This is a conservative planning guide, not an exact production cut guarantee; confirm the final crop in the product editor.</p>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="artwork-metrics" id="artworkMetrics" hidden>
+                    <div class="artwork-metric">
+                        <span>Image</span>
+                        <strong id="artworkDimensions">—</strong>
+                        <small>pixel dimensions</small>
+                    </div>
+                    <div class="artwork-metric">
+                        <span>Estimated density</span>
+                        <strong id="artworkPpi">—</strong>
+                        <small>pixels per printed inch</small>
+                    </div>
+                    <div class="artwork-metric">
+                        <span>Shape match</span>
+                        <strong id="artworkCrop">—</strong>
+                        <small>estimated center-crop loss</small>
+                    </div>
+                    <div class="artwork-metric artwork-result" id="artworkResultCard">
+                        <span>Planning result</span>
+                        <strong id="artworkResult">—</strong>
+                        <small id="artworkResultNote">—</small>
+                    </div>
+                </div>
+            </section>
+
+            <section class="type-specs">
+  <div class="section-head">
+    <div><p class="eyebrow">PRODUCT SPECS</p><h2>Mouse pad <em>details.</em></h2></div>
+    <p>Compare the materials, glide, use case and key advantages of all three mouse-pad types.</p>
+  </div>
+  <div class="type-spec-grid">
+    <article class="type-spec-card"><span>REGULAR MOUSE PAD</span><h3>Standard / Office</h3><div class="type-spec-detail">
+      <div><small>MATERIAL</small><strong>Usually cloth surfaces with a rubber or foam base.</strong></div>
+      <div><small>GLIDE &amp; CONTROL</small><strong>Balanced, standard glide with moderate friction for everyday tracking accuracy.</strong></div>
+      <div><small>BEST FOR</small><strong>General daily computing, office work, casual browsing, and low-intensity tasks.</strong></div>
+      <div><small>KEY ADVANTAGE</small><strong>Affordable, comfortable on the wrist, versatile, and works seamlessly with almost any standard optical mouse.</strong></div>
+      <div><small>COLOR ACCURACY</small><strong>Final printed colors on fabric may vary slightly (roughly 10%) from the digital screen due to the sublimation heating process.</strong></div>
+    </div></article>
+    <article class="type-spec-card"><span>FPS MOUSE PAD</span><h3>Gaming Cloth / Hybrid</h3><div class="type-spec-detail">
+      <div><small>MATERIAL</small><strong>Specialized textured cloth, synthetic weaves, or hybrid surfaces optimized for speed or control.</strong></div>
+      <div><small>GLIDE &amp; CONTROL</small><strong>Engineered specifically for fast-paced gaming; often categorized into "speed" pads (low friction for quick flicks) or "control" pads (higher friction for precise stopping power).</strong></div>
+      <div><small>BEST FOR</small><strong>First-person shooter (FPS) games and competitive gaming where quick reflexes and micro-adjustments matter.</strong></div>
+      <div><small>KEY ADVANTAGE</small><strong>Offers consistent, reliable stopping power and tracking precision tailored to high-DPI or low-sens gaming styles.</strong></div>
+      <div><small>COLOR ACCURACY</small><strong>Final printed colors on fabric may vary slightly (roughly 10%) from the digital screen due to the sublimation heating process.</strong></div>
+    </div></article>
+    <article class="type-spec-card"><span>GLASS MOUSEPAD</span><h3>Hard Surface</h3><div class="type-spec-detail">
+      <div><small>MATERIAL</small><strong>Tempered glass with a micro-textured or frosted coating.</strong></div>
+      <div><small>GLIDE &amp; CONTROL</small><strong>Extremely fast and ultra-smooth glide with almost zero initial friction.</strong></div>
+      <div><small>BEST FOR</small><strong>Hardcore gamers, tracking-heavy tracking genres, and users who prefer a slick, zero-drag feel.</strong></div>
+      <div><small>KEY ADVANTAGE</small><strong>Unmatched durability (virtually wear-proof), incredibly easy to clean, and provides a completely uniform glide across the entire surface. However, they are fragile if dropped, can feel cold to the touch, and wear down mouse feet faster.</strong></div>
+      <div><small>COLOR ACCURACY</small><strong>Final printed colors may vary slightly from the digital screen.</strong></div>
+    </div></article>
+  </div>
+</section>
+           
+            <div class="other-products">
+                <article>
+                    <span>FPS</span>
+                    <h2>5MM · XS</h2>
+                    <strong data-current-price data-type="fps" data-price="10">$10</strong>
+                    <p>Current confirmed FPS variant.</p>
+                    <a href="collection.html?type=fps">View FPS →</a>
+                </article>
+                <article>
+                    <span>GLASS</span>
+                    <h2>3MM · 360 × 320</h2>
+                    <strong>$25</strong>
+                    <p>Current confirmed glass variant.</p>
+                    <a href="collection.html?type=glass">View Glass →</a>
+                </article>
+            </div>
+        </div>
+    </main>
+    <footer class="site-footer compact-footer">
+        <div class="container footer-social"><a href="https://maps.app.goo.gl/SFp44sTmpm52HC5i7" target="_blank"
+                rel="noopener" aria-label="Location"><img src="assets/icons/location.png" alt=""></a><a
+                href="https://t.me/Key_Cam" target="_blank" rel="noopener" aria-label="Telegram"><img
+                    src="assets/icons/telegram.png" alt=""></a><a href="https://www.facebook.com/share/1EyHBrqsXP/"
+                target="_blank" rel="noopener" aria-label="Facebook"><img src="assets/icons/facebook.png" alt=""></a><a
+                href="https://www.instagram.com/key_camm?igsh=bWVjeWd6bWFvZHB4" target="_blank" rel="noopener"
+                aria-label="Instagram"><img src="assets/icons/instagram.webp" alt=""></a><a
+                href="https://www.tiktok.com/@keycamm?_r=1&amp;_t=ZS-98MRrdf6b" target="_blank" rel="noopener"
+                aria-label="TikTok"><img src="assets/icons/tiktok.png" alt=""></a></div>
+        <div class="container footer-bottom"><span>© 2026 KeyCam. All rights reserved.</span><span>Phnom Penh ·
+                0886449944</span></div>
+    </footer>
+    <div class="search-panel" id="searchPanel">
+        <div class="container"><button id="searchClose" aria-label="Close search">×</button><input id="searchInput"
+                placeholder="Search designs, collections, styles..." autocomplete="off">
+            <p>Press Enter to search.</p>
+        </div>
+    </div>
+    <div class="drawer-backdrop" id="drawerBackdrop"></div>
+    <aside class="order-drawer" id="orderDrawer">
+        <div class="drawer-head">
+            <h2>My Order</h2><button id="orderClose" aria-label="Close order">×</button>
+        </div>
+        <div id="orderItems"></div>
+        <div class="drawer-total"><span>Total</span><strong id="orderTotal">$0</strong></div><button
+            class="btn btn-primary btn-wide" id="telegramOrder">Order on Telegram ↗</button><button class="clear-order"
+            id="clearOrder">Clear order</button>
+    </aside>
+    <div class="mobile-menu" id="mobileMenu"><button id="mobileClose" aria-label="Close menu">×</button><a
+            href="../index.html">Home</a><a href="../keyboard/index.html">Keyboard</a><a
+            href="../accessories/collection.html">Accessories</a><a href="../mouse/collection.html">Mouse</a><a
+            href="index.html">Deskmat</a><button class="mobile-expand" data-target="mobileCollections">Collections
+            +</button>
+        <div id="mobileCollections"></div><button class="mobile-expand" data-target="mobileProducts">Design Your Own
+            +</button>
+        <div id="mobileProducts"></div><a href="size-guide.html">Size Guide</a><a
+            href="https://t.me/Key_Cam" target="_blank" rel="noopener">Telegram ↗</a>
+    </div>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../supabase-client.js"></script>
+        <script src="app.js"></script>
+    <script src="fit-finder.js"></script>
+    <script src="artwork-checker.js?v=2"></script>
+<script>
+/* KeyCam artwork checker: use a 1 cm safe area on every side. */
+(function () {
+    const sizeSelect = document.getElementById('artworkPrintSize');
+    const preview = document.getElementById('artworkPreview');
+    const guide = preview && preview.querySelector('.artwork-safe-guide');
+    if (!sizeSelect || !guide) return;
+
+    function applyOneCmSafeArea() {
+        const value = sizeSelect.value || '900x400';
+        const parts = value.split('x').map(Number);
+        const widthCm = parts[0] / 10;
+        const heightCm = parts[1] / 10;
+        if (!widthCm || !heightCm) return;
+
+        const horizontal = (1 / widthCm) * 100;
+        const vertical = (1 / heightCm) * 100;
+
+        guide.style.left = horizontal + '%';
+        guide.style.right = horizontal + '%';
+        guide.style.top = vertical + '%';
+        guide.style.bottom = vertical + '%';
+    }
+
+    applyOneCmSafeArea();
+    sizeSelect.addEventListener('change', applyOneCmSafeArea);
+})();
+</script>
+
+</body>
+
+</html>

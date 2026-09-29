@@ -1,0 +1,76 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0f12">
+<meta name="description" content="KeyCam Cambodia — custom keyboards: prebuild, customized builds, barebones, switches, keycaps and artisan pieces.">
+<title>KeyCam — Keyboards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../deskmat/styles.css">
+<link rel="stylesheet" href="../shared/catalog.css">
+</head>
+<body>
+
+<div id="siteHeader"></div>
+
+<main>
+<section class="hero keyboard-hero">
+  <div class="container hero-grid">
+    <div>
+      <p class="eyebrow">KEYCAM · KEYBOARDS</p>
+      <h1>Build the board<br>that's <em>yours.</em></h1>
+      <p class="hero-copy">Prebuild boards ready to ship, ready-made custom combos, or pick your own barebone, switches, keycaps and artisan pieces.</p>
+      <div class="hero-actions">
+        <a class="btn btn-primary" href="collection.html?subtype=prebuild">Browse prebuilds →</a>
+        <a class="btn btn-ghost" href="collection.html?subtype=customized">Customized builds</a>
+      </div>
+      <p class="how-to-line">Pick a category → configure options → add to order → confirm on Telegram.</p>
+    </div>
+    <div class="hero-visual" aria-hidden="true">
+      <div class="hero-visual-frame" style="background-image:url('../assets/keyboard_thumbnail/Prebuild.jpg');"></div>
+    </div>
+  </div>
+</section>
+
+<section class="container keyboard-categories">
+  <div class="section-head-inline">
+    <p class="eyebrow">CATEGORIES</p>
+    <h2>Shop by type</h2>
+  </div>
+  <div class="category-tiles" id="tiles"></div>
+</section>
+</main>
+
+<div id="siteFooter"></div>
+<div id="siteOverlays"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-client.js"></script>
+<script src="../shared/catalog-client.js"></script>
+<script src="../shared/catalog-cart.js"></script>
+<script src="../shared/layout.js"></script>
+<script>
+initLayout({ base: "../", active: "keyboard" });
+
+const TILES = [
+  ["prebuild", "Prebuild Keyboard", "Ready-made boards, ship as-is", "Prebuild.jpg"],
+  ["customized", "Customized Keyboard", "Ready custom barebone + switch + keycap builds", "Customized.jpg"],
+  ["barebone", "Barebone", "Every size, all hotswap", "Barebone.jpg"],
+  ["switch", "Switch", "By brand or by amount", "Switch.jpg"],
+  ["keycap", "Keycap", "Full sets, spec-priced", "Keycap.jpg"],
+  ["artisan", "Artisan", "Unique pieces and character packs", "Artisan.jpg"],
+];
+
+document.querySelector("#tiles").innerHTML = TILES.map(([subtype, title, desc, thumb], i) => `
+  <a class="collection-card featured" href="collection.html?subtype=${subtype}" style="background-image:url('../assets/keyboard_thumbnail/${thumb}');">
+    <span class="collection-number">${String(i + 1).padStart(2, "0")}</span>
+    <h3>${title}</h3>
+    <small>${desc}</small>
+  </a>
+`).join("");
+</script>
+</body>
+</html>

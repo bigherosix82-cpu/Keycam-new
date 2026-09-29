@@ -1,0 +1,373 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KeyCam — Product</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../deskmat/styles.css">
+<link rel="stylesheet" href="../shared/catalog.css">
+</head>
+<body>
+
+<div id="siteHeader"></div>
+
+<main class="container" style="padding:30px 0 80px;">
+  <div class="breadcrumbs"><a href="index.html">Keyboard</a><span>›</span><span id="crumb"></span></div>
+  <div id="productBody"><p style="color:var(--muted);">Loading…</p></div>
+</main>
+
+<div id="siteFooter"></div>
+<div id="siteOverlays"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-client.js"></script>
+<script src="../shared/catalog-client.js"></script>
+<script src="../shared/catalog-cart.js"></script>
+<script src="../shared/layout.js"></script>
+<script>
+initLayout({ base: "../", active: "keyboard" });
+
+// Default Shipping / Payment info shown on every product unless that
+// product has its own shipping_info / payment_info set in the DB.
+const DEFAULT_SHIPPING_INFO = `Delivery Fee
+========
+- Phnom Penh 1.5$-3$ ( Grab express, fee depends on exactly distance)
+- Province 1.5$ Fix ( VET J&T....)
+- COD delivery 1.5$ + COD fee 0.5$
+🆓 Free delivery on Full Customize
+Info for delivery
+==========
+👉For delivery to door ( ZTO, J&T, Grab)
+- Phone number ( Optional )
+- Telegram
+- Location Map
+- Building name
+👉Pick up ( VET, J&T, ZTO)
+- Phone number
+- Address`;
+
+const DEFAULT_PAYMENT_INFO = `Payment Method
+========
+🏦Local Bank: ABA Aclida ( KHQR )
+🚚Cash On delivery ( ZTO express )
+🟠Cryptocurrency ( Binance.... )
+🟢<100$ => $1.015/USDT
+🟢>100$ =>$1.006/USDT`;
+
+window.CATALOG_READY.then(() => {
+  const params = new URLSearchParams(location.search);
+  const id = params.get("id");
+  const product = window.CATALOG.products.find(p => p.id === id);
+  const body = document.querySelector("#productBody");
+
+  if(!product){
+    body.innerHTML = `<p style="color:var(--muted);">Product not found.</p>`;
+    return;
+  }
+
+  document.title = `KeyCam — ${product.name}`;
+  document.querySelector("#crumb").textContent = product.name;
+
+  // Default selection: first IN-STOCK option in every group (falls back
+  // to the first option at all if the whole group is out of stock).
+  const selections = {};
+  product.variantGroups.forEach(g => {
+    const firstAvailable = g.options.find(o => o.inStock);
+    selections[g.name] = (firstAvailable || g.options[0])?.label;
+  });
+
+  // Initial main image: prefer the first default-selected variant option
+  // that has a linked image, otherwise the product's own gallery/cover.
+  let initialImage = product.images[0]?.url || product.image || null;
+  for(const g of product.variantGroups){
+    const opt = g.options.find(o => o.label === selections[g.name]);
+    if(opt && opt.image){ initialImage = opt.image; break; }
+  }
+
+  body.innerHTML = `
+    <div class="catalog-product-layout">
+      <div>
+        <div class="product-art" id="mainImageFrame" style="aspect-ratio:1;overflow:hidden;cursor:zoom-in;padding:0;background:none;border:none;">
+          <img id="mainProductImage" src="${initialImage || ''}" alt="${product.name}" style="width:100%;height:100%;object-fit:cover;transition:transform .2s ease;${initialImage ? '' : 'display:none;'}">
+        </div>
+        ${product.images.length > 1 ? `
+          <div class="product-gallery-thumbs" id="galleryThumbs">
+            ${product.images.map((im,i) => `<button class="product-gallery-thumb ${im.url===initialImage?'selected':''}" data-url="${im.url}"><img src="${im.thumbUrl || im.url}" alt="" loading="lazy"></button>`).join("")}
+          </div>
+        ` : ""}
+      </div>
+      <div>
+        ${product.collection ? `<p class="eyebrow">${product.collection}</p>` : ""}
+        <h1>${product.name}</h1>
+        ${product.specs ? `<p class="catalog-specs">${product.specs}</p>` : ""}
+        <div id="variantGroups"></div>
+        <div style="margin:18px 0;font:700 28px 'Space Grotesk';color:var(--blue);" id="priceDisplay"></div>
+        <button class="btn btn-primary btn-wide" id="addToOrderBtn">Add to Order</button>
+        <div id="productComponents"></div>
+        <div id="productInfoSections"></div>
+      </div>
+    </div>
+  `;
+
+  if(product.components && product.components.length){
+    document.querySelector("#productComponents").innerHTML = `
+      <div class="product-components">
+        <span class="variant-group-label">Built From</span>
+        <div class="component-links">
+          ${product.components.map(c => `
+            <a class="component-link" href="product.html?id=${c.id}">
+              ${c.thumbnail ? `<img src="${c.thumbnail}" alt="${c.name}">` : `<div class="component-link-noimg"></div>`}
+              <div class="component-link-text">
+                <span class="component-role">${c.roleLabel || ""}</span>
+                <strong>${c.name}</strong>
+              </div>
+            </a>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  function escapeHTML(s){
+    return (s || "").replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+  }
+
+  // Parses the free-text Description / Shipping / Payment fields into
+  // structured HTML. Two heading styles are recognized:
+  //   "Heading"                    followed by a "========" line
+  //   "Heading" alone on its own paragraph (blank line before AND after)
+  // Everything else is grouped into "sections" (runs of lines broken by
+  // headings or blank lines). Within a section:
+  //   - if ANY line in the section starts with "-", that section is
+  //     "dash style": "- text" lines become bullets, and any other plain
+  //     line in the same section (e.g. "👉For delivery...") becomes a
+  //     small bold sub-heading with no bullet.
+  //   - if NO line in the section starts with "-", every line in the
+  //     section is rendered as a plain bullet, colons and all — no bold
+  //     labels, matching the reference product-spec layout.
+  //   - a "; -" inside any line still splits off a nested sub-bullet,
+  //     e.g. "RGB Lighting: ...modes; - Dual independent RGB backlighting"
+  function bulletListHTML(text){
+    const rawLines = (text || "").split("\n").map(l => l.trim());
+    const n = rawLines.length;
+
+    // Pass 1: figure out which line indices are headings, and which
+    // indices are "====" underlines that got consumed by a heading.
+    const headingIdx = new Set();
+    const consumedIdx = new Set();
+    for(let i = 0; i < n; i++){
+      const line = rawLines[i];
+      if(!line || consumedIdx.has(i)) continue;
+      const nextLine = rawLines[i + 1] || "";
+      if(/^=+$/.test(nextLine) && nextLine.length >= 3){
+        headingIdx.add(i);
+        consumedIdx.add(i + 1);
+        continue;
+      }
+      if(/^=+$/.test(line)) continue; // stray underline, ignore
+      const prevBlank = i === 0 || rawLines[i - 1] === "";
+      const nextBlank = i < n - 1 && rawLines[i + 1] === "";
+      if(prevBlank && nextBlank && !line.startsWith("-")) headingIdx.add(i);
+    }
+
+    // Renders one content line as an <li>, splitting off a "; -" nested
+    // sub-bullet if present.
+    function renderBulletLine(text){
+      const parts = text.split(/;\s*-\s*/).map(p => p.trim()).filter(Boolean);
+      const [main, ...nested] = parts;
+      let li = `<li>${escapeHTML(main)}`;
+      if(nested.length){
+        li += `<ul class="product-info-sublist">${nested.map(x => `<li>${escapeHTML(x)}</li>`).join("")}</ul>`;
+      }
+      return li + "</li>";
+    }
+
+    function renderSection(lines){
+      const hasDash = lines.some(l => l.startsWith("-"));
+      if(!hasDash){
+        return `<ul>${lines.map(l => renderBulletLine(l)).join("")}</ul>`;
+      }
+      let out = "";
+      let inList = false;
+      for(const l of lines){
+        if(l.startsWith("-")){
+          if(!inList){ out += "<ul>"; inList = true; }
+          out += renderBulletLine(l.replace(/^-\s*/, ""));
+        }else{
+          if(inList){ out += "</ul>"; inList = false; }
+          out += `<p class="product-info-subhead">${escapeHTML(l)}</p>`;
+        }
+      }
+      if(inList) out += "</ul>";
+      return out;
+    }
+
+    // Pass 2: walk the lines, emitting headings directly and buffering
+    // everything else into sections (flushed on blank lines or headings).
+    let html = "";
+    let buffer = [];
+    const flush = () => {
+      if(buffer.length){ html += renderSection(buffer); buffer = []; }
+    };
+    for(let i = 0; i < n; i++){
+      const line = rawLines[i];
+      if(!line){ flush(); continue; }
+      if(consumedIdx.has(i)) continue;
+      if(headingIdx.has(i)){
+        flush();
+        html += `<h4 class="product-info-heading">${escapeHTML(line)}</h4>`;
+        continue;
+      }
+      buffer.push(line);
+    }
+    flush();
+    return html;
+  }
+
+  const infoSections = [
+    { title: "Description", text: product.description, openByDefault: true },
+    { title: "Shipping", text: product.shippingInfo || DEFAULT_SHIPPING_INFO, openByDefault: false },
+    { title: "Payment", text: product.paymentInfo || DEFAULT_PAYMENT_INFO, openByDefault: false }
+  ].filter(s => (s.text || "").trim());
+
+  document.querySelector("#productInfoSections").innerHTML = infoSections.map(s => `
+    <details class="product-info-section" ${s.openByDefault ? "open" : ""}>
+      <summary>${s.title}</summary>
+      <div class="product-info-body">${bulletListHTML(s.text)}</div>
+    </details>
+  `).join("");
+
+  function setMainImage(url){
+    if(!url) return;
+    const img = document.querySelector("#mainProductImage");
+    img.src = url;
+    img.style.display = "";
+    document.querySelectorAll(".product-gallery-thumb").forEach(t =>
+      t.classList.toggle("selected", t.dataset.url === url)
+    );
+    resetImageZoom();
+  }
+
+  // Click to zoom in on the main image (centered on where you clicked),
+  // move the mouse while zoomed to pan around, click again (or move the
+  // mouse off the image) to zoom back out. Works the same way on touch —
+  // tap to zoom in/out, centered on the tap point.
+  let imageZoomed = false;
+  function resetImageZoom(){
+    imageZoomed = false;
+    const img = document.querySelector("#mainProductImage");
+    const frame = document.querySelector("#mainImageFrame");
+    if(img) img.style.transform = "";
+    if(frame) frame.style.cursor = "zoom-in";
+  }
+  function setZoomOrigin(e){
+    const frame = document.querySelector("#mainImageFrame");
+    const img = document.querySelector("#mainProductImage");
+    const rect = frame.getBoundingClientRect();
+    const point = e.touches ? e.touches[0] : e;
+    const x = ((point.clientX - rect.left) / rect.width) * 100;
+    const y = ((point.clientY - rect.top) / rect.height) * 100;
+    img.style.transformOrigin = `${x}% ${y}%`;
+  }
+  (function initImageZoom(){
+    const frame = document.querySelector("#mainImageFrame");
+    const img = document.querySelector("#mainProductImage");
+    if(!frame || !img) return;
+    frame.addEventListener("click", (e) => {
+      setZoomOrigin(e);
+      imageZoomed = !imageZoomed;
+      img.style.transform = imageZoomed ? "scale(2.2)" : "";
+      frame.style.cursor = imageZoomed ? "zoom-out" : "zoom-in";
+    });
+    frame.addEventListener("mousemove", (e) => { if(imageZoomed) setZoomOrigin(e); });
+    frame.addEventListener("mouseleave", () => { if(imageZoomed) resetImageZoom(); });
+  })();
+
+  document.querySelector("#galleryThumbs")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".product-gallery-thumb");
+    if(!btn) return;
+    setMainImage(btn.dataset.url);
+  });
+
+  const groupsEl = document.querySelector("#variantGroups");
+  groupsEl.innerHTML = product.variantGroups.map(g => `
+    <div class="variant-group">
+      <span class="variant-group-label">${g.name}</span>
+      <div class="variant-options" data-group="${g.name}">
+        ${g.options.map((o,i) => `<button class="variant-chip ${o.label===selections[g.name]?'selected':''} ${o.inStock?'':'out-of-stock'}" data-label="${o.label}" ${o.inStock?'':'disabled'}>${o.label}${o.inStock?'':' (Out of stock)'}</button>`).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  function currentSelectionAvailable(){
+    return product.variantGroups.every(g => {
+      const opt = g.options.find(o => o.label === selections[g.name]);
+      return opt ? opt.inStock : true;
+    });
+  }
+
+  function updateAvailability(){
+    const btn = document.querySelector("#addToOrderBtn");
+    if(currentSelectionAvailable()){
+      btn.disabled = false;
+      btn.textContent = "Add to Order";
+    }else{
+      btn.disabled = true;
+      btn.textContent = "Out of Stock";
+    }
+  }
+
+  function updatePrice(){
+    const original = catalogPrice(product, selections);
+    const final = applyCatalogDiscount(original, product);
+    const priceEl = document.querySelector("#priceDisplay");
+    if(original === null){
+      priceEl.textContent = "—";
+    }else if(final < original){
+      priceEl.innerHTML = `<span class="catalog-price-was" style="font-size:16px;">${money2(original)}</span><span class="catalog-price-now">${money2(final)}</span>`;
+    }else{
+      priceEl.textContent = money2(final);
+    }
+    updateAvailability();
+  }
+  updatePrice();
+
+  groupsEl.querySelectorAll(".variant-options").forEach(row => {
+    row.addEventListener("click", (e) => {
+      const btn = e.target.closest(".variant-chip");
+      if(!btn || btn.disabled) return;
+      row.querySelectorAll(".variant-chip").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selections[row.dataset.group] = btn.dataset.label;
+      updatePrice();
+
+      const group = product.variantGroups.find(g => g.name === row.dataset.group);
+      const opt = group?.options.find(o => o.label === btn.dataset.label);
+      if(opt && opt.image) setMainImage(opt.image);
+    });
+  });
+
+  document.querySelector("#addToOrderBtn").addEventListener("click", () => {
+    if(!currentSelectionAvailable()) return;
+    const original = catalogPrice(product, selections);
+    const price = applyCatalogDiscount(original, product);
+    const variantSummary = Object.entries(selections).map(([g,v]) => `${g}: ${v}`).join(" · ");
+    const key = `${product.id}|${variantSummary}`;
+    addToCatalogOrder({
+      productId: product.id,
+      name: product.name,
+      image: product.thumbnail || product.image,
+      price,
+      originalPrice: (price < original) ? original : null,
+      discountPercent: catalogDiscountPercentFor(product),
+      variantSummary,
+      key
+    });
+  });
+});
+</script>
+</body>
+</html>

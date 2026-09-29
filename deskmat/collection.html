@@ -1,0 +1,593 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Browse KeyCam original desk mat designs and configure Mouse Pad, FPS or Glass options.">
+<title>KeyCam — Collection</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-header"><div class="container nav-wrap"><a class="brand" href="../index.html"><img src="assets/keycam-logo.jpg" alt="KeyCam logo"><span>KEYCAM</span></a><nav class="desktop-nav"><a href="../keyboard/index.html">Keyboard</a><a href="../accessories/collection.html">Accessories</a><a href="../mouse/collection.html">Mouse</a><a href="index.html" class="active">Deskmat</a></nav><div class="header-actions"><button class="icon-btn" id="searchOpen" aria-label="Search">⌕</button><button class="order-pill" id="orderOpen">My Order <b id="orderCount">0</b></button><button class="menu-btn" id="menuOpen" aria-label="Open menu">☰</button></div></div><div class="container sub-nav"><a class="nav-menu" href="index.html#collections">Collections</a><a class="nav-menu" href="index.html#products">Design Your Own</a><a href="collection.html?c=stock">Stock Mousepad</a><a href="size-guide.html">Size Guide</a></div></header>
+<main class="listing"><div class="container"><div class="breadcrumbs"><a href="index.html">Home</a><span>›</span><span id="crumb">Collection</span></div><div class="listing-head"><div><p class="eyebrow">KEYCAM CATALOG</p><h1 id="title">Collection</h1><p id="sub"></p></div><label class="inline-search">⌕<input id="listSearch" placeholder="Search this catalog..." autocomplete="off"></label></div><section id="typeInfo" class="type-info" hidden></section><div class="collection-pills" id="pills"></div><div class="listing-grid" id="listingGrid"><div class="catalog-loading">Loading designs…</div></div></div></main>
+<footer class="site-footer compact-footer"><div class="container footer-social"><a href="https://maps.app.goo.gl/SFp44sTmpm52HC5i7" target="_blank" rel="noopener" aria-label="Location"><img src="assets/icons/location.png" alt=""></a><a href="https://t.me/Key_Cam" target="_blank" rel="noopener" aria-label="Telegram"><img src="assets/icons/telegram.png" alt=""></a><a href="https://www.facebook.com/share/1EyHBrqsXP/" target="_blank" rel="noopener" aria-label="Facebook"><img src="assets/icons/facebook.png" alt=""></a><a href="https://www.instagram.com/key_camm?igsh=bWVjeWd6bWFvZHB4" target="_blank" rel="noopener" aria-label="Instagram"><img src="assets/icons/instagram.webp" alt=""></a><a href="https://www.tiktok.com/@keycamm?_r=1&amp;_t=ZS-98MRrdf6b" target="_blank" rel="noopener" aria-label="TikTok"><img src="assets/icons/tiktok.png" alt=""></a></div><div class="container footer-bottom"><span>© 2026 KeyCam. All rights reserved.</span><span>Phnom Penh · 0886449944</span></div></footer>
+<div class="search-panel" id="searchPanel"><div class="container"><button id="searchClose" aria-label="Close search">×</button><input id="searchInput" placeholder="Search designs, collections, styles..." autocomplete="off"><p>Press Enter to search.</p></div></div>
+<div class="drawer-backdrop" id="drawerBackdrop"></div><aside class="order-drawer" id="orderDrawer"><div class="drawer-head"><h2>My Order</h2><button id="orderClose" aria-label="Close order">×</button></div><div id="orderItems"></div><div class="drawer-total"><span>Total</span><strong id="orderTotal">$0</strong></div><button class="btn btn-primary btn-wide" id="telegramOrder">Order on Telegram ↗</button><button class="clear-order" id="clearOrder">Clear order</button></aside>
+<div class="mobile-menu" id="mobileMenu"><button id="mobileClose" aria-label="Close menu">×</button><a href="../index.html">Home</a><a href="../keyboard/index.html">Keyboard</a><a href="../accessories/collection.html">Accessories</a><a href="../mouse/collection.html">Mouse</a><a href="index.html">Deskmat</a><button class="mobile-expand" data-target="mobileCollections">Collections +</button><div id="mobileCollections"></div><button class="mobile-expand" data-target="mobileProducts">Design Your Own +</button><div id="mobileProducts"></div><a href="collection.html?c=stock">Stock Mousepad</a><a href="size-guide.html">Size Guide</a><a href="https://t.me/Key_Cam" target="_blank" rel="noopener">Telegram ↗</a></div>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-client.js"></script>
+<script src="app.js">
+
+</script>
+<script>
+window.KEYCAM_READY.then(function(){
+const params = new URLSearchParams(location.search);
+
+const c = params.get("c");
+const type = params.get("type");
+const series = params.get("series");
+// Only meaningful when c === "stock": lets the Stock Mousepad page be
+// filtered down to one collection (e.g. Anime) the same way the normal
+// collection pages work, without disturbing the plain c=<collectionId>
+// filtering used everywhere else.
+const stockCollection = c === "stock" ? params.get("col") : null;
+const q = (params.get("q") || "").toLowerCase().trim();
+
+const title = document.querySelector("#title");
+const crumb = document.querySelector("#crumb");
+const sub = document.querySelector("#sub");
+const grid = document.querySelector("#listingGrid");
+const typeInfo = document.querySelector("#typeInfo");
+const pills = document.querySelector("#pills");
+
+let products = KEYCAM.products;
+
+
+/* ============================================================
+   DEDUPE BY IMAGE (safety net — app.js already merges by image)
+============================================================ */
+
+function dedupeProductsByImage(list){
+  const map = new Map();
+  (list || []).forEach(p => {
+    const key = (p.image || p.thumbnail || p.id || "").toString();
+    if(!key){ map.set(Symbol(), p); return; }
+    if(!map.has(key)){
+      const copy = Object.assign({}, p);
+      copy.collections = Array.isArray(p.collections) ? p.collections.slice() : (p.collection ? [p.collection] : []);
+      map.set(key, copy);
+    }else{
+      const existing = map.get(key);
+      const extra = Array.isArray(p.collections) ? p.collections : (p.collection ? [p.collection] : []);
+      extra.forEach(col => {
+        if(col && !existing.collections.includes(col)) existing.collections.push(col);
+      });
+      if(!existing.series && p.series){
+        existing.series = p.series;
+        existing.seriesName = p.seriesName || existing.seriesName;
+      }
+      if(p.inStockReady){
+        existing.inStockReady = true;
+        if(!existing.stockType && p.stockType) existing.stockType = p.stockType;
+        if(!existing.stockThickness && p.stockThickness) existing.stockThickness = p.stockThickness;
+        if(!existing.stockSizeLabel && p.stockSizeLabel) existing.stockSizeLabel = p.stockSizeLabel;
+        if((existing.stockPrice === null || existing.stockPrice === undefined) && p.stockPrice != null) existing.stockPrice = p.stockPrice;
+      }
+    }
+  });
+  return [...map.values()];
+}
+
+products = dedupeProductsByImage(products);
+
+
+/* ============================================================
+   COLLECTION FILTER
+============================================================ */
+
+if (c && c !== "all" && c !== "stock") {
+
+  products = products.filter(
+    p => p.collections.includes(c)
+  );
+
+}
+
+
+/* ============================================================
+   STOCK FILTER
+============================================================ */
+
+if (c === "stock") {
+
+  products = products.filter(
+    p => p.inStockReady
+  );
+
+  if (stockCollection) {
+
+    products = products.filter(
+      p => p.collections.includes(stockCollection)
+    );
+
+  }
+
+}
+
+
+/* ============================================================
+   SERIES FILTER
+============================================================ */
+
+if (series) {
+
+  products = products.filter(
+    p => p.series === series
+  );
+
+}
+
+
+/* ============================================================
+   SEARCH
+============================================================ */
+
+if (q) {
+
+  products = products.filter(p =>
+    (
+      p.name +
+      " " +
+      (p.desc || "") +
+      " " +
+      (p.seriesName || "") +
+      " " +
+      (p.series || "")
+    )
+    .toLowerCase()
+    .includes(q)
+  );
+
+}
+
+
+/* ============================================================
+   PAGE TITLE
+============================================================ */
+
+if (c === "stock") {
+
+  if (series) {
+
+    const seriesProduct =
+      KEYCAM.products.find(
+        p => p.series === series
+      );
+
+    const seriesTitle =
+      seriesProduct?.seriesName ||
+      series.replace(/-/g, " ");
+
+    // Fall back to the matching product's own collection if the page
+    // was reached without a col= param (e.g. an old/typed-in link).
+    const crumbCollectionId =
+      stockCollection || seriesProduct?.collections?.[0] || null;
+
+    title.textContent = seriesTitle;
+
+    crumb.textContent = crumbCollectionId ?
+      `Stock Mousepad › ${collectionName(crumbCollectionId)} › ${seriesTitle}` :
+      `Stock Mousepad › ${seriesTitle}`;
+
+    sub.textContent =
+      `In-stock ${seriesTitle} desk mats — order today, no custom production wait.`;
+
+  } else if (stockCollection) {
+
+    title.textContent = collectionName(stockCollection);
+
+    crumb.textContent =
+      `Stock Mousepad › ${collectionName(stockCollection)}`;
+
+    sub.textContent =
+      `In-stock ${collectionName(stockCollection)} desk mats — order today, no custom production wait.`;
+
+  } else {
+
+    title.textContent = "Stock Mousepad";
+
+    crumb.textContent = "Stock Mousepad";
+
+    sub.textContent =
+      "Already-made desk mats in stock now — order today, no custom production wait.";
+
+  }
+
+}
+
+else if (type) {
+
+  const info = KEYCAM.typeInfo[type];
+
+  title.textContent =
+    info?.title || typeName(type);
+
+  crumb.textContent =
+    info?.title || typeName(type);
+
+  sub.textContent =
+    "Choose a design, then configure the selected product type on its product page.";
+
+  if (info) {
+
+    typeInfo.hidden = false;
+
+    typeInfo.innerHTML = `
+      <div>
+        <p class="eyebrow">${info.eyebrow}</p>
+        <h2>${info.title}</h2>
+        <p>${info.desc}</p>
+      </div>
+
+      <div class="type-info-grid">
+
+        <div>
+          <span>THICKNESS</span>
+          <strong>${info.specs}</strong>
+        </div>
+
+        <div>
+          <span>AVAILABLE SIZES</span>
+          <strong>${info.sizes}</strong>
+        </div>
+
+        <div>
+          <span>PRICE RANGE</span>
+          <strong>${priceRange(type)}</strong>
+        </div>
+
+      </div>
+    `;
+  }
+
+}
+
+else if (series) {
+
+  const seriesProduct =
+    KEYCAM.products.find(
+      p => p.series === series
+    );
+
+  const seriesTitle =
+    seriesProduct?.seriesName ||
+    series.replace(/-/g, " ");
+
+  title.textContent = seriesTitle;
+
+  crumb.textContent =
+    `${collectionName(c)} › ${seriesTitle}`;
+
+  sub.textContent =
+    `Explore ${seriesTitle} designs.`;
+
+}
+
+else if (c) {
+
+  title.textContent =
+    collectionName(c);
+
+  crumb.textContent =
+    collectionName(c);
+
+  sub.textContent =
+    "Explore designs in this collection.";
+
+}
+
+else {
+
+  title.textContent =
+    q ? `Search: ${q}` : "All Designs";
+
+  crumb.textContent =
+    q ? "Search" : "All Designs";
+
+  sub.textContent =
+    "Browse the full KeyCam design catalog.";
+
+}
+
+
+/* ============================================================
+   NORMAL COLLECTION PILLS
+============================================================ */
+
+let pillHTML = "";
+
+
+/*
+   Only show normal collection navigation when
+   we are not already inside a type page, and not
+   on the Stock Mousepad listing (which uses its own
+   stock-scoped pills below instead).
+*/
+
+if (!type && c !== "stock") {
+
+  pillHTML = KEYCAM.collections.map(item => {
+
+    const id = item[0];
+    const name = item[1];
+
+    const active =
+      id === c && !series;
+
+    return `
+      <a
+        class="${active ? "active" : ""}"
+        href="collection.html?c=${id}"
+      >
+        ${name}
+      </a>
+    `;
+
+  }).join("");
+
+}
+
+
+/* ============================================================
+   STOCK COLLECTION PILLS
+   ------------------------------------------------------------
+   The Stock Mousepad page is its own bucket (all in-stock items
+   regardless of collection), but items are still tagged with a
+   collection/series at import — so let shoppers narrow it down
+   the same way, scoped only to what's actually in stock.
+============================================================ */
+
+if (!type && c === "stock") {
+
+  const stockCollectionIds = new Set(
+    KEYCAM.products
+      .filter(p => p.inStockReady)
+      .flatMap(p => p.collections)
+  );
+
+  const stockCollections =
+    KEYCAM.collections.filter(item => stockCollectionIds.has(item[0]));
+
+  if (stockCollections.length) {
+
+    pillHTML = `
+      <a
+        class="${!stockCollection ? "active" : ""}"
+        href="collection.html?c=stock"
+      >
+        All Stock
+      </a>
+    ` + stockCollections.map(item => {
+
+      const id = item[0];
+      const name = item[1];
+
+      const active =
+        id === stockCollection && !series;
+
+      return `
+        <a
+          class="${active ? "active" : ""}"
+          href="collection.html?c=stock&col=${id}"
+        >
+          ${name}
+        </a>
+      `;
+
+    }).join("");
+
+  }
+
+}
+
+
+/* ============================================================
+   AUTOMATIC SERIES DETECTION
+============================================================ */
+
+if (((c && c !== "stock") || (c === "stock" && stockCollection)) && !type) {
+
+  const activeCollectionId =
+    c === "stock" ? stockCollection : c;
+
+  const collectionProducts =
+    KEYCAM.products.filter(
+      p =>
+        p.collections.includes(activeCollectionId) &&
+        p.series &&
+        (c !== "stock" || p.inStockReady)
+    );
+
+
+  const seriesMap = new Map();
+
+
+  collectionProducts.forEach(p => {
+
+    if (!seriesMap.has(p.series)) {
+
+      seriesMap.set(
+        p.series,
+        p.seriesName || p.series.replace(/-/g, " ")
+      );
+
+    }
+
+  });
+
+
+  const detectedSeries =
+    [...seriesMap.entries()]
+      .sort((a, b) =>
+        a[1].localeCompare(b[1])
+      );
+
+
+  /*
+     Only create the sub-navigation when
+     this collection actually contains series.
+  */
+
+  if (detectedSeries.length) {
+
+    const baseHref =
+      c === "stock" ?
+        `collection.html?c=stock&col=${activeCollectionId}` :
+        `collection.html?c=${activeCollectionId}`;
+
+    pillHTML += `
+      <div class="series-nav">
+
+        <a
+          class="${!series ? "active" : ""}"
+          href="${baseHref}"
+        >
+          All ${collectionName(activeCollectionId)}
+        </a>
+
+        ${detectedSeries.map(([id, name]) => `
+
+          <a
+            class="${series === id ? "active" : ""}"
+            href="${baseHref}&series=${encodeURIComponent(id)}"
+          >
+            ${name}
+          </a>
+
+        `).join("")}
+
+      </div>
+    `;
+
+  }
+
+}
+
+
+pills.innerHTML = pillHTML;
+
+
+/* ============================================================
+   PRODUCT GRID
+============================================================ */
+
+grid.innerHTML = products.length
+
+  ? products
+      .map(p =>
+        productCard(
+          p,
+          type || "mousepad"
+        )
+      )
+      .join("")
+
+  : `
+      <div class="empty-state">
+
+        <h2>No designs found</h2>
+
+        <p>
+          Try another series or search.
+        </p>
+
+      </div>
+    `;
+
+
+/* ============================================================
+   GLASS MOUSEPAD COLLECTION — 7:6 PHOTOS
+   A collection whose id/name mentions "glass" shows its cards at 7:6, and
+   opens products on the Glass option. (?ratio=7-6 forces the 7:6 layout.)
+============================================================ */
+
+const isGlassCollection =
+  !type && c && c !== "stock" &&
+  /glass/i.test(c + " " + collectionName(c));
+
+if (isGlassCollection || params.get("ratio") === "7-6") {
+  grid.classList.add("ratio-7-6");
+}
+
+if (isGlassCollection) {
+  grid.querySelectorAll("a.product-card").forEach(a => {
+    const href = a.getAttribute("href");
+    if (href && !/[?&]type=/.test(href)) {
+      a.setAttribute("href", href + (href.includes("?") ? "&" : "?") + "type=glass");
+    }
+  });
+}
+
+
+/* ============================================================
+   KEEP SCROLL POSITION when coming back from a product
+============================================================ */
+
+(function () {
+  const KEY = "kc-list-scroll";
+  const here = location.pathname + location.search;
+
+  // The listing is built after data loads, so the browser's own scroll
+  // restore fires too early (page still empty) and lands at the top.
+  try { if ("scrollRestoration" in history) history.scrollRestoration = "manual"; } catch (e) {}
+
+  // Remember where the shopper was when they open a product.
+  grid.addEventListener("click", e => {
+    const a = e.target.closest("a.product-card");
+    if (!a) return;
+    try { sessionStorage.setItem(KEY, JSON.stringify({ url: here, y: window.scrollY })); } catch (err) {}
+  });
+
+  // Restore only when arriving back from a product page (Back button or the
+  // product page's back link) — a fresh visit to this list starts at the top.
+  try {
+    const nav = performance.getEntriesByType("navigation")[0];
+    const isBack = !!nav && nav.type === "back_forward";
+    const fromProduct = /product\.html/.test(document.referrer || "");
+    const saved = JSON.parse(sessionStorage.getItem(KEY) || "null");
+    if (saved && saved.url === here && saved.y > 0 && (isBack || fromProduct)) {
+      const go = () => window.scrollTo(0, saved.y);
+      go();
+      requestAnimationFrame(go);
+      setTimeout(go, 150);
+      window.addEventListener("load", go, { once: true });
+    }
+  } catch (err) {}
+})();
+
+
+/* ============================================================
+   SEARCH
+============================================================ */
+
+document.querySelector("#listSearch").value = q;
+
+document
+  .querySelector("#listSearch")
+  .addEventListener("keydown", e => {
+
+    if (e.key === "Enter") {
+
+      location.href =
+        `collection.html?q=${encodeURIComponent(
+          e.target.value.trim()
+        )}`;
+
+    }
+
+  });
+});
+</script></body></html>

@@ -1,0 +1,199 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KeyCam — Product</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../deskmat/styles.css">
+<link rel="stylesheet" href="../shared/catalog.css">
+</head>
+<body>
+
+<div id="siteHeader"></div>
+
+<main class="container" style="padding:30px 0 80px;">
+  <div class="breadcrumbs"><a href="collection.html">Accessories</a><span>›</span><span id="crumb"></span></div>
+  <div id="productBody"><p style="color:var(--muted);">Loading…</p></div>
+</main>
+
+<div id="siteFooter"></div>
+<div id="siteOverlays"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-client.js"></script>
+<script src="../shared/catalog-client.js"></script>
+<script src="../shared/catalog-cart.js"></script>
+<script src="../shared/layout.js"></script>
+<script>
+initLayout({ base: "../", active: "accessories" });
+
+window.CATALOG_READY.then(() => {
+  const params = new URLSearchParams(location.search);
+  const id = params.get("id");
+  const product = window.CATALOG.products.find(p => p.id === id);
+  const body = document.querySelector("#productBody");
+
+  if(!product){
+    body.innerHTML = `<p style="color:var(--muted);">Product not found.</p>`;
+    return;
+  }
+
+  document.title = `KeyCam — ${product.name}`;
+  document.querySelector("#crumb").textContent = product.name;
+
+  // Default selection: first IN-STOCK option in every group (falls back
+  // to the first option at all if the whole group is out of stock).
+  const selections = {};
+  product.variantGroups.forEach(g => {
+    const firstAvailable = g.options.find(o => o.inStock);
+    selections[g.name] = (firstAvailable || g.options[0])?.label;
+  });
+
+  // Initial main image: prefer the first default-selected variant option
+  // that has a linked image, otherwise the product's own gallery/cover.
+  let initialImage = product.images[0]?.url || product.image || null;
+  for(const g of product.variantGroups){
+    const opt = g.options.find(o => o.label === selections[g.name]);
+    if(opt && opt.image){ initialImage = opt.image; break; }
+  }
+
+  body.innerHTML = `
+    <div class="catalog-product-layout">
+      <div>
+        <div class="product-art" style="aspect-ratio:1;border:1px solid var(--line);">
+          <img id="mainProductImage" src="${initialImage || ''}" alt="${product.name}" style="width:100%;height:100%;object-fit:cover;${initialImage ? '' : 'display:none;'}">
+        </div>
+        ${product.images.length > 1 ? `
+          <div class="product-gallery-thumbs" id="galleryThumbs">
+            ${product.images.map((im,i) => `<button class="product-gallery-thumb ${im.url===initialImage?'selected':''}" data-url="${im.url}"><img src="${im.url}" alt=""></button>`).join("")}
+          </div>
+        ` : ""}
+      </div>
+      <div>
+        ${product.collection ? `<p class="eyebrow">${product.collection}</p>` : ""}
+        <h1>${product.name}</h1>
+        ${product.specs ? `<p class="catalog-specs">${product.specs}</p>` : ""}
+        <div id="variantGroups"></div>
+        <div style="margin:18px 0;font:700 28px 'Space Grotesk';color:var(--blue);" id="priceDisplay"></div>
+        <button class="btn btn-primary btn-wide" id="addToOrderBtn">Add to Order</button>
+        <div id="productInfoSections"></div>
+      </div>
+    </div>
+  `;
+
+  function bulletListHTML(text){
+    const lines = (text || "").split("\n").map(l => l.trim()).filter(Boolean);
+    return lines.length ? `<ul>${lines.map(l => `<li>${l}</li>`).join("")}</ul>` : "";
+  }
+
+  const infoSections = [
+    { title: "Description", text: product.description, openByDefault: true },
+    { title: "Shipping", text: product.shippingInfo, openByDefault: false },
+    { title: "Payment", text: product.paymentInfo, openByDefault: false }
+  ].filter(s => (s.text || "").trim());
+
+  document.querySelector("#productInfoSections").innerHTML = infoSections.map(s => `
+    <details class="product-info-section" ${s.openByDefault ? "open" : ""}>
+      <summary>${s.title}</summary>
+      <div class="product-info-body">${bulletListHTML(s.text)}</div>
+    </details>
+  `).join("");
+
+  function setMainImage(url){
+    if(!url) return;
+    const img = document.querySelector("#mainProductImage");
+    img.src = url;
+    img.style.display = "";
+    document.querySelectorAll(".product-gallery-thumb").forEach(t =>
+      t.classList.toggle("selected", t.dataset.url === url)
+    );
+  }
+
+  document.querySelector("#galleryThumbs")?.addEventListener("click", (e) => {
+    const btn = e.target.closest(".product-gallery-thumb");
+    if(!btn) return;
+    setMainImage(btn.dataset.url);
+  });
+
+  const groupsEl = document.querySelector("#variantGroups");
+  groupsEl.innerHTML = product.variantGroups.map(g => `
+    <div class="variant-group">
+      <span class="variant-group-label">${g.name}</span>
+      <div class="variant-options" data-group="${g.name}">
+        ${g.options.map((o,i) => `<button class="variant-chip ${o.label===selections[g.name]?'selected':''} ${o.inStock?'':'out-of-stock'}" data-label="${o.label}" ${o.inStock?'':'disabled'}>${o.label}${o.inStock?'':' (Out of stock)'}</button>`).join("")}
+      </div>
+    </div>
+  `).join("");
+
+  function currentSelectionAvailable(){
+    return product.variantGroups.every(g => {
+      const opt = g.options.find(o => o.label === selections[g.name]);
+      return opt ? opt.inStock : true;
+    });
+  }
+
+  function updateAvailability(){
+    const btn = document.querySelector("#addToOrderBtn");
+    if(currentSelectionAvailable()){
+      btn.disabled = false;
+      btn.textContent = "Add to Order";
+    }else{
+      btn.disabled = true;
+      btn.textContent = "Out of Stock";
+    }
+  }
+
+  function updatePrice(){
+    const original = catalogPrice(product, selections);
+    const final = applyCatalogDiscount(original, product);
+    const priceEl = document.querySelector("#priceDisplay");
+    if(original === null){
+      priceEl.textContent = "—";
+    }else if(final < original){
+      priceEl.innerHTML = `<span class="catalog-price-was" style="font-size:16px;">${money2(original)}</span><span class="catalog-price-now">${money2(final)}</span>`;
+    }else{
+      priceEl.textContent = money2(final);
+    }
+    updateAvailability();
+  }
+  updatePrice();
+
+  groupsEl.querySelectorAll(".variant-options").forEach(row => {
+    row.addEventListener("click", (e) => {
+      const btn = e.target.closest(".variant-chip");
+      if(!btn || btn.disabled) return;
+      row.querySelectorAll(".variant-chip").forEach(b => b.classList.remove("selected"));
+      btn.classList.add("selected");
+      selections[row.dataset.group] = btn.dataset.label;
+      updatePrice();
+
+      const group = product.variantGroups.find(g => g.name === row.dataset.group);
+      const opt = group?.options.find(o => o.label === btn.dataset.label);
+      if(opt && opt.image) setMainImage(opt.image);
+    });
+  });
+
+  document.querySelector("#addToOrderBtn").addEventListener("click", () => {
+    if(!currentSelectionAvailable()) return;
+    const original = catalogPrice(product, selections);
+    const price = applyCatalogDiscount(original, product);
+    const variantSummary = Object.entries(selections).map(([g,v]) => `${g}: ${v}`).join(" · ");
+    const key = `${product.id}|${variantSummary}`;
+    addToCatalogOrder({
+      productId: product.id,
+      name: product.name,
+      image: product.thumbnail || product.image,
+      price,
+      originalPrice: (price < original) ? original : null,
+      discountPercent: catalogDiscountPercentFor(product),
+      variantSummary,
+      key
+    });
+  });
+});
+</script>
+</body>
+</html>

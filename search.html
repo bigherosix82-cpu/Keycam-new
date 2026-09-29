@@ -1,0 +1,101 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KeyCam — Search</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="deskmat/styles.css">
+<link rel="stylesheet" href="shared/catalog.css">
+</head>
+<body>
+
+<div id="siteHeader"></div>
+
+<main class="listing">
+  <div class="container">
+    <div class="breadcrumbs"><a href="index.html">Home</a><span>›</span><span>Search</span></div>
+    <div class="listing-head">
+      <div>
+        <p class="eyebrow">KEYCAM CATALOG</p>
+        <h1 id="title">Search</h1>
+        <p id="sub" style="color:var(--muted);"></p>
+      </div>
+      <label class="inline-search">⌕<input id="listSearch" placeholder="Search keyboards, accessories, mouse..." autocomplete="off"></label>
+    </div>
+    <div class="listing-grid" id="listingGrid"><div class="catalog-loading">Loading…</div></div>
+  </div>
+</main>
+
+<div id="siteFooter"></div>
+<div id="siteOverlays"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="shared/catalog-client.js"></script>
+<script src="shared/catalog-cart.js"></script>
+<script src="shared/layout.js"></script>
+<script>
+initLayout({ base: "", active: "" });
+
+function currentQuery(){
+  return new URLSearchParams(location.search).get("q") || "";
+}
+
+function renderResults(q){
+  const grid = document.querySelector("#listingGrid");
+  const sub = document.querySelector("#sub");
+  const needle = q.trim().toLowerCase();
+  const products = window.CATALOG.products || [];
+
+  if(!needle){
+    sub.textContent = "Type in the search box to find keyboards, accessories or mouse products.";
+    grid.innerHTML = "";
+    return;
+  }
+
+  const matches = products.filter(p => {
+    const hay = [p.name, p.category, p.subtype, p.theme, p.profile].filter(Boolean).join(" ").toLowerCase();
+    return hay.includes(needle);
+  });
+
+  sub.textContent = `${matches.length} result${matches.length === 1 ? "" : "s"} for "${q.trim()}"`;
+
+  if(!matches.length){
+    grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;">No products matched. Try another word, or check Deskmat separately.</p>`;
+    return;
+  }
+
+  grid.innerHTML = matches.map(p => `
+    <a class="product-card" href="${p.category}/product.html?id=${p.id}">
+      <div class="product-art">
+        ${catalogDiscountBadgeHTML(p)}
+        ${p.thumbnail ? `<img src="${p.thumbnail}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">` : ""}
+      </div>
+      <div style="padding:14px;">
+        <span class="pc-cat-tag">${p.category}${p.subtype ? ` · ${p.subtype}` : ""}</span>
+        <strong style="display:block;font:600 14px 'Space Grotesk';">${p.name}</strong>
+        <div style="margin-top:8px;font:700 15px 'Space Grotesk';color:var(--blue);">${catalogPriceRangeHTML(p)}</div>
+      </div>
+    </a>
+  `).join("");
+}
+
+window.CATALOG_READY.then(() => {
+  const q = currentQuery();
+  document.querySelector("#listSearch").value = q;
+  renderResults(q);
+});
+
+document.querySelector("#listSearch").addEventListener("keydown", (e) => {
+  if(e.key !== "Enter") return;
+  const q = e.target.value.trim();
+  const next = q ? `search.html?q=${encodeURIComponent(q)}` : "search.html";
+  if(next !== location.pathname.split("/").pop() + location.search) history.pushState({}, "", next);
+  window.CATALOG_READY.then(() => renderResults(q));
+});
+</script>
+</body>
+</html>

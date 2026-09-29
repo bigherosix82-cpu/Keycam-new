@@ -1,0 +1,2237 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="description" content="Configure a KeyCam original design as a Mouse Pad, FPS Mouse Pad or Glass Mouse Pad, then choose size and thickness.">
+<title>KeyCam — Product</title>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+
+<link rel="stylesheet" href="styles.css">
+
+<style>
+  /* Detail thumbnails become clickable + show active state */
+  .product-visual-toolbar {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    flex-wrap: wrap;
+    margin: 0 0 10px;
+  }
+  .product-visual-toolbar .desk-texture-switch {
+    margin: 0;
+  }
+  .view-toggle-link {
+    background: none;
+    border: 1px solid var(--line);
+    color: var(--blue);
+    font: 600 12px "Space Grotesk", sans-serif;
+    cursor: pointer;
+    padding: 6px 12px;
+    border-radius: 4px;
+    white-space: nowrap;
+    margin-left: auto;
+  }
+  .view-toggle-link:hover {
+    border-color: var(--blue);
+    background: rgba(32,195,223,.08);
+  }
+  .detail-gallery-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+  }
+  .detail-gallery-card {
+    cursor: pointer;
+    padding: 0;
+    border: 2px solid transparent;
+    border-radius: 8px;
+    background: none;
+    overflow: hidden;
+    width: 84px;
+    height: 84px;
+    flex: 0 0 auto;
+    transition: border-color .15s ease, opacity .15s ease;
+  }
+  .detail-gallery-card img {
+    display: block;
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .detail-gallery-card:hover {
+    border-color: rgba(255,255,255,0.35);
+  }
+  .detail-gallery-card.active {
+    border-color: #5ec8e6;
+  }
+  #mainProductImage {
+    transition: opacity .12s ease;
+  }
+
+  /* Improved selector styles */
+  .selector-group {
+    margin-top: 22px;
+  }
+  .selector-group:first-of-type {
+    margin-top: 0;
+  }
+  .selector-label {
+    display: block;
+    font: 600 10px "Space Grotesk";
+    letter-spacing: .12em;
+    color: #606c71;
+    margin-bottom: 10px;
+    text-transform: uppercase;
+  }
+  .selector-options {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 8px;
+  }
+  .selector-btn {
+    border: 1px solid var(--line);
+    background: #0f1518;
+    color: #8f9a9e;
+    padding: 10px 16px;
+    border-radius: 9px;
+    cursor: pointer;
+    transition: all .2s ease;
+    font-family: inherit;
+    font-size: 13px;
+    text-align: center;
+    min-width: 60px;
+  }
+  .selector-btn:hover {
+    border-color: #5ec8e6;
+    color: #dce3e5;
+  }
+  .selector-btn.selected {
+    background: #20c3df;
+    color: #061014;
+    border-color: #20c3df;
+  }
+  .selector-btn .sub {
+    display: block;
+    font-size: 9px;
+    margin-top: 3px;
+    opacity: 0.7;
+  }
+  .selector-btn.selected .sub {
+    opacity: 0.8;
+  }
+  .selector-btn .icon {
+    display: block;
+    font-size: 20px;
+    margin-bottom: 2px;
+  }
+
+  /* Type buttons - larger with icons */
+  .type-btn {
+    min-width: 90px;
+    padding: 12px 16px;
+  }
+  .type-btn .label {
+    font-weight: 600;
+    font-size: 13px;
+  }
+
+  /* Size buttons */
+  .size-btn {
+    padding: 10px 14px;
+    font-size: 12px;
+  }
+
+  /* Thickness buttons */
+  .thick-btn {
+    padding: 10px 18px;
+    font-size: 12px;
+    font-weight: 600;
+  }
+
+  /* Discount banner */
+  .discount-banner {
+    background: rgba(32,195,223,0.12);
+    border: 1px solid rgba(32,195,223,0.2);
+    border-radius: 8px;
+    padding: 10px 16px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-size: 13px;
+    color: #b0c8d0;
+  }
+  .discount-banner strong {
+    color: #20c3df;
+  }
+  .discount-banner .badge {
+    background: #20c3df;
+    color: #061014;
+    font-weight: 700;
+    font-size: 11px;
+    padding: 2px 10px;
+    border-radius: 999px;
+    margin-left: auto;
+    white-space: nowrap;
+  }
+
+  /* Price display */
+  .price-display {
+    display: flex;
+    align-items: baseline;
+    gap: 10px;
+    flex-wrap: wrap;
+  }
+  .price-current {
+    font: 700 28px "Space Grotesk";
+    color: #20c3df;
+  }
+  .price-original {
+    font-size: 18px;
+    color: #7f8b90;
+    text-decoration: line-through;
+  }
+  .price-dim {
+    font-size: 14px;
+    color: #7f8b90;
+    margin-left: 4px;
+  }
+  .price-save {
+    font-size: 12px;
+    color: #4ade80;
+    font-weight: 600;
+  }
+
+  /* Order button with icon */
+  .btn-add {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+  }
+
+  /* Responsive tweaks */
+  @media (max-width: 650px) {
+    .selector-options {
+      gap: 6px;
+    }
+    .selector-btn {
+      padding: 8px 12px;
+      font-size: 12px;
+      min-width: 50px;
+    }
+    .type-btn {
+      min-width: 70px;
+      padding: 10px 12px;
+    }
+    .type-btn .icon {
+      font-size: 16px;
+    }
+    .price-current {
+      font-size: 24px;
+    }
+    .discount-banner {
+      font-size: 12px;
+      padding: 8px 12px;
+      flex-wrap: wrap;
+    }
+    .discount-banner .badge {
+      font-size: 10px;
+      padding: 1px 8px;
+    }
+  }
+</style>
+</head>
+
+<body>
+
+<header class="site-header">
+  <div class="container nav-wrap">
+
+    <a class="brand" href="../index.html">
+      <img src="assets/keycam-logo.jpg" alt="KeyCam logo">
+      <span>KEYCAM</span>
+    </a>
+
+    <nav class="desktop-nav">
+      <a href="../keyboard/index.html">Keyboard</a>
+      <a href="../accessories/collection.html">Accessories</a>
+      <a href="../mouse/collection.html">Mouse</a>
+      <a href="index.html" class="active">Deskmat</a>
+    </nav>
+
+    <div class="header-actions">
+      <button class="icon-btn" id="searchOpen" aria-label="Search">⌕</button>
+
+      <button class="order-pill" id="orderOpen">
+        My Order <b id="orderCount">0</b>
+      </button>
+
+      <button class="menu-btn" id="menuOpen" aria-label="Open menu">☰</button>
+    </div>
+
+  </div>
+  <div class="container sub-nav">
+    <a class="nav-menu" href="index.html#collections">Collections</a>
+    <a class="nav-menu" href="index.html#products">Design Your Own</a>
+    <a href="collection.html?c=stock">Stock Mousepad</a>
+    <a href="size-guide.html">Size Guide</a>
+  </div>
+</header>
+
+
+<div class="catalog-loading" id="productLoading">Loading design…</div>
+<main class="product-page" id="productMain" style="display:none;">
+
+  <div class="container">
+
+    <!-- BREADCRUMBS -->
+    <div class="breadcrumbs">
+      <a href="index.html">Home</a>
+      <span>›</span>
+      <a id="backCollection" href="collection.html?c=all">Products</a>
+      <span>›</span>
+      <span id="crumb"></span>
+    </div>
+
+
+    <!-- PRODUCT -->
+    <div class="product-layout">
+
+      <!-- LEFT -->
+      <div id="visual"></div>
+
+
+      <!-- RIGHT -->
+      <div class="product-detail">
+
+        <p class="eyebrow">
+          ORIGINAL KEYCAM DESIGN
+        </p>
+
+        <h1 id="name"></h1>
+
+        <p class="detail-desc" id="desc"></p>
+
+
+        <!-- SELECTORS -->
+        <div id="selectors"></div>
+
+
+       <!-- PRICE -->
+<div class="selected-price" id="priceContainer">
+  <span>PRICE</span>
+  <div id="priceDisplay" class="price-display">
+    <span class="price-current" id="price">—</span>
+    <span class="price-original" id="priceOriginal" style="display:none;"></span>
+    <span class="price-save" id="priceSave" style="display:none;"></span>
+    <span class="price-dim" id="priceDim"></span>
+  </div>
+</div>
+
+
+        <!-- ORDER -->
+        <button
+          class="btn btn-primary btn-wide btn-add"
+          id="add"
+        >
+          <span>➕</span> Add to My Order
+        </button>
+
+
+        <a
+          class="btn btn-ghost btn-wide"
+          id="ask"
+          target="_blank"
+          rel="noopener"
+        >
+          💬 Ask on Telegram ↗
+        </a>
+
+
+        <p class="small-note">
+          Your selection stays in My Order while you browse other designs.
+        </p>
+
+
+        <!-- ACCORDIONS -->
+        <div class="product-accordions" id="productAccordions">
+
+
+          <!-- PRODUCT SPECS -->
+          <div class="product-accordion">
+
+            <button
+              type="button"
+              class="product-accordion-head"
+              aria-expanded="false"
+            >
+
+              <span class="accordion-icon" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <circle
+                    cx="12"
+                    cy="12"
+                    r="9"
+                  ></circle>
+
+                  <path
+                    d="m8.5 12 2.2 2.2 4.8-5"
+                  ></path>
+                </svg>
+              </span>
+
+              <strong>Product Specs</strong>
+
+              <span
+                class="accordion-plus"
+                aria-hidden="true"
+              >
+                +
+              </span>
+
+            </button>
+
+
+            <div
+              class="product-accordion-body"
+              hidden
+              id="productSpecsBody"
+            ></div>
+
+          </div>
+
+
+          <!-- SHIPPING -->
+          <div class="product-accordion">
+
+            <button
+              type="button"
+              class="product-accordion-head"
+              aria-expanded="false"
+            >
+
+              <span class="accordion-icon" aria-hidden="true">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                >
+                  <path d="M3 7h11v10H3z"></path>
+                  <path d="M14 10h4l3 3v4h-7z"></path>
+                  <circle cx="7" cy="19" r="2"></circle>
+                  <circle cx="18" cy="19" r="2"></circle>
+                </svg>
+              </span>
+
+              <strong>Shipping Info</strong>
+
+              <span
+                class="accordion-plus"
+                aria-hidden="true"
+              >
+                +
+              </span>
+
+            </button>
+
+
+            <div
+              class="product-accordion-body"
+              hidden
+              id="productShippingBody"
+            ></div>
+
+          </div>
+
+        </div>
+
+      </div>
+
+    </div>
+
+
+    <!-- DETAILS -->
+    <section class="detail-info">
+
+      <div>
+
+        <p class="eyebrow">
+          DETAILS
+        </p>
+
+        <h2>
+          Made for the <em>setup.</em>
+        </h2>
+
+      </div>
+
+
+      <div class="detail-copy">
+
+        <p>
+          Every design now lives on one product page.
+          Choose Mouse Pad, FPS or Glass first, then select
+          the size and thickness available for that type.
+        </p>
+
+        <a href="size-guide.html">
+          Compare regular sizes →
+        </a>
+
+      </div>
+
+    </section>
+
+
+    <!-- RELATED -->
+    <section>
+
+      <div class="section-head">
+
+        <div>
+
+          <p class="eyebrow">
+            MORE TO EXPLORE
+          </p>
+
+          <h2>
+            Related designs
+          </h2>
+
+        </div>
+
+      </div>
+
+
+      <div
+        class="listing-grid"
+        id="related"
+      ></div>
+
+    </section>
+
+  </div>
+
+</main>
+
+
+<!-- FOOTER -->
+<footer class="site-footer compact-footer">
+
+  <div class="container footer-social">
+
+    <a
+      href="https://maps.app.goo.gl/SFp44sTmpm52HC5i7"
+      target="_blank"
+      rel="noopener"
+      aria-label="Location"
+    >
+      <img
+        src="assets/icons/location.png"
+        alt=""
+      >
+    </a>
+
+    <a
+      href="https://t.me/Key_Cam"
+      target="_blank"
+      rel="noopener"
+      aria-label="Telegram"
+    >
+      <img
+        src="assets/icons/telegram.png"
+        alt=""
+      >
+    </a>
+
+    <a
+      href="https://www.facebook.com/share/1EyHBrqsXP/"
+      target="_blank"
+      rel="noopener"
+      aria-label="Facebook"
+    >
+      <img
+        src="assets/icons/facebook.png"
+        alt=""
+      >
+    </a>
+
+    <a
+      href="https://www.instagram.com/key_camm?igsh=bWVjeWd6bWFvZHB4"
+      target="_blank"
+      rel="noopener"
+      aria-label="Instagram"
+    >
+      <img
+        src="assets/icons/instagram.webp"
+        alt=""
+      >
+    </a>
+
+    <a
+      href="https://www.tiktok.com/@keycamm?_r=1&amp;_t=ZS-98MRrdf6b"
+      target="_blank"
+      rel="noopener"
+      aria-label="TikTok"
+    >
+      <img
+        src="assets/icons/tiktok.png"
+        alt=""
+      >
+    </a>
+
+  </div>
+
+
+  <div class="container footer-bottom">
+
+    <span>
+      © 2026 KeyCam. All rights reserved.
+    </span>
+
+    <span>
+      Phnom Penh · 0886449944
+    </span>
+
+  </div>
+
+</footer>
+
+
+<!-- SEARCH -->
+<div
+  class="search-panel"
+  id="searchPanel"
+>
+
+  <div class="container">
+
+    <button
+      id="searchClose"
+      aria-label="Close search"
+    >
+      ×
+    </button>
+
+    <input
+      id="searchInput"
+      placeholder="Search designs, collections, styles..."
+      autocomplete="off"
+    >
+
+    <p>
+      Press Enter to search.
+    </p>
+
+  </div>
+
+</div>
+
+
+<!-- ORDER DRAWER -->
+<div
+  class="drawer-backdrop"
+  id="drawerBackdrop"
+></div>
+
+
+<aside
+  class="order-drawer"
+  id="orderDrawer"
+>
+
+  <div class="drawer-head">
+
+    <h2>
+      My Order
+    </h2>
+
+    <button
+      id="orderClose"
+      aria-label="Close order"
+    >
+      ×
+    </button>
+
+  </div>
+
+
+  <div id="orderItems"></div>
+
+
+  <div class="drawer-total">
+
+    <span>
+      Total
+    </span>
+
+    <strong id="orderTotal">
+      $0
+    </strong>
+
+  </div>
+
+
+  <button
+    class="btn btn-primary btn-wide"
+    id="telegramOrder"
+  >
+    Order on Telegram ↗
+  </button>
+
+
+  <button
+    class="clear-order"
+    id="clearOrder"
+  >
+    Clear order
+  </button>
+
+</aside>
+
+
+<!-- MOBILE MENU -->
+<div
+  class="mobile-menu"
+  id="mobileMenu"
+>
+
+  <button
+    id="mobileClose"
+    aria-label="Close menu"
+  >
+    ×
+  </button>
+
+  <a href="../index.html">
+    Home
+  </a>
+
+  <a href="../keyboard/index.html">Keyboard</a>
+  <a href="../accessories/collection.html">Accessories</a>
+  <a href="../mouse/collection.html">Mouse</a>
+  <a href="index.html">Deskmat</a>
+
+  <button
+    class="mobile-expand"
+    data-target="mobileCollections"
+  >
+    Collections +
+  </button>
+
+  <div id="mobileCollections"></div>
+
+
+  <button
+    class="mobile-expand"
+    data-target="mobileProducts"
+  >
+    Design Your Own +
+  </button>
+
+  <div id="mobileProducts"></div>
+
+  <a href="size-guide.html">
+    Size Guide
+  </a>
+
+  <a
+    href="https://t.me/Key_Cam"
+    target="_blank"
+    rel="noopener"
+  >
+    Telegram ↗
+  </a>
+
+</div>
+
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-client.js"></script>
+<script src="app.js"></script>
+
+
+<script>
+window.KEYCAM_READY.then(function(){
+document.querySelector('#productLoading')?.remove();
+document.querySelector('#productMain').style.display = '';
+
+const id =
+  new URLSearchParams(location.search).get('id');
+
+const p =
+  KEYCAM.products.find(x => x.id === id);
+
+
+if (!p) {
+
+  location.href =
+    'collection.html?c=all';
+
+} else {
+
+
+  /* =====================================================
+     BASIC PRODUCT INFORMATION
+     ===================================================== */
+
+  document.title =
+    `KeyCam — ${p.name}`;
+
+  document.querySelector('#crumb').textContent =
+    p.name;
+
+  document.querySelector('#name').textContent =
+    p.name;
+
+  document.querySelector('#desc').textContent =
+    p.desc;
+
+
+  document.querySelector('#backCollection').href =
+    `collection.html?c=${p.collections[0]}`;
+
+  // If the shopper came from a listing, send them back to that exact page
+  // (the listing restores their scroll position on arrival).
+  try {
+    const savedList = JSON.parse(sessionStorage.getItem('kc-list-scroll') || 'null');
+    if (savedList && typeof savedList.url === 'string' &&
+        /collection\.html/.test(savedList.url) && /collection\.html/.test(document.referrer || '') &&
+        savedList.url.charAt(0) === '/' && savedList.url.charAt(1) !== '/') {
+      document.querySelector('#backCollection').href = savedList.url;
+    }
+  } catch (e) {}
+
+
+  /* =====================================================
+     STOCK MOUSEPAD DETECTION
+     -----------------------------------------------------
+     A "stock" product is a physical, ready-made desk mat —
+     one fixed type/size/thickness/price set by the admin at
+     import time (see admin.html "Import Stock Mousepad").
+     Collection and series still apply exactly like any other
+     product (kept for browsing/search); the only thing that
+     changes is that the shopper picks nothing and the photo
+     is treated as a plain product photo, not print artwork.
+     ===================================================== */
+
+  const isStockProduct =
+    !!(p.inStockReady && p.stockType && p.stockThickness && p.stockSizeLabel && p.stockPrice != null);
+
+
+  /* =====================================================
+     PRODUCT VISUAL
+     ===================================================== */
+
+  document.querySelector('#visual').innerHTML = isStockProduct ? `
+
+    <div class="product-showcase">
+
+      <div class="product-art product-image-art" id="productFlatPanel">
+        <span class="pc-badge">Stock Mousepad — Ready to Ship</span>
+        <img
+          id="mainProductImage"
+          src="${p.image}"
+          alt="${p.name}"
+        >
+      </div>
+
+    </div>
+
+  ` : `
+
+    <div class="product-showcase">
+
+      <div class="product-visual-toolbar">
+        <div class="desk-texture-switch" id="deskTextureSwitch" role="group" aria-label="Desk texture">
+          <button type="button" class="desk-texture-btn" data-desk="desk-texture.jpg">Default</button>
+          <button type="button" class="desk-texture-btn" data-desk="desk-texture-blackwood.jpg">Black wood</button>
+          <button type="button" class="desk-texture-btn" data-desk="desk-texture-lightwood.jpg">Light wood</button>
+          <button type="button" class="desk-texture-btn" data-desk="desk-texture-whitewood.jpg">White wood</button>
+        </div>
+        <div class="product-visual-actions">
+          <button type="button" class="view-toggle-link" id="viewToggleBtn">See Full Image</button>
+          <button type="button" class="view-toggle-link" id="removeAccessoriesBtn">Remove Mouse &amp; Keyboard</button>
+          <button type="button" class="view-toggle-link" id="resetPositionBtn" style="display:none;">Reset Position</button>
+        </div>
+      </div>
+      <p class="small-note" id="dragHint">Drag the mat design below to reposition it.</p>
+
+      <div class="product-mockup-panel" id="productMockupPanel">
+        <div class="fit-desk product-fit-desk" id="productFitDesk">
+          <img class="product-fit-monitor" id="productFitMonitor" src="assets/fit-finder/Monitor.png" alt="" aria-hidden="true" draggable="false">
+          <div class="fit-mat" id="productFitMat"></div>
+          <div class="fit-keyboard" id="productFitKeyboard"></div>
+          <div class="fit-mouse" id="productFitMouse"></div>
+        </div>
+        <p class="small-note" id="productFitCaption"></p>
+      </div>
+
+      <div class="product-art product-image-art" id="productFlatPanel" style="display:none;">
+        <img
+          id="mainProductImage"
+          src="${p.image}"
+          alt="${p.name}"
+        >
+      </div>
+
+    </div>
+
+  `;
+
+
+  /* =====================================================
+     CURRENT SELECTION
+     ===================================================== */
+
+  // Default product type: ?type= from the listing wins; otherwise products in
+  // a glass-specific collection open on Glass. Everything else opens on Mouse Pad.
+  const requestedType = new URLSearchParams(location.search).get('type');
+  const inGlassCollection = (p.collections || []).some(cid => {
+    const row = KEYCAM.collections.find(x => x[0] === cid);
+    return /glass/i.test(cid + ' ' + (row ? row[1] : ''));
+  });
+  const defaultType = ['mousepad', 'fps', 'glass'].includes(requestedType)
+    ? requestedType
+    : (inGlassCollection ? 'glass' : 'mousepad');
+
+  let selectedType =
+    isStockProduct ? p.stockType : defaultType;
+
+  let selectedSize =
+    '900x400';
+
+  let selectedThickness =
+    isStockProduct ? p.stockThickness : '3MM';
+
+  let currentMainImage =
+    p.image;
+
+  let mockupView = 'setup'; // 'setup' = live desk mockup, 'flat' = photo/detail
+  let accessoriesHidden = false; // true while keyboard/mouse are hidden from the mockup
+  let customFocalX = null; // null = use product's default crop; set once the shopper drags the mat
+  let customFocalY = null;
+
+  const PRODUCT_FIT_ASSETS = {
+    deskFolder: 'assets/fit-finder/',
+    keyboard: 'assets/fit-finder/keyboard.png',
+    mouse: 'assets/fit-finder/Mouse.png',
+    monitor: 'assets/fit-finder/Monitor.png'
+  };
+  const FIT_KB = { w: 330, d: 138 };
+  const FIT_MOUSE = { w: 65, d: 116 };
+  const FIT_MONITOR = { w: 610, d: 190 };
+  const DESK_TEXTURE_KEY = 'keycam-desk-texture';
+
+  function getDeskTextureFile(){
+    try {
+      const v = localStorage.getItem(DESK_TEXTURE_KEY);
+      if(v && /^desk-texture[\w.-]*\.jpg$/i.test(v)) return v;
+    } catch(e){}
+    return 'desk-texture.jpg';
+  }
+  function setDeskTextureFile(file){
+    try { localStorage.setItem(DESK_TEXTURE_KEY, file); } catch(e){}
+  }
+  function wireDeskTextureSwitch(){
+    const wrap = document.querySelector('#deskTextureSwitch');
+    if(!wrap) return;
+    const current = getDeskTextureFile();
+    wrap.querySelectorAll('.desk-texture-btn').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.desk === current);
+      btn.onclick = () => {
+        setDeskTextureFile(btn.dataset.desk);
+        wrap.querySelectorAll('.desk-texture-btn').forEach(b => b.classList.toggle('active', b === btn));
+        if(mockupView === 'setup') updateProductMockup();
+      };
+    });
+  }
+
+  function parseSizeKey(key){
+    const m = String(key || '').match(/(\d+)\s*[x×]\s*(\d+)/i);
+    if(m) return { w: Number(m[1]), d: Number(m[2]) };
+    return { w: 900, d: 400 };
+  }
+
+  // Matches the 1 cm safe-area guide shown on the Size Guide artwork
+  // checker: zoom the live preview just enough that the outer 1cm strip
+  // on every edge (the part that isn't guaranteed to survive the cut)
+  // is cropped out of view, same as the safe-area guide there.
+  function safeAreaZoom(size){
+    if(!size || !size.w || !size.d) return 1;
+    const hFrac = Math.min(0.9, 20 / size.w); // both edges, 10mm each
+    const vFrac = Math.min(0.9, 20 / size.d);
+    const zoom = 1 / Math.min(1 - hFrac, 1 - vFrac);
+    return Math.max(1, Math.min(zoom, 1.6));
+  }
+
+  function setFitRect(el, left, top, width, depth){
+    if(!el) return;
+    el.style.left = left + '%';
+    el.style.top = top + '%';
+    el.style.width = width + '%';
+    el.style.height = depth + '%';
+  }
+
+  function showMockupSetup(){
+    mockupView = 'setup';
+    const panel = document.querySelector('#productMockupPanel');
+    const flat = document.querySelector('#productFlatPanel');
+    if(panel) panel.style.display = '';
+    if(flat) flat.style.display = 'none';
+    updateProductMockup();
+    if(typeof syncViewToggle === 'function') syncViewToggle();
+    const removeBtn = document.querySelector('#removeAccessoriesBtn');
+    if(removeBtn) removeBtn.style.display = '';
+    const dragHint = document.querySelector('#dragHint');
+    if(dragHint) dragHint.style.display = '';
+    syncResetPositionBtn();
+  }
+
+  function showMockupFlat(src){
+    mockupView = 'flat';
+    const panel = document.querySelector('#productMockupPanel');
+    const flat = document.querySelector('#productFlatPanel');
+    const img = document.querySelector('#mainProductImage');
+    if(panel) panel.style.display = 'none';
+    if(flat) flat.style.display = '';
+    if(img && src) img.src = src;
+      if(typeof syncViewToggle === 'function') syncViewToggle();
+    const removeBtn = document.querySelector('#removeAccessoriesBtn');
+    if(removeBtn) removeBtn.style.display = 'none';
+    const dragHint = document.querySelector('#dragHint');
+    if(dragHint) dragHint.style.display = 'none';
+    const resetBtn = document.querySelector('#resetPositionBtn');
+    if(resetBtn) resetBtn.style.display = 'none';
+  }
+
+  function updateProductMockup(){
+    const deskEl = document.querySelector('#productFitDesk');
+    const matEl = document.querySelector('#productFitMat');
+    const keyboardEl = document.querySelector('#productFitKeyboard');
+    const mouseEl = document.querySelector('#productFitMouse');
+    const monitorEl = document.querySelector('#productFitMonitor');
+    const captionEl = document.querySelector('#productFitCaption');
+    if(!deskEl || !matEl || !keyboardEl || !mouseEl) return;
+
+    const size = parseSizeKey(selectedSize);
+    const coverage = (selectedType === 'fps' || selectedType === 'glass' || size.w <= 500)
+      ? 'mousepad'
+      : 'deskmat';
+
+    const deskW = coverage === 'deskmat'
+      ? Math.max(size.w + 200, Math.max(FIT_MONITOR.w + 80, 1100))
+      : Math.max(size.w + FIT_KB.w + 140, Math.max(FIT_MONITOR.w + 80, 1000));
+    const deskD = coverage === 'deskmat'
+      ? Math.max(size.d + FIT_MONITOR.d + 80, 620)
+      : Math.max(Math.max(size.d, FIT_KB.d) + FIT_MONITOR.d + 60, 560);
+
+    deskEl.style.aspectRatio = deskW + ' / ' + deskD;
+    deskEl.style.backgroundImage = 'url("' + PRODUCT_FIT_ASSETS.deskFolder + getDeskTextureFile() + '")';
+    deskEl.style.backgroundSize = 'cover';
+    deskEl.style.backgroundPosition = 'center';
+
+    matEl.style.display = 'flex';
+    matEl.style.backgroundColor = '#1a1a1a';
+    if(!matEl.querySelector('#productFitMatArt')){
+      matEl.innerHTML = '<div class="fit-mat-art" id="productFitMatArt"></div>';
+    }
+    const artEl = matEl.querySelector('#productFitMatArt');
+    artEl.style.backgroundImage = 'url("' + (p.image || '') + '")';
+    artEl.style.backgroundSize = 'cover';
+    const defaultFocalX = (p.focalX === null || p.focalX === undefined || p.focalX === '') ? 50 : p.focalX;
+    const defaultFocalY = (p.focalY === null || p.focalY === undefined || p.focalY === '') ? 50 : p.focalY;
+    const focalX = customFocalX === null ? defaultFocalX : customFocalX;
+    const focalY = customFocalY === null ? defaultFocalY : customFocalY;
+    artEl.style.backgroundPosition = focalX + '% ' + focalY + '%';
+    // Zoom in so the preview only shows what survives the real 1cm
+    // safe-area cut on each edge (see artwork-checker's safe-area guide
+    // on the Size Guide page) instead of the full bleed-to-edge design.
+    artEl.style.transform = 'scale(' + safeAreaZoom(size) + ')';
+    wireMatDragReposition(matEl, artEl);
+
+    keyboardEl.style.backgroundImage = 'url("' + PRODUCT_FIT_ASSETS.keyboard + '")';
+    keyboardEl.style.backgroundSize = '100% 100%';
+    keyboardEl.style.backgroundRepeat = 'no-repeat';
+    keyboardEl.style.backgroundColor = 'transparent';
+    mouseEl.style.backgroundImage = 'url("' + PRODUCT_FIT_ASSETS.mouse + '")';
+    mouseEl.style.backgroundSize = '100% 100%';
+    mouseEl.style.backgroundRepeat = 'no-repeat';
+    mouseEl.style.backgroundColor = 'transparent';
+
+    const matWpct = (size.w / deskW) * 100;
+    const matDpct = (size.d / deskD) * 100;
+    const kbWpct = (FIT_KB.w / deskW) * 100;
+    const kbDpct = (FIT_KB.d / deskD) * 100;
+    const mouseWpct = (FIT_MOUSE.w / deskW) * 100;
+    const mouseDpct = (FIT_MOUSE.d / deskD) * 100;
+    const monWpct = (FIT_MONITOR.w / deskW) * 100;
+    const monDpct = (FIT_MONITOR.d / deskD) * 100;
+    const gapPct = (24 / deskW) * 100;
+
+    if(monitorEl){
+      monitorEl.style.display = 'block';
+      monitorEl.style.width = monWpct + '%';
+      monitorEl.style.height = monDpct + '%';
+      monitorEl.style.left = ((100 - monWpct) / 2) + '%';
+      monitorEl.style.top = '2%';
+    }
+
+    if(coverage === 'deskmat'){
+      const matLeft = (100 - matWpct) / 2;
+      const matTop = Math.min(100 - matDpct - 5, 2 + monDpct + 2);
+      setFitRect(matEl, matLeft, matTop, matWpct, matDpct);
+
+      const groupWidth = kbWpct + gapPct + mouseWpct;
+      const groupHeight = Math.max(kbDpct, mouseDpct);
+      const groupLeft = matLeft + (matWpct - groupWidth) / 2;
+      const groupTop = matTop + (matDpct - groupHeight) / 2;
+
+      setFitRect(keyboardEl, groupLeft, groupTop + (groupHeight - kbDpct) / 2, kbWpct, kbDpct);
+      setFitRect(mouseEl, groupLeft + kbWpct + gapPct, groupTop + (groupHeight - mouseDpct) / 2, mouseWpct, mouseDpct);
+    } else {
+      const totalWpct = kbWpct + gapPct + matWpct;
+      const startLeft = (100 - totalWpct) / 2;
+      const rowTop = Math.min(100 - Math.max(kbDpct, matDpct) - 5, 2 + monDpct + 2);
+      const matLeft = startLeft + kbWpct + gapPct;
+      const keyboardTop = rowTop + (matDpct - kbDpct) / 2;
+
+      setFitRect(keyboardEl, startLeft, keyboardTop, kbWpct, kbDpct);
+      setFitRect(matEl, matLeft, rowTop, matWpct, matDpct);
+      setFitRect(mouseEl, matLeft + (matWpct - mouseWpct) / 2, rowTop + (matDpct - mouseDpct) / 2, mouseWpct, mouseDpct);
+    }
+
+    keyboardEl.style.display = 'block';
+    mouseEl.style.display = 'block';
+
+    if(accessoriesHidden){
+      keyboardEl.style.display = 'none';
+      mouseEl.style.display = 'none';
+      // Recenter the mat alone under the monitor, ignoring the
+      // keyboard/mouse group's footprint entirely.
+      const soloLeft = (100 - matWpct) / 2;
+      const soloTop = Math.min(100 - matDpct - 5, 2 + monDpct + 4);
+      setFitRect(matEl, soloLeft, soloTop, matWpct, matDpct);
+    }
+
+    if(captionEl){
+      const cm = (mm) => (mm / 10).toString().replace(/\.0$/, '');
+      captionEl.textContent =
+        typeLabel(selectedType) + ' · ' +
+        cm(size.w) + '×' + cm(size.d) + ' cm · ' +
+        (accessoriesHidden ? '27″ monitor' : '27″ monitor + keyboard + mouse');
+    }
+  }
+
+  /* =====================================================
+     SIZE GUIDE DATA
+     ===================================================== */
+
+  const sizeGuideVariants = {
+
+    mousepad: {
+
+      "3MM": {
+
+        "900x400": [12, "900 × 400 mm"],
+        "800x400": [11, "800 × 400 mm"],
+        "800x300": [9.50, "800 × 300 mm"],
+        "600x300": [8.50, "600 × 300 mm"],
+        "300x250": [4.50, "300 × 250 mm"]
+
+      },
+
+
+      "5MM": {
+
+        "1000x500": [22, "1000 × 500 mm"],
+        "900x400": [16, "900 × 400 mm"],
+        "800x400": [14.50, "800 × 400 mm"],
+        "800x300": [13, "800 × 300 mm"],
+        "450x400": [9.50, "450 × 400 mm"],
+        "300x250": [7.50, "300 × 250 mm"]
+
+      }
+
+    },
+
+
+    fps: {
+
+      "5MM": {
+
+        "450x400": [10, "450 × 400 mm"],
+        "360x320": [8.50, "360 × 320 mm"]
+
+      }
+
+    },
+
+
+    glass: {
+
+      "3MM GLASS": {
+
+        "360x320": [18, "360 × 320 mm"],
+        "490x420": [24, "490 × 420 mm"]
+
+      }
+
+    }
+
+  };
+
+
+
+  /* =====================================================
+     PRODUCT SPECIFICATIONS
+     ===================================================== */
+
+  const productSpecs = {
+
+    mousepad: {
+
+      material:
+        "Usually cloth surfaces with a rubber or foam base.",
+
+      glide:
+        "Balanced, standard glide with moderate friction for everyday tracking accuracy.",
+
+      bestFor:
+        "General daily computing, office work, casual browsing, and low-intensity tasks.",
+
+      advantage:
+        "Affordable, comfortable on the wrist, versatile, and works seamlessly with almost any standard optical mouse.",
+
+      color:
+        "Please note that final printed colors on fabric may vary slightly (roughly 10%) from what you see on your digital screen due to the sublimation heating process."
+
+    },
+
+
+    fps: {
+
+      material:
+        "Specialized textured cloth, synthetic weaves, or hybrid surfaces optimized for speed or control.",
+
+      glide:
+        'Engineered specifically for fast-paced gaming; often categorized into "speed" pads (low friction for quick flicks) or "control" pads (higher friction for precise stopping power).',
+
+      bestFor:
+        "First-person shooter (FPS) games and competitive gaming where quick reflexes and micro-adjustments matter.",
+
+      advantage:
+        "Offers consistent, reliable stopping power and tracking precision tailored to high-DPI or low-sens gaming styles.",
+
+      color:
+        "Please note that final printed colors on fabric may vary slightly (roughly 10%) from what you see on your digital screen due to the sublimation heating process."
+
+    },
+
+
+    glass: {
+
+      material:
+        "Tempered glass with a micro-textured or frosted coating.",
+
+      glide:
+        "Extremely fast and ultra-smooth glide with almost zero initial friction.",
+
+      bestFor:
+        "Hardcore gamers, tracking-heavy tracking genres, and users who prefer a slick, zero-drag feel.",
+
+      advantage:
+        "Unmatched durability (virtually wear-proof), incredibly easy to clean, and provides a completely uniform glide across the entire surface. However, they are fragile if dropped, can feel cold to the touch, and wear down mouse feet faster.",
+
+      color:
+        "Please note that final printed colors may vary slightly from what you see on your digital screen."
+
+    }
+
+  };
+
+
+  /* =====================================================
+     HELPERS
+     ===================================================== */
+
+  function currentVariants() {
+
+    return sizeGuideVariants[selectedType];
+
+  }
+
+
+  function validThicknesses() {
+
+    return Object.keys(
+      currentVariants()
+    );
+
+  }
+
+
+  function validSizes() {
+
+    return Object.keys(
+      currentVariants()[selectedThickness] || {}
+    );
+
+  }
+
+
+  function chooseDefaults() {
+
+    const variants =
+      currentVariants();
+
+    const thicknesses =
+      Object.keys(variants);
+
+
+    if (!variants[selectedThickness]) {
+
+      selectedThickness =
+        thicknesses[0];
+
+    }
+
+
+    const sizes =
+      Object.keys(
+        variants[selectedThickness]
+      );
+
+
+    if (
+      !variants[selectedThickness][selectedSize]
+    ) {
+
+      selectedSize =
+        sizes[0];
+
+    }
+
+  }
+
+
+  /* =====================================================
+     TYPE NAME WITH ICON
+     ===================================================== */
+
+  function typeLabel(type) {
+    if (type === 'mousepad') return 'Mouse Pad';
+    if (type === 'fps') return 'FPS Mouse Pad';
+    if (type === 'glass') return 'Glass Mouse Pad';
+    return type;
+  }
+
+  function typeIcon(type) {
+    if (type === 'mousepad') return '🖱️';
+    if (type === 'fps') return '🎯';
+    if (type === 'glass') return '✨';
+    return '';
+  }
+
+
+  /* =====================================================
+     DETAIL IMAGE GALLERY
+     ===================================================== */
+
+  function syncViewToggle(){
+    const btn = document.querySelector('#viewToggleBtn');
+    if(!btn) return;
+    if(mockupView === 'flat'){
+      btn.textContent = 'Desk Setup';
+      btn.setAttribute('aria-label', 'Back to desk setup mockup');
+    } else {
+      btn.textContent = 'See Full Image';
+      btn.setAttribute('aria-label', 'See full design image');
+    }
+  }
+
+  function wireViewToggle(){
+    const btn = document.querySelector('#viewToggleBtn');
+    if(!btn || btn.dataset.wired === '1') return;
+    btn.dataset.wired = '1';
+    btn.onclick = () => {
+      if(mockupView === 'setup'){
+        currentMainImage = p.image;
+        showMockupFlat(p.image);
+      } else {
+        showMockupSetup();
+      }
+    };
+    syncViewToggle();
+  }
+
+  // Lets a shopper click/drag directly on the mat in the live mockup to
+  // reposition which part of their design shows through the cropped
+  // mousepad/deskmat shape — no admin focal-point setup needed per product.
+  function wireMatDragReposition(matEl, artEl){
+    if(!matEl || !artEl || matEl.dataset.dragWired === '1') return;
+    matEl.dataset.dragWired = '1';
+    matEl.classList.add('mat-draggable');
+    matEl.title = 'Drag to reposition the design';
+
+    let dragging = false;
+
+    function setFromEvent(e){
+      const rect = matEl.getBoundingClientRect();
+      if(!rect.width || !rect.height) return;
+      const x = Math.min(100, Math.max(0, ((e.clientX - rect.left) / rect.width) * 100));
+      const y = Math.min(100, Math.max(0, ((e.clientY - rect.top) / rect.height) * 100));
+      customFocalX = Number(x.toFixed(1));
+      customFocalY = Number(y.toFixed(1));
+      matEl.querySelector('#productFitMatArt').style.backgroundPosition = customFocalX + '% ' + customFocalY + '%';
+      syncResetPositionBtn();
+    }
+
+    matEl.addEventListener('pointerdown', e => {
+      dragging = true;
+      matEl.setPointerCapture(e.pointerId);
+      matEl.classList.add('dragging');
+      setFromEvent(e);
+    });
+    matEl.addEventListener('pointermove', e => {
+      if(!dragging) return;
+      setFromEvent(e);
+    });
+    const stopDrag = () => {
+      if(!dragging) return;
+      dragging = false;
+      matEl.classList.remove('dragging');
+    };
+    matEl.addEventListener('pointerup', stopDrag);
+    matEl.addEventListener('pointercancel', stopDrag);
+  }
+
+  function syncResetPositionBtn(){
+    const btn = document.querySelector('#resetPositionBtn');
+    if(btn) btn.style.display = (customFocalX === null) ? 'none' : '';
+  }
+
+  function wireResetPositionBtn(){
+    const btn = document.querySelector('#resetPositionBtn');
+    if(!btn || btn.dataset.wired === '1') return;
+    btn.dataset.wired = '1';
+    btn.onclick = () => {
+      customFocalX = null;
+      customFocalY = null;
+      syncResetPositionBtn();
+      updateProductMockup();
+    };
+  }
+
+  function wireRemoveAccessoriesToggle(){
+    const btn = document.querySelector('#removeAccessoriesBtn');
+    if(!btn || btn.dataset.wired === '1') return;
+    btn.dataset.wired = '1';
+    btn.onclick = () => {
+      accessoriesHidden = !accessoriesHidden;
+      btn.textContent = accessoriesHidden ? 'Show Mouse & Keyboard' : 'Remove Mouse & Keyboard';
+      btn.setAttribute('aria-label', accessoriesHidden ? 'Bring back the keyboard and mouse in this preview' : 'Hide the keyboard and mouse to see the desk mat alone');
+      updateProductMockup();
+    };
+  }
+
+  function renderDetailGallery(){
+    // Thumbnail removed — view toggle lives in the toolbar next to desk textures.
+    wireViewToggle();
+    wireRemoveAccessoriesToggle();
+    wireResetPositionBtn();
+    syncViewToggle();
+  }
+
+  function setMainImage(src) {
+    if(!src || src === p.image){
+      showMockupSetup();
+      return;
+    }
+    showMockupFlat(src);
+  }
+
+
+  /* =====================================================
+     PRODUCT ACCORDIONS
+     ===================================================== */
+
+  function renderProductAccordions() {
+
+    const specs =
+      document.querySelector('#productSpecsBody');
+
+    const shipping =
+      document.querySelector('#productShippingBody');
+
+
+    if (!specs || !shipping) {
+      return;
+    }
+
+
+    const spec =
+      productSpecs[selectedType];
+
+
+    /* PRODUCT SPECS */
+
+    specs.innerHTML = `
+
+      <div class="product-spec-list">
+
+        <div>
+
+          <b>Material</b>
+
+          <p>
+            ${spec.material}
+          </p>
+
+        </div>
+
+
+        <div>
+
+          <b>Glide &amp; Control</b>
+
+          <p>
+            ${spec.glide}
+          </p>
+
+        </div>
+
+
+        <div>
+
+          <b>Best For</b>
+
+          <p>
+            ${spec.bestFor}
+          </p>
+
+        </div>
+
+
+        <div>
+
+          <b>Key Advantage</b>
+
+          <p>
+            ${spec.advantage}
+          </p>
+
+        </div>
+
+
+        <div>
+
+          <b>Color Accuracy</b>
+
+          <p>
+            ${spec.color}
+          </p>
+
+        </div>
+
+      </div>
+
+    `;
+
+
+    /* SHIPPING INFO */
+
+    const HEAT_PRESS_MAINTENANCE = KEYCAM_STORE.maintenanceMode;
+    const discountPercent = KEYCAM_STORE.maintenanceDiscount * 100;
+
+    let productionTimeHTML = '';
+
+    if (isStockProduct) {
+
+      productionTimeHTML = `
+        <p>
+          <strong>This is a Stock Mousepad</strong> — already made and in hand.
+        </p>
+        <p style="margin-top:8px;color:#7f8b90;font-size:12px;">
+          Ready to ship right away, not made-to-order — no production wait.
+        </p>
+      `;
+
+    } else if (selectedType === 'glass') {
+
+      productionTimeHTML = `
+        <p>
+          <strong>Glass Mouse Pads</strong> require a fixed
+          <strong>${KEYCAM_STORE.glassOrderDuration}</strong> production time.
+        </p>
+        <p style="margin-top:8px;color:#7f8b90;font-size:12px;">
+          Glass orders are <strong>not affected</strong> by the current maintenance discount.
+        </p>
+      `;
+
+    } else if (HEAT_PRESS_MAINTENANCE) {
+
+      productionTimeHTML = `
+        <div style="border-left:3px solid #20c3df;padding-left:16px;margin-bottom:14px;">
+          <p style="color:#20c3df;font-weight:600;font-size:13px;margin:0 0 8px 0;">
+            🔧 Maintenance Mode — ${discountPercent}% OFF
+          </p>
+          <p style="margin:0;">
+            Due to our heat press machine being under maintenance:
+          </p>
+        </div>
+
+        <ul style="list-style:none;padding:0;margin:0 0 12px 0;">
+          <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+            <strong>⏱ Processing time:</strong> extended to <strong>${KEYCAM_STORE.maintenanceOrderDuration}</strong>
+          </li>
+          <li style="padding:6px 0;border-bottom:1px solid rgba(255,255,255,.06);">
+            <strong>💰 Discount:</strong> <strong style="color:#20c3df;">${discountPercent}% off</strong> on all Mouse Pad &amp; FPS orders
+          </li>
+          <li style="padding:6px 0;">
+            <strong>📦 Glass orders:</strong> unaffected — still <strong>${KEYCAM_STORE.glassOrderDuration}</strong>
+          </li>
+        </ul>
+
+        <p style="color:#7f8b90;font-size:12px;border-top:1px solid rgba(255,255,255,.06);padding-top:12px;margin:0;">
+          Once the machine is fixed, standard processing will return to <strong>${KEYCAM_STORE.normalOrderDuration}</strong>.
+        </p>
+      `;
+
+    } else {
+
+      productionTimeHTML = `
+        <p>
+          Standard in-stock sizes are processed
+          within <strong>${KEYCAM_STORE.normalOrderDuration}</strong>.
+        </p>
+        <p>
+          Custom or out-of-stock sizes require
+          <strong>9-10 days</strong>.
+        </p>
+      `;
+
+    }
+
+    shipping.innerHTML = `
+
+      <div class="shipping-policy-list">
+
+        <div>
+
+          <b>Production Time &amp; Current Status</b>
+
+          ${productionTimeHTML}
+
+        </div>
+
+
+        <div>
+
+          <b>Deposit Requirement</b>
+
+          <p>
+            A 50% deposit is required for all
+            custom design orders over $20.
+          </p>
+
+        </div>
+
+      </div>
+
+    `;
+
+  }
+
+
+  /* =====================================================
+     ACCORDION CLICK
+     ===================================================== */
+
+  function setupProductAccordions() {
+
+    document
+      .querySelectorAll('.product-accordion-head')
+      .forEach(button => {
+
+        if (button.dataset.bound) {
+          return;
+        }
+
+
+        button.dataset.bound =
+          '1';
+
+
+        button.onclick = () => {
+
+          const item =
+            button.closest(
+              '.product-accordion'
+            );
+
+
+          const body =
+            item.querySelector(
+              '.product-accordion-body'
+            );
+
+
+          const open =
+            button.getAttribute(
+              'aria-expanded'
+            ) === 'true';
+
+
+          button.setAttribute(
+            'aria-expanded',
+            String(!open)
+          );
+
+
+          item.classList.toggle(
+            'open',
+            !open
+          );
+
+
+          body.hidden =
+            open;
+
+        };
+
+      });
+
+  }
+
+
+  /* =====================================================
+     STOCK PRODUCT RENDER
+     -----------------------------------------------------
+     No type/size/thickness picker (there's only the one spec
+     the admin set at import), no live desk-mockup drag tool,
+     and no print safe-area zoom — the photo is just the
+     physical item, not artwork being prepped for a cut.
+     ===================================================== */
+
+  function renderStockView() {
+
+    // Admin enters size/thickness as free text (e.g. "900x400" or
+    // "3"); shoppers expect a unit on it, so add "mm" whenever the
+    // admin didn't already include one (mm, cm, in, etc.).
+    function withUnit(val){
+      if(!val) return val;
+      return /mm|cm/i.test(val) ? val : `${val}mm`;
+    }
+
+    const sizeLabel = withUnit(p.stockSizeLabel);
+    const thicknessLabel = withUnit(p.stockThickness);
+
+    // Stock items are already-made, priced once at import time — the
+    // site-wide maintenance discount (which exists to offset production
+    // delays on made-to-order mats) never applies here.
+    const price = p.stockPrice;
+    const effPrice = price;
+    const onSale = false;
+    const savings = 0;
+
+
+    /* PRICE */
+
+    const priceEl = document.querySelector('#price');
+    const priceOriginalEl = document.querySelector('#priceOriginal');
+    const priceSaveEl = document.querySelector('#priceSave');
+
+    priceOriginalEl.style.display = 'none';
+    priceOriginalEl.textContent = '';
+
+    priceSaveEl.style.display = 'none';
+    priceSaveEl.textContent = '';
+
+    priceEl.textContent = money(effPrice);
+
+    if (onSale) {
+      priceOriginalEl.style.display = 'inline';
+      priceOriginalEl.textContent = money(price);
+
+      priceSaveEl.style.display = 'inline';
+      priceSaveEl.textContent = `Save ${money(savings)}`;
+    }
+
+
+    /* SPEC (fixed — no pickers) */
+
+    document.querySelector('#selectors').innerHTML = `
+      <div class="selector-group">
+        <span class="selector-label">SPEC</span>
+        <div class="selector-options">
+          <span class="selector-btn selected" style="cursor:default;">
+            ${typeLabel(p.stockType)}
+            <span class="sub">${sizeLabel} · ${thicknessLabel}</span>
+          </span>
+        </div>
+        <p class="small-note" style="margin-top:10px;">
+          This is a ready-made desk mat already in hand — it ships as shown, with no size or thickness options.
+        </p>
+      </div>
+    `;
+
+
+    /* ADD TO ORDER */
+
+    document.querySelector('#add').onclick = () => {
+      addToOrder({
+        productId: p.id,
+        name: p.name,
+        image: p.thumbnail || p.image || "",
+        type: p.stockType,
+        thickness: thicknessLabel,
+        size: sizeLabel,
+        sizeLabel: sizeLabel,
+        price: effPrice
+      });
+    };
+
+
+    /* TELEGRAM */
+
+    const stockMsg =
+`Hi KeyCam! 👋
+
+I'm interested in:
+${p.name}
+${typeLabel(p.stockType)}
+${sizeLabel} · ${thicknessLabel}
+${money(effPrice)}${onSale ? ` (was ${money(price)})` : ""} · Stock item, ready to ship`;
+
+    document.querySelector('#ask').href =
+      `https://t.me/${KEYCAM.telegram}?text=${encodeURIComponent(stockMsg)}`;
+
+
+    /* VISUAL — plain product photo, no mockup/drag tools */
+
+    showMockupFlat(p.image);
+
+    renderProductAccordions();
+    setupProductAccordions();
+
+  }
+
+
+  /* =====================================================
+     MAIN RENDER
+     ===================================================== */
+
+  function render() {
+
+    if (isStockProduct) {
+      renderStockView();
+      return;
+    }
+
+    chooseDefaults();
+
+
+    const variants =
+      currentVariants();
+
+
+    const sizes =
+      validSizes();
+
+
+    const selectedVariant =
+      variants[selectedThickness][selectedSize];
+
+
+    const price =
+      selectedVariant[0];
+
+
+    const dim =
+      selectedVariant[1];
+
+
+    const effPrice =
+      effectivePrice(selectedType, price);
+
+    const onSale =
+      effPrice !== price;
+
+    const savings = onSale ? (price - effPrice) : 0;
+
+
+/* PRICE */
+
+const priceEl = document.querySelector('#price');
+const priceOriginalEl = document.querySelector('#priceOriginal');
+const priceSaveEl = document.querySelector('#priceSave');
+const priceDimEl = document.querySelector('#priceDim');
+
+// Always reset old discount information first
+priceOriginalEl.style.display = 'none';
+priceOriginalEl.textContent = '';
+
+priceSaveEl.style.display = 'none';
+priceSaveEl.textContent = '';
+
+// Current price
+priceEl.textContent = money(effPrice);
+
+if (onSale) {
+  priceOriginalEl.style.display = 'inline';
+  priceOriginalEl.textContent = money(price);
+
+  priceSaveEl.style.display = 'inline';
+  priceSaveEl.textContent = `Save ${money(savings)}`;
+}
+
+// Show selected size
+
+
+
+    /* =====================================================
+       DISCOUNT BANNER
+       ===================================================== */
+
+    const priceContainer = document.querySelector('#priceContainer');
+    const existingBanner = document.querySelector('#discountBanner');
+
+    if (existingBanner) {
+      existingBanner.remove();
+    }
+
+    if (onSale) {
+      const banner = document.createElement('div');
+      banner.id = 'discountBanner';
+      banner.className = 'discount-banner';
+      banner.innerHTML = `
+        <span>🔧</span>
+        <span><strong>${KEYCAM_STORE.maintenanceDiscount * 100}% OFF</strong> — Maintenance discount applied</span>
+        <span class="badge">Save ${money(savings)}</span>
+      `;
+      // Insert after the description
+      const descEl = document.querySelector('.detail-desc');
+      if (descEl && descEl.nextSibling) {
+        descEl.parentNode.insertBefore(banner, descEl.nextSibling);
+      } else {
+        const selectors = document.querySelector('#selectors');
+        if (selectors) {
+          selectors.parentNode.insertBefore(banner, selectors);
+        }
+      }
+    }
+
+
+    /* =====================================================
+       SELECTORS
+       ===================================================== */
+
+    const typeIcons = {
+      mousepad: '🖱️',
+      fps: '🎯',
+      glass: '✨'
+    };
+
+    document.querySelector('#selectors').innerHTML = `
+
+      <!-- TYPE -->
+      <div class="selector-group">
+        <span class="selector-label">TYPE</span>
+        <div class="selector-options">
+          ${['mousepad', 'fps', 'glass'].map(type => `
+            <button
+              type="button"
+              class="selector-btn type-btn ${type === selectedType ? 'selected' : ''}"
+              data-type="${type}"
+            >
+              <span class="icon">${typeIcons[type]}</span>
+              <span class="label">${typeLabel(type)}</span>
+              <span class="sub">${KEYCAM.typeInfo[type].specs}</span>
+            </button>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- SIZE -->
+      <div class="selector-group">
+        <span class="selector-label">SIZE</span>
+        <div class="selector-options">
+          ${sizes.map(size => {
+            const item = variants[selectedThickness][size];
+            return `
+              <button
+                type="button"
+                class="selector-btn size-btn ${size === selectedSize ? 'selected' : ''}"
+                data-size="${size}"
+              >
+                ${item[1]}
+              </button>
+            `;
+          }).join('')}
+        </div>
+      </div>
+
+      <!-- THICKNESS -->
+      <div class="selector-group">
+        <span class="selector-label">THICKNESS</span>
+        <div class="selector-options">
+          ${validThicknesses().map(thickness => `
+            <button
+              type="button"
+              class="selector-btn thick-btn ${thickness === selectedThickness ? 'selected' : ''}"
+              data-thickness="${thickness}"
+            >
+              ${thickness}
+            </button>
+          `).join('')}
+        </div>
+      </div>
+
+    `;
+
+
+    /* =====================================================
+       TYPE BUTTONS
+       ===================================================== */
+
+    document
+      .querySelectorAll('[data-type]')
+      .forEach(button => {
+
+        button.onclick = () => {
+
+          selectedType =
+            button.dataset.type;
+
+
+          selectedThickness =
+            Object.keys(
+              currentVariants()
+            )[0];
+
+
+          selectedSize =
+            Object.keys(
+              currentVariants()[
+                selectedThickness
+              ]
+            )[0];
+
+
+          currentMainImage =
+            p.image;
+
+          setMainImage(currentMainImage);
+
+
+          render();
+
+        };
+
+      });
+
+
+    /* =====================================================
+       SIZE BUTTONS
+       ===================================================== */
+
+    document
+      .querySelectorAll('[data-size]')
+      .forEach(button => {
+
+        button.onclick = () => {
+
+          selectedSize =
+            button.dataset.size;
+
+          render();
+
+        };
+
+      });
+
+
+    /* =====================================================
+       THICKNESS BUTTONS
+       ===================================================== */
+
+    document
+      .querySelectorAll('[data-thickness]')
+      .forEach(button => {
+
+        button.onclick = () => {
+
+          selectedThickness =
+            button.dataset.thickness;
+
+
+          const availableSizes =
+            Object.keys(
+              currentVariants()[
+                selectedThickness
+              ]
+            );
+
+
+          if (
+            !availableSizes.includes(
+              selectedSize
+            )
+          ) {
+
+            selectedSize =
+              availableSizes[0];
+
+          }
+
+
+          render();
+
+        };
+
+      });
+
+
+    /* =====================================================
+       ADD TO ORDER
+       ===================================================== */
+
+    document.querySelector('#add').onclick = () => {
+
+      addToOrder({
+
+        productId:
+          p.id,
+
+        name:
+          p.name,
+
+        image:
+          p.thumbnail || p.image || "",
+
+        type:
+          selectedType,
+
+        thickness:
+          selectedThickness,
+
+        size:
+          selectedSize,
+
+        sizeLabel:
+          dim,
+
+        price:
+          effPrice
+
+      });
+
+    };
+
+
+    /* =====================================================
+       TELEGRAM
+       ===================================================== */
+
+    const msg =
+`Hi KeyCam! 👋
+
+I'm interested in:
+${p.name}
+${typeLabel(selectedType)}
+${dim} · ${selectedThickness}
+${money(effPrice)}${onSale ? ` (was ${money(price)})` : ""} · ${dim}`;
+
+
+    document.querySelector('#ask').href =
+      `https://t.me/${KEYCAM.telegram}?text=${encodeURIComponent(msg)}`;
+
+
+    /* =====================================================
+       IMPORTANT RENDER FUNCTIONS
+       ===================================================== */
+
+    renderDetailGallery();
+    wireDeskTextureSwitch();
+
+    if(mockupView === 'setup'){
+      updateProductMockup();
+    }
+
+    renderProductAccordions();
+
+    setupProductAccordions();
+
+  }
+
+
+  /* =====================================================
+     START PRODUCT
+     ===================================================== */
+
+  render();
+
+
+  /* =====================================================
+     RELATED DESIGNS
+     ===================================================== */
+
+  const sameCollection =
+    KEYCAM.products.filter(
+      x =>
+        x.id !== p.id &&
+        x.collections.some(
+          c =>
+            p.collections.includes(c)
+        )
+    );
+
+
+  const otherProducts =
+    KEYCAM.products.filter(
+      x =>
+        x.id !== p.id &&
+        !sameCollection.some(
+          r =>
+            r.id === x.id
+        )
+    );
+
+
+  const related =
+    [
+      ...sameCollection,
+      ...otherProducts
+    ].slice(0, 4);
+
+
+  const relatedContainer =
+    document.querySelector('#related');
+
+
+  if (relatedContainer) {
+
+    relatedContainer.innerHTML =
+      related
+        .map(productCard)
+        .join('');
+
+  }
+
+}
+
+});
+</script>
+
+
+</body>
+</html>

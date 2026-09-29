@@ -1,0 +1,100 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KeyCam — Return &amp; Warranty</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+</head>
+<body>
+<header class="site-header">
+  <div class="container nav-wrap">
+    <a class="brand" href="../index.html"><img src="../assets/keycam-logo.jpg" alt="KeyCam logo"><span>KEYCAM</span></a>
+    <nav class="desktop-nav">
+      <a href="../keyboard/index.html">Keyboard</a>
+      <a href="../accessories/collection.html">Accessories</a>
+      <a href="../mouse/collection.html">Mouse</a>
+      <a href="index.html" class="active">Deskmat</a>
+    </nav>
+    <div class="header-actions">
+      <button class="order-pill" id="orderOpen">My Order <b id="orderCount">0</b></button>
+      <button class="menu-btn" id="menuOpen" aria-label="Open menu">☰</button>
+    </div>
+  </div>
+</header>
+
+<main class="info-page">
+  <div class="container narrow">
+    <p class="eyebrow">KEYCAM POLICY</p>
+    <h1>Return &amp; Warranty</h1>
+
+    <h2>Contact</h2>
+    <p>
+      <strong>Location:</strong> Phnom Penh, Toul Kork, Sonthormok<br>
+      <strong>Map:</strong> <a href="https://maps.app.goo.gl/SFp44sTmpm52HC5i7" target="_blank" rel="noopener">https://maps.app.goo.gl/SFp44sTmpm52HC5i7</a><br>
+      <strong>Phone:</strong> <a href="tel:0886449944">0886449944</a><br>
+      <strong>Telegram:</strong> <a href="https://t.me/Key_Cam" target="_blank" rel="noopener">@Key_cam</a>
+    </p>
+
+    <h2>No Cash Refunds</h2>
+    <p>All sales are final. Items are non-refundable for cash after purchase.</p>
+
+    <h2>7-Day Defective Exchange</h2>
+    <p>If your product experiences any technical or manufacturing issues within 7 days of delivery, it is eligible for a direct exchange for a brand-new replacement unit. Contact KeyCam on Telegram to arrange the exchange.</p>
+
+    <h2>1-Year Warranty</h2>
+    <p>New hardware products come with a 1-year limited warranty covering manufacturing defects from the date of purchase.</p>
+
+    <h2>Warranty Exclusions</h2>
+    <p>The warranty will be immediately voided if the product shows signs of:</p>
+    <ol>
+      <li>Electrical damage or power surges (Electric shock)</li>
+      <li>Broken, tampered, or missing warranty seals</li>
+      <li>Product misuse, physical abuse, or neglect</li>
+      <li>Unauthorized modifications or self-repair attempts</li>
+    </ol>
+
+    <p style="margin-top:32px;color:#7a868c;font-size:13px;">© 2026 Keycam. All rights reserved.</p>
+  </div>
+</main>
+
+<footer class="site-footer compact-footer">
+  <div class="container footer-social">
+    <a href="https://maps.app.goo.gl/SFp44sTmpm52HC5i7" target="_blank" rel="noopener" aria-label="Location"><img src="../assets/icons/location.png" alt=""></a>
+    <a href="https://t.me/Key_Cam" target="_blank" rel="noopener" aria-label="Telegram"><img src="../assets/icons/telegram.png" alt=""></a>
+    <a href="https://www.facebook.com/share/1EyHBrqsXP/" target="_blank" rel="noopener" aria-label="Facebook"><img src="../assets/icons/facebook.png" alt=""></a>
+    <a href="https://www.instagram.com/key_camm?igsh=bWVjeWd6bWFvZHB4" target="_blank" rel="noopener" aria-label="Instagram"><img src="../assets/icons/instagram.webp" alt=""></a>
+    <a href="https://www.tiktok.com/@keycamm?_r=1&amp;_t=ZS-98MRrdf6b" target="_blank" rel="noopener" aria-label="TikTok"><img src="../assets/icons/tiktok.png" alt=""></a>
+  </div>
+  <div class="container footer-bottom">
+    <span>© 2026 KeyCam. All rights reserved.</span>
+    <span>Phnom Penh · 0886449944 · <a href="policy.html">Return &amp; Warranty</a></span>
+  </div>
+</footer>
+
+<div class="drawer-backdrop" id="drawerBackdrop"></div>
+<aside class="order-drawer" id="orderDrawer">
+  <div class="drawer-head"><h2>My Order</h2><button id="orderClose" aria-label="Close order">×</button></div>
+  <div id="orderItems"></div>
+  <div class="drawer-total"><span>Total</span><strong id="orderTotal">$0</strong></div>
+  <button class="btn btn-primary btn-wide" id="telegramOrder">Order on Telegram ↗</button>
+  <button class="clear-order" id="clearOrder">Clear order</button>
+</aside>
+<div class="mobile-menu" id="mobileMenu">
+  <button id="mobileClose" aria-label="Close menu">×</button>
+  <a href="../index.html">Home</a>
+  <a href="../keyboard/index.html">Keyboard</a>
+  <a href="../accessories/collection.html">Accessories</a>
+  <a href="../mouse/collection.html">Mouse</a>
+  <a href="index.html">Deskmat</a>
+  <a href="https://t.me/Key_Cam" target="_blank" rel="noopener">Telegram ↗</a>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-client.js"></script>
+<script src="app.js"></script>
+</body>
+</html>

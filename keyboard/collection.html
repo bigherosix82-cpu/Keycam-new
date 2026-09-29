@@ -1,0 +1,355 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>KeyCam — Keyboards</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../deskmat/styles.css">
+<link rel="stylesheet" href="../shared/catalog.css">
+</head>
+<body>
+
+<div id="siteHeader"></div>
+
+<main class="listing">
+  <div class="container">
+    <div class="breadcrumbs"><a href="index.html">Keyboard</a><span>›</span><span id="crumb">Listing</span></div>
+    <div class="listing-head">
+      <div>
+        <p class="eyebrow">KEYCAM KEYBOARDS</p>
+        <h1 id="title">Listing</h1>
+      </div>
+    </div>
+    <button class="filter-toggle" id="filterToggle" type="button">Filters</button>
+    <div class="listing-body">
+      <aside class="filter-sidebar" id="filterSidebar">
+        <div class="filter-sidebar-head">
+          <span>Filters</span>
+          <button type="button" id="filterClear">Clear all</button>
+        </div>
+        <div id="filterSections"></div>
+      </aside>
+      <div>
+        <p class="listing-results-count" id="resultsCount"></p>
+        <div class="listing-grid" id="listingGrid"><div class="catalog-loading">Loading…</div></div>
+      </div>
+    </div>
+  </div>
+</main>
+
+<div id="siteFooter"></div>
+<div id="siteOverlays"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-client.js"></script>
+<script src="../shared/catalog-client.js"></script>
+<script src="../shared/catalog-cart.js"></script>
+<script src="../shared/layout.js"></script>
+<script>
+initLayout({ base: "../", active: "keyboard" });
+
+const SUBTYPE_TITLES = {
+  prebuild: "Prebuild Keyboard",
+  customized: "Customized Keyboard",
+  barebone: "Barebone",
+  switch: "Switch",
+  keycap: "Keycap",
+  artisan: "Artisan"
+};
+
+// Card thumbnail — uses the original full-resolution uploaded image
+// (p.images[0].url) rather than the compressed thumbnail (thumbUrl),
+// falling back to p.thumbnail only if a product has no images array yet.
+function singleArtHTML(p){
+  const firstImg = (p.images && p.images[0]) ? p.images[0] : null;
+  const src = firstImg ? firstImg.url : p.thumbnail;
+  return `
+    <div class="product-art">
+      ${catalogDiscountBadgeHTML(p)}
+      ${src ? `<img src="${src}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">` : ""}
+    </div>
+  `;
+}
+
+// Cheapest/most-expensive price found across a product's base price and
+// variant options — used only to bucket products into the price filter
+// (the card itself still shows catalogPriceRange's formatted string).
+function productPriceMinMax(p){
+  const prices = [];
+  if(p.basePrice !== null && p.basePrice !== undefined) prices.push(p.basePrice);
+  (p.variantGroups || []).forEach(g => {
+    g.options.forEach(o => {
+      const val = (o.price !== null && o.price !== undefined) ? o.price : p.basePrice;
+      if(val !== null && val !== undefined) prices.push(val);
+    });
+  });
+  if(!prices.length) return null;
+  return { min: Math.min(...prices), max: Math.max(...prices) };
+}
+
+window.CATALOG_READY.then(() => {
+  const params = new URLSearchParams(location.search);
+  const subtype = params.get("subtype");
+  const title = SUBTYPE_TITLES[subtype] || "Keyboard";
+
+  document.querySelector("#title").textContent = title;
+  document.querySelector("#crumb").textContent = title;
+  document.title = `KeyCam — ${title}`;
+
+  // Everything on this subtype/category — the filter sidebar is built from
+  // this set and never changes; only the grid below narrows as filters
+  // are checked.
+  const baseProducts = window.CATALOG.products.filter(p =>
+    p.category === "keyboard" && (!subtype || p.subtype === subtype)
+  );
+
+  const grid = document.querySelector("#listingGrid");
+  const resultsCount = document.querySelector("#resultsCount");
+  const sidebar = document.querySelector("#filterSidebar");
+  const filterSections = document.querySelector("#filterSections");
+
+  if(!baseProducts.length){
+    document.querySelector(".filter-toggle").style.display = "none";
+    sidebar.style.display = "none";
+    resultsCount.style.display = "none";
+    grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;">No products here yet.</p>`;
+    return;
+  }
+
+  /* ============================================================
+     BUILD FACETS — collection, every variant-group name/option that
+     actually appears among baseProducts, and a 3-way price split.
+     Each subtype ends up with only the filters its own products have
+     data for (e.g. Keycap sees "Profile", Switch sees "Switch type").
+  ============================================================ */
+  const collectionCounts = new Map();
+  const themeCounts = new Map();
+  const profileCounts = new Map();
+  const variantCounts = new Map(); // groupName -> Map(optionLabel -> count)
+  let priceMin = Infinity, priceMax = -Infinity;
+
+  baseProducts.forEach(p => {
+    if(p.collection){
+      collectionCounts.set(p.collection, (collectionCounts.get(p.collection) || 0) + 1);
+    }
+    if(p.theme){
+      themeCounts.set(p.theme, (themeCounts.get(p.theme) || 0) + 1);
+    }
+    if(p.profile){
+      profileCounts.set(p.profile, (profileCounts.get(p.profile) || 0) + 1);
+    }
+    (p.variantGroups || []).forEach(g => {
+      const gn = (g.name || '').toLowerCase();
+      if(gn === 'theme' || gn === 'profile') return; // product-level fields now
+      if(!variantCounts.has(g.name)) variantCounts.set(g.name, new Map());
+      const optMap = variantCounts.get(g.name);
+      g.options.forEach(o => optMap.set(o.label, (optMap.get(o.label) || 0) + 1));
+    });
+    const range = productPriceMinMax(p);
+    if(range){
+      priceMin = Math.min(priceMin, range.min);
+      priceMax = Math.max(priceMax, range.max);
+    }
+  });
+
+  const hasPriceSplit = isFinite(priceMin) && isFinite(priceMax) && priceMax > priceMin;
+  const priceStep = hasPriceSplit ? (priceMax - priceMin) / 3 : 0;
+  const priceThresholds = [priceMin + priceStep, priceMin + priceStep * 2];
+  const priceBuckets = hasPriceSplit ? [
+    { label: `Under ${money2(priceThresholds[0])}` },
+    { label: `${money2(priceThresholds[0])} – ${money2(priceThresholds[1])}` },
+    { label: `Over ${money2(priceThresholds[1])}` }
+  ] : [];
+
+  function priceBucketOf(p){
+    const range = productPriceMinMax(p);
+    if(!range) return null;
+    if(range.min <= priceThresholds[0]) return 0;
+    if(range.min <= priceThresholds[1]) return 1;
+    return 2;
+  }
+
+  /* ============================================================
+     ACTIVE FILTER STATE
+  ============================================================ */
+  const activeFilters = { collection: new Set(), theme: new Set(), profile: new Set(), price: new Set(), variants: {} };
+  variantCounts.forEach((_, name) => { activeFilters.variants[name] = new Set(); });
+
+  /* ============================================================
+     RENDER SIDEBAR
+  ============================================================ */
+  let sectionsHTML = "";
+
+  if(collectionCounts.size > 1){
+    sectionsHTML += `
+      <div class="filter-section">
+        <span class="filter-section-label">Collection</span>
+        <div class="filter-options">
+          ${[...collectionCounts.entries()].map(([label, count]) => `
+            <label class="filter-option">
+              <input type="checkbox" data-filter-type="collection" data-filter-value="${label}">
+              <span>${label}</span>
+              <span class="filter-count">${count}</span>
+            </label>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  if(themeCounts.size > 0){
+    sectionsHTML += `
+      <div class="filter-section">
+        <span class="filter-section-label">Theme</span>
+        <div class="filter-options">
+          ${[...themeCounts.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([label, count]) => `
+            <label class="filter-option">
+              <input type="checkbox" data-filter-type="theme" data-filter-value="${label}">
+              <span>${label}</span>
+              <span class="filter-count">${count}</span>
+            </label>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  if(profileCounts.size > 0){
+    sectionsHTML += `
+      <div class="filter-section">
+        <span class="filter-section-label">Profile</span>
+        <div class="filter-options">
+          ${[...profileCounts.entries()].sort((a,b)=>a[0].localeCompare(b[0])).map(([label, count]) => `
+            <label class="filter-option">
+              <input type="checkbox" data-filter-type="profile" data-filter-value="${label}">
+              <span>${label}</span>
+              <span class="filter-count">${count}</span>
+            </label>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  variantCounts.forEach((optMap, groupName) => {
+    if(optMap.size < 2) return; // nothing to actually filter on
+    sectionsHTML += `
+      <div class="filter-section">
+        <span class="filter-section-label">${groupName}</span>
+        <div class="filter-options">
+          ${[...optMap.entries()].map(([label, count]) => `
+            <label class="filter-option">
+              <input type="checkbox" data-filter-type="variant" data-filter-group="${groupName}" data-filter-value="${label}">
+              <span>${label}</span>
+              <span class="filter-count">${count}</span>
+            </label>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  });
+
+  if(hasPriceSplit){
+    sectionsHTML += `
+      <div class="filter-section">
+        <span class="filter-section-label">Price</span>
+        <div class="filter-options">
+          ${priceBuckets.map((b, i) => `
+            <label class="filter-option">
+              <input type="checkbox" data-filter-type="price" data-filter-value="${i}">
+              <span>${b.label}</span>
+            </label>
+          `).join("")}
+        </div>
+      </div>
+    `;
+  }
+
+  filterSections.innerHTML = sectionsHTML || `<p style="color:var(--muted);font-size:13px;">No filters available yet.</p>`;
+
+  /* ============================================================
+     FILTERING + GRID RENDER
+  ============================================================ */
+  function renderGrid(list){
+    resultsCount.textContent = `${list.length} product${list.length === 1 ? "" : "s"}`;
+    if(!list.length){
+      grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;">No products match these filters.</p>`;
+      return;
+    }
+    grid.innerHTML = list.map(p => `
+      <a class="product-card" href="product.html?id=${p.id}">
+        ${singleArtHTML(p)}
+        <div style="padding:14px;">
+          <strong style="display:block;font:600 14px 'Space Grotesk';">${p.name}</strong>
+          ${p.collection ? `<span style="color:var(--muted);font-size:12px;">${p.collection}</span>` : ""}
+          <div style="margin-top:8px;font:700 15px 'Space Grotesk';color:var(--blue);">${catalogPriceRangeHTML(p)}</div>
+        </div>
+      </a>
+    `).join("");
+  }
+
+  function applyFilters(){
+    const filtered = baseProducts.filter(p => {
+      if(activeFilters.collection.size && !activeFilters.collection.has(p.collection)) return false;
+      if(activeFilters.theme.size && !activeFilters.theme.has(p.theme)) return false;
+      if(activeFilters.profile.size && !activeFilters.profile.has(p.profile)) return false;
+      if(activeFilters.price.size){
+        const bucket = priceBucketOf(p);
+        if(bucket === null || !activeFilters.price.has(bucket)) return false;
+      }
+      for(const groupName in activeFilters.variants){
+        const selected = activeFilters.variants[groupName];
+        if(!selected.size) continue;
+        const grp = (p.variantGroups || []).find(g => g.name === groupName);
+        if(!grp) return false;
+        if(!grp.options.some(o => selected.has(o.label))) return false;
+      }
+      return true;
+    });
+    renderGrid(filtered);
+  }
+
+  filterSections.addEventListener("change", (e) => {
+    const el = e.target;
+    if(el.tagName !== "INPUT") return;
+    const type = el.dataset.filterType;
+    if(type === "collection"){
+      el.checked ? activeFilters.collection.add(el.dataset.filterValue) : activeFilters.collection.delete(el.dataset.filterValue);
+    } else if(type === "theme"){
+      el.checked ? activeFilters.theme.add(el.dataset.filterValue) : activeFilters.theme.delete(el.dataset.filterValue);
+    } else if(type === "profile"){
+      el.checked ? activeFilters.profile.add(el.dataset.filterValue) : activeFilters.profile.delete(el.dataset.filterValue);
+    } else if(type === "price"){
+      const bucket = Number(el.dataset.filterValue);
+      el.checked ? activeFilters.price.add(bucket) : activeFilters.price.delete(bucket);
+    } else if(type === "variant"){
+      const set = activeFilters.variants[el.dataset.filterGroup];
+      el.checked ? set.add(el.dataset.filterValue) : set.delete(el.dataset.filterValue);
+    }
+    applyFilters();
+  });
+
+  document.querySelector("#filterClear").addEventListener("click", () => {
+    activeFilters.collection.clear();
+    activeFilters.theme.clear();
+    activeFilters.profile.clear();
+    activeFilters.price.clear();
+    Object.values(activeFilters.variants).forEach(set => set.clear());
+    filterSections.querySelectorAll("input[type=checkbox]").forEach(el => el.checked = false);
+    applyFilters();
+  });
+
+  const filterToggle = document.querySelector("#filterToggle");
+  filterToggle.addEventListener("click", () => {
+    const open = sidebar.classList.toggle("open");
+    filterToggle.textContent = open ? "Hide filters" : "Filters";
+  });
+
+  renderGrid(baseProducts);
+});
+</script>
+</body>
+</html>

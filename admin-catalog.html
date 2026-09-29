@@ -1,0 +1,4329 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Catalog Admin — KeyCam</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="deskmat/styles.css">
+<style>
+  /* ============================================================
+     KeyCam Catalog Admin — design system
+     A component-datasheet aesthetic for the person running the
+     shop solo: dark PCB-dark background, cyan trace accent, a
+     monospace face reserved for the numbers that actually matter
+     (prices, stock counts, totals) so they scan like spec figures
+     instead of decoration. Corner-bracket framing (like a footprint
+     silkscreen mark) is the one recurring signature, used only on
+     the stat cards and modal — not sprinkled everywhere.
+     ============================================================ */
+  :root{
+    --surface:#111a1e;
+    --surface-2:#172226;
+    --surface-3:#1c2a2f;
+    --ink:#edf4f5;
+    --ink-dim:#89a0a7;
+    --ink-faint:#5c7178;
+    --amber:#e0b23c;
+    --green:#3bd1a0;
+    --red:#e05a5a;
+    --mono:"JetBrains Mono", ui-monospace, monospace;
+    --sans:"DM Sans", sans-serif;
+    --disp:"Space Grotesk", sans-serif;
+  }
+
+  *{ box-sizing:border-box; }
+
+  /* ---------- login ---------- */
+  .admin-shell{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:
+      radial-gradient(600px 300px at 15% 8%, rgba(32,195,223,.07), transparent 60%),
+      var(--bg);
+  }
+  .admin-card{
+    width:100%;
+    max-width:360px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:34px 30px;
+    position:relative;
+  }
+  .admin-card::before{
+    content:"";
+    position:absolute;
+    top:14px; left:14px; right:14px; bottom:14px;
+    border:1px solid rgba(32,195,223,.14);
+    border-radius:6px;
+    pointer-events:none;
+  }
+  .admin-card h1{
+    font:600 21px var(--disp);
+    color:var(--ink);
+    margin:0 0 6px;
+    letter-spacing:-.01em;
+  }
+  .admin-card p.sub{
+    font-size:13px;
+    line-height:1.5;
+    color:var(--ink-dim);
+    margin:0 0 26px;
+  }
+  .admin-field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:14px;
+  }
+  .admin-field label{
+    font-size:11px;
+    color:var(--ink-dim);
+    letter-spacing:.02em;
+  }
+  .admin-field input,
+  .admin-field select,
+  .admin-field textarea{
+    background:#0b1113;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:10px 12px;
+    font:500 14px var(--sans);
+    border-radius:5px;
+  }
+  .admin-field input:focus,
+  .admin-field select:focus,
+  .admin-field textarea:focus{
+    outline:none;
+    border-color:var(--blue);
+  }
+  .admin-submit{
+    width:100%;
+    background:var(--blue);
+    color:#04191d;
+    border:none;
+    padding:11px;
+    border-radius:5px;
+    font:600 14px var(--disp);
+    cursor:pointer;
+    margin-top:8px;
+    transition:filter .12s;
+  }
+  .admin-submit:hover{ filter:brightness(1.08); }
+  .admin-submit:disabled{
+    opacity:.6;
+    cursor:default;
+    filter:none;
+  }
+  .admin-error{
+    font-size:12px;
+    color:var(--red);
+    margin:10px 0 0;
+    display:none;
+  }
+
+  /* ---------- app shell: sidebar + main ---------- */
+  .admin-shell-app{
+    display:flex;
+    align-items:stretch;
+    min-height:100vh;
+  }
+  .admin-sidebar{
+    width:222px;
+    flex:none;
+    display:flex;
+    flex-direction:column;
+    border-right:1px solid var(--line);
+    background:var(--surface);
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .admin-brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:22px 20px 18px;
+    border-bottom:1px solid var(--line);
+  }
+  .admin-brand-mark{
+    width:32px;
+    height:32px;
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--blue);
+    border-radius:6px;
+    color:var(--blue);
+    font:700 12px var(--mono);
+    letter-spacing:.02em;
+  }
+  .admin-brand-text{
+    display:flex;
+    flex-direction:column;
+    line-height:1.3;
+    min-width:0;
+  }
+  .admin-brand-text strong{
+    font:600 14px var(--disp);
+    color:var(--ink);
+  }
+  .admin-brand-text span{
+    font-size:10.5px;
+    color:var(--ink-faint);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .admin-nav{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    padding:14px 12px;
+    flex:1;
+  }
+  .admin-tab-btn{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:none;
+    border:none;
+    border-radius:6px;
+    color:var(--ink-dim);
+    padding:9px 12px;
+    font:500 13px var(--sans);
+    cursor:pointer;
+    text-align:left;
+    transition:background .12s, color .12s;
+  }
+  .admin-tab-btn:hover{
+    background:var(--surface-2);
+    color:var(--ink);
+  }
+  .admin-nav-tick{
+    width:5px;
+    height:5px;
+    border-radius:1px;
+    background:var(--ink-faint);
+    flex:none;
+    transition:background .12s;
+  }
+  .admin-tab-btn.active{
+    color:var(--ink);
+    background:var(--surface-2);
+  }
+  .admin-tab-btn.active .admin-nav-tick{
+    background:var(--blue);
+    box-shadow:0 0 0 3px rgba(32,195,223,.15);
+  }
+  .admin-sidebar-foot{
+    padding:14px 20px 20px;
+    border-top:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .admin-sidebar-foot a{
+    font-size:12px;
+    color:var(--ink-dim);
+    text-decoration:none;
+  }
+  .admin-sidebar-foot a:hover{ color:var(--blue); }
+  .admin-signout{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    padding:8px 14px;
+    border-radius:5px;
+    font:500 12px var(--sans);
+    cursor:pointer;
+    text-align:center;
+    transition:border-color .12s, color .12s;
+  }
+  .admin-signout:hover{ border-color:var(--red); color:var(--red); }
+
+  .admin-main{
+    flex:1;
+    min-width:0;
+  }
+  .admin-body{
+    padding:36px 40px 60px;
+    max-width:1180px;
+    margin:0 auto;
+  }
+  .admin-section{
+    margin-bottom:44px;
+  }
+  .admin-section h2{
+    font:600 16px var(--disp);
+    color:var(--ink);
+    margin:0 0 6px;
+    letter-spacing:-.005em;
+  }
+  .admin-section p.hint{
+    font-size:12.5px;
+    line-height:1.55;
+    color:var(--ink-dim);
+    margin:0 0 16px;
+    max-width:640px;
+  }
+
+  /* ---------- tables ---------- */
+  .admin-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+  .admin-table th{
+    text-align:left;
+    color:var(--ink-faint);
+    font:600 10.5px var(--mono);
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    padding:9px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .admin-table td{
+    padding:9px 10px;
+    border-bottom:1px solid var(--line);
+    color:var(--ink);
+    vertical-align:middle;
+  }
+  .admin-table tbody tr:hover td{
+    background:var(--surface-2);
+  }
+  .admin-table input[type="number"],
+  .admin-table input[type="text"],
+  .admin-table select{
+    background:#0b1113;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:6px 8px;
+    font:500 13px var(--sans);
+    border-radius:5px;
+    width:100%;
+  }
+  .admin-table input[type="number"]{
+    font-family:var(--mono);
+  }
+  .admin-table img{
+    width:40px;
+    height:40px;
+    object-fit:cover;
+    border-radius:5px;
+    display:block;
+    background:#0b1113;
+    border:1px solid var(--line);
+  }
+  .admin-table th:nth-child(3), .admin-table td:nth-child(3),
+  .admin-table th:nth-child(4), .admin-table td:nth-child(4){
+    min-width:112px;
+  }
+  .row-actions{
+    position:relative;
+    display:flex;
+    gap:6px;
+    flex-wrap:wrap;
+  }
+  .row-menu-popover{
+    display:none;
+    position:absolute;
+    top:calc(100% + 4px);
+    left:0;
+    z-index:20;
+    background:var(--surface-3);
+    border:1px solid var(--line);
+    border-radius:7px;
+    padding:6px;
+    min-width:140px;
+    box-shadow:0 10px 28px rgba(0,0,0,.45);
+  }
+  .row-menu-popover.open{ display:flex; flex-direction:column; gap:4px; }
+  .row-menu-popover .admin-btn{ width:100%; text-align:left; }
+
+  /* ---------- buttons ---------- */
+  .admin-btn{
+    background:var(--blue);
+    color:#04191d;
+    border:none;
+    padding:7px 13px;
+    border-radius:5px;
+    font:600 12px var(--disp);
+    cursor:pointer;
+    white-space:nowrap;
+    transition:filter .12s;
+  }
+  .admin-btn:hover{ filter:brightness(1.08); }
+  .admin-btn.secondary{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--ink);
+  }
+  .admin-btn.secondary:hover{ border-color:var(--ink-dim); filter:none; }
+  .admin-btn.danger{
+    background:transparent;
+    border:1px solid var(--red);
+    color:var(--red);
+  }
+  .admin-btn.success{
+    background:transparent;
+    border:1px solid var(--green);
+    color:var(--green);
+  }
+  .admin-btn:disabled{opacity:.5;cursor:default;filter:none;}
+  .admin-btn-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .admin-status{
+    font-size:11px;
+    color:var(--green);
+    margin-left:8px;
+    font-family:var(--mono);
+  }
+  .admin-search{
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+  .admin-search input{
+    flex:1;
+    min-width:200px;
+    background:#0b1113;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:9px 12px;
+    font:500 13px var(--sans);
+    border-radius:5px;
+  }
+  .admin-search select{
+    background:#0b1113;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:9px 12px;
+    font:500 13px var(--sans);
+    border-radius:5px;
+  }
+  .admin-search input:focus, .admin-search select:focus{
+    outline:none; border-color:var(--blue);
+  }
+
+  .component-product-picker{display:flex;flex-direction:column;gap:5px;min-width:240px;}
+  .component-product-search{background:#0b1113;border:1px solid var(--line);color:var(--ink);padding:6px 8px;font:500 12px var(--sans);border-radius:5px;width:100%;}
+  .component-product-picker select{width:100%;}
+  .component-role-select{min-width:130px;}
+
+  /* ---------- image upload ---------- */
+  .image-dropzone{
+    max-width:640px; border:1px dashed #33505a; background:#0b1113; border-radius:8px;
+    padding:24px 18px; text-align:center; cursor:pointer; transition:.15s;
+  }
+  .image-dropzone:hover,.image-dropzone.dragover{border-color:var(--blue);background:rgba(32,195,223,.06);}
+  .image-dropzone strong{display:block;color:var(--ink);font:600 13px var(--disp);margin-bottom:5px;}
+  .image-dropzone span{display:block;color:var(--ink-dim);font-size:11px;line-height:1.5;}
+  .image-dropzone input{display:none;}
+  .image-file-list{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px;}
+  .image-file-chip{border:1px solid var(--line);background:var(--surface-2);color:#c7d0d3;border-radius:5px;padding:4px 7px;font-size:10px;font-family:var(--mono);cursor:grab;user-select:none;}
+  .image-file-chip.dragging{opacity:.4;}
+  .image-drop-status{font-size:11px;color:var(--ink-dim);margin-top:8px;}
+  .upload-scale-toggle{display:flex;align-items:center;gap:6px;margin-top:10px;flex-wrap:wrap;}
+  .upload-scale-label{font-size:11px;color:var(--ink-dim);}
+  .scale-btn{border:1px solid var(--line);background:var(--surface-2);color:#c7d0d3;border-radius:5px;padding:5px 10px;font:600 11px var(--disp);cursor:pointer;}
+  .scale-btn.active{border-color:var(--blue);color:var(--blue);background:rgba(32,195,223,.08);}
+  .image-thumb[draggable="true"]{cursor:grab;}
+  .image-thumb.dragging{opacity:.4;}
+  .image-reorder-hint{font-size:11px;color:var(--ink-dim);margin:0 0 8px;}
+
+  .admin-pager{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-top:16px;
+    font-size:12px;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+
+  /* ---------- misc rows / badges ---------- */
+  .admin-table tr.archived{
+    opacity:.5;
+  }
+  .stock-cell{
+    display:flex;
+    align-items:center;
+    gap:6px;
+  }
+  .stock-cell input[type="number"]{
+    width:56px;
+  }
+  .stock-badge{
+    display:inline-block;
+    padding:2px 8px;
+    border-radius:4px;
+    font:600 10.5px var(--mono);
+    letter-spacing:.02em;
+    white-space:nowrap;
+  }
+  .stock-badge.ok{ background:rgba(59,209,160,.13); color:var(--green); }
+  .stock-badge.low{ background:rgba(224,178,60,.14); color:var(--amber); }
+  .stock-badge.out{ background:rgba(224,90,90,.14); color:var(--red); }
+  .stock-badge.untracked{ background:rgba(137,160,167,.14); color:var(--ink-dim); }
+  .inventory-filters{
+    display:flex;
+    gap:6px;
+    margin-bottom:12px;
+  }
+  .inventory-filter-chip{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    padding:5px 13px;
+    border-radius:20px;
+    font:600 11px var(--disp);
+    cursor:pointer;
+  }
+  .inventory-filter-chip.active{
+    color:var(--ink);
+    border-color:var(--blue);
+    background:rgba(32,195,223,.1);
+  }
+  .inventory-variant-list{
+    margin-top:6px;
+    padding-left:4px;
+    border-left:2px solid var(--line);
+  }
+  .inventory-variant-row{
+    display:flex;
+    align-items:center;
+    gap:8px;
+    padding:4px 0 4px 10px;
+    font-size:12px;
+    color:#c4d0d3;
+  }
+  .inventory-variant-row input[type="number"]{
+    width:56px;
+  }
+  .variant-row td{
+    background:#0b1113;
+  }
+  .variant-panel{
+    padding:12px;
+  }
+  .variant-panel table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:12px;
+    margin-bottom:10px;
+  }
+  .variant-panel th{
+    text-align:left;
+    color:var(--ink-faint);
+    text-transform:uppercase;
+    font-size:10px;
+    letter-spacing:.04em;
+    padding:6px 8px;
+  }
+  .variant-panel td{
+    padding:4px 8px;
+  }
+  .variant-panel input{
+    background:var(--surface-2);
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:5px 7px;
+    font:500 12px var(--sans);
+    border-radius:5px;
+    width:100%;
+  }
+  .toggle-variants{
+    background:transparent;
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+  }
+  .image-panel{
+    padding:12px;
+  }
+  .image-thumb-grid{
+    display:flex;
+    flex-wrap:wrap;
+    gap:10px;
+    margin-bottom:12px;
+  }
+  .image-thumb{
+    width:96px;
+  }
+  .image-thumb .image-thumb-frame{
+    width:96px;
+    height:96px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    overflow:hidden;
+    position:relative;
+  }
+  .image-thumb .image-thumb-frame.cover{
+    border-color:var(--blue);
+  }
+  .image-thumb img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .image-thumb .cover-badge{
+    position:absolute;
+    top:4px;
+    left:4px;
+    font-size:9px;
+    background:var(--blue);
+    color:#04191d;
+    padding:1px 5px;
+    border-radius:3px;
+    font-weight:700;
+  }
+  .image-thumb-actions{
+    display:flex;
+    flex-direction:column;
+    gap:3px;
+    margin-top:5px;
+  }
+  .image-thumb-actions button{
+    font-size:10px;
+    padding:4px 6px;
+  }
+  .variant-image-thumb-btn{
+    width:40px;
+    height:40px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    overflow:hidden;
+    background:var(--surface-2);
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    cursor:pointer;
+    padding:0;
+  }
+  .variant-image-thumb-btn img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+    display:block;
+  }
+  .variant-image-thumb-btn .no-image-label{
+    font-size:8px;
+    color:var(--ink-dim);
+    text-align:center;
+    line-height:1.2;
+    padding:0 2px;
+  }
+  .image-picker-popover{
+    display:none;
+    flex-wrap:wrap;
+    gap:8px;
+    padding:12px;
+    margin-top:8px;
+    background:#0b1113;
+    border:1px solid var(--line);
+    border-radius:5px;
+  }
+  .image-picker-popover.open{
+    display:flex;
+  }
+  .image-picker-popover .picker-option{
+    width:64px;
+    display:flex;
+    flex-direction:column;
+    align-items:center;
+    gap:3px;
+    cursor:pointer;
+  }
+  .image-picker-popover .picker-option-frame{
+    width:64px;
+    height:64px;
+    border:1px solid var(--line);
+    border-radius:5px;
+    overflow:hidden;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    background:var(--surface-2);
+  }
+  .image-picker-popover .picker-option-frame.selected{
+    border-color:var(--blue);
+  }
+  .image-picker-popover .picker-option-frame img{
+    width:100%;
+    height:100%;
+    object-fit:cover;
+  }
+  .image-picker-popover .picker-option span{
+    font-size:9px;
+    color:var(--ink-dim);
+  }
+  .badge{
+    display:inline-block;
+    font-size:10px;
+    padding:2px 8px;
+    border-radius:20px;
+    background:#0b1113;
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    text-transform:capitalize;
+  }
+
+  /* ---------- orders / revenue ---------- */
+  .order-items-summary{
+    font-size:12px;
+    color:var(--ink-dim);
+    max-width:220px;
+  }
+  .status-select{
+    padding:5px 8px !important;
+  }
+  .status-select.pending{color:var(--amber);}
+  .pending-orders-box{border:1px solid rgba(240,179,60,.45); background:rgba(240,179,60,.05); border-radius:12px; padding:14px 14px 4px; margin:6px 0 22px;}
+  .orders-group-head{display:flex; align-items:center; gap:10px; margin:0 0 8px;}
+  .orders-group-title{margin:0; font-size:15px;}
+  .pending-orders-box .orders-group-title{color:var(--amber);}
+  .orders-count{display:inline-block; min-width:22px; padding:1px 8px; border-radius:999px; font-size:12px; font-weight:700; text-align:center; background:var(--amber); color:#111;}
+  .status-select.confirmed{color:#3b9be8;}
+  .status-select.shipped{color:var(--green);}
+  .status-select.cancelled{color:var(--red);}
+
+  .revenue-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+    gap:14px;
+  }
+  .revenue-card{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    padding:18px 18px 16px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    position:relative;
+  }
+  .revenue-card::before, .revenue-card::after{
+    content:"";
+    position:absolute;
+    width:9px; height:9px;
+    border-top:1px solid rgba(32,195,223,.55);
+    border-left:1px solid rgba(32,195,223,.55);
+    top:7px; left:7px;
+  }
+  .revenue-card::after{
+    left:auto; right:7px; top:auto; bottom:7px;
+    border-top:none; border-left:none;
+    border-bottom:1px solid rgba(32,195,223,.55);
+    border-right:1px solid rgba(32,195,223,.55);
+  }
+  .revenue-label{
+    font-size:10.5px;
+    color:var(--ink-dim);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+  .revenue-amount{
+    font:600 25px var(--mono);
+    color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  .revenue-count{
+    font-size:12px;
+    color:var(--ink-faint);
+  }
+  .order-input{
+    width:56px !important;
+    font-family:var(--mono);
+  }
+  .paid-cell{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    min-width:84px;
+  }
+  .paid-mode-select{
+    background:#0b1113;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:5px 6px;
+    font:500 11px var(--sans);
+    border-radius:5px;
+    width:100%;
+  }
+  .paid-cell .order-input{
+    width:100% !important;
+  }
+  .paid-cell .order-input:disabled{
+    opacity:.55;
+  }
+
+  /* ---------- invoice modal ---------- */
+  .invoice-modal-backdrop{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(4,8,10,.72);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .invoice-modal-backdrop.open{
+    display:flex;
+  }
+  .invoice-modal{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    width:100%;
+    max-width:720px;
+    height:90vh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .invoice-modal-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 16px;
+    border-bottom:1px solid var(--line);
+    color:var(--ink);
+    font:600 14px var(--disp);
+  }
+  .invoice-modal iframe{
+    flex:1;
+    border:none;
+    background:white;
+  }
+
+  /* ---------- responsive: sidebar collapses to a top strip ---------- */
+  @media (max-width: 860px){
+    .admin-shell-app{ flex-direction:column; }
+    .admin-sidebar{
+      width:100%;
+      height:auto;
+      position:static;
+      flex-direction:row;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .admin-brand{ border-bottom:none; border-right:1px solid var(--line); padding:14px 16px; }
+    .admin-brand-text span{ display:none; }
+    .admin-nav{
+      flex-direction:row;
+      overflow-x:auto;
+      padding:8px 10px;
+      gap:4px;
+    }
+    .admin-tab-btn{ white-space:nowrap; }
+    .admin-sidebar-foot{
+      flex-direction:row;
+      border-top:none;
+      border-left:1px solid var(--line);
+      padding:10px 14px;
+    }
+    .admin-body{ padding:24px 18px 48px; }
+  }
+</style>
+</head>
+
+<body>
+
+<!-- LOGIN VIEW -->
+<div class="admin-shell" id="loginView">
+  <div class="admin-card">
+    <h1>KeyCam Catalog Admin</h1>
+    <p class="sub">Sign in to manage Keyboard, Accessories and Mouse products. Uses the same account as the Deskmat admin.</p>
+    <form id="loginForm">
+      <div class="admin-field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" autocomplete="username" required>
+      </div>
+      <div class="admin-field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="admin-submit" id="loginSubmit">Sign in</button>
+      <p class="admin-error" id="loginError">Incorrect email or password.</p>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN VIEW -->
+<div id="adminView" style="display:none;">
+ <div class="admin-shell-app">
+
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <span class="admin-brand-mark">KC</span>
+      <div class="admin-brand-text">
+        <strong>KeyCam</strong>
+        <span>Keyboard · Accessories · Mouse</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <button class="admin-tab-btn active" data-tab="overview"><span class="admin-nav-tick"></span>Overview</button>
+      <button class="admin-tab-btn" data-tab="products"><span class="admin-nav-tick"></span>Products</button>
+      <button class="admin-tab-btn" data-tab="inventory"><span class="admin-nav-tick"></span>Inventory</button>
+      <button class="admin-tab-btn" data-tab="addproduct"><span class="admin-nav-tick"></span>Add Product</button>
+    </nav>
+
+    <div class="admin-sidebar-foot">
+      <a href="deskmat/admin.html">Deskmat Admin ↗</a>
+      <button class="admin-signout" id="signOutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+  <div class="admin-body">
+
+    <!-- TAB: OVERVIEW -->
+    <div class="admin-tab-panel" id="tab-overview">
+
+      <!-- PCHUM BEN FESTIVAL DISCOUNT -->
+      <div class="admin-section">
+        <h2>Pchum Ben Festival Discount</h2>
+        <p class="hint">Applies to Keyboard, Accessories &amp; Mouse catalog products only — completely separate from Deskmat's own maintenance-mode discount (Deskmat Admin ↗). Every product gets this default % off while the switch is on, unless it has its own override set in the Discount % column on the Products tab (leave a product's override blank to use the default, or set it to 0 to exclude that product from the sale).</p>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;max-width:900px;">
+          <div class="admin-field" style="margin-bottom:0;">
+            <label style="display:flex;align-items:center;gap:8px;cursor:pointer;">
+              <input type="checkbox" id="festivalDiscountMode" style="width:auto;">
+              Festival sale is ON
+            </label>
+          </div>
+          <div class="admin-field" style="margin-bottom:0;">
+            <label>Default discount %</label>
+            <input type="number" id="festivalDiscountPercent" min="0" max="100" step="1" value="20">
+          </div>
+          <div class="admin-field" style="margin-bottom:0;">
+            <label>Banner / order label</label>
+            <input type="text" id="festivalDiscountLabel" placeholder="Pchum Ben Festival Sale">
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;max-width:900px;margin-top:12px;">
+          <div class="admin-field" style="margin-bottom:0;">
+            <label>Starts (optional)</label>
+            <input type="datetime-local" id="festivalDiscountStart">
+          </div>
+          <div class="admin-field" style="margin-bottom:0;">
+            <label>Ends (optional)</label>
+            <input type="datetime-local" id="festivalDiscountEnd">
+          </div>
+        </div>
+        <p class="hint" style="margin-top:8px;">Start/end are optional. If set, the sale is only actually live while the switch above is ON <em>and</em> the current time is inside this window — leave the switch on and it'll turn itself off when the window ends. Leave both blank to control it with the switch alone.</p>
+        <div class="admin-btn-row" style="margin-top:8px;">
+          <button class="admin-btn" id="saveFestivalDiscountBtn">Save</button>
+          <span class="admin-status" id="festivalDiscountStatus"></span>
+        </div>
+      </div>
+
+      <!-- REVENUE -->
+      <div class="admin-section">
+        <h2>Revenue</h2>
+        <p class="hint">Counts orders marked Confirmed or Shipped only — Pending and Cancelled don't count toward revenue. Combines orders from Keyboard/Accessories/Mouse checkout and the Deskmat store — same list shown in the Deskmat admin.</p>
+        <div class="revenue-grid">
+          <div class="revenue-card">
+            <span class="revenue-label">Today</span>
+            <span class="revenue-amount" id="rev-today">$0.00</span>
+            <span class="revenue-count" id="rev-today-count">0 orders</span>
+          </div>
+          <div class="revenue-card">
+            <span class="revenue-label">This Week</span>
+            <span class="revenue-amount" id="rev-week">$0.00</span>
+            <span class="revenue-count" id="rev-week-count">0 orders</span>
+          </div>
+          <div class="revenue-card">
+            <span class="revenue-label">This Month</span>
+            <span class="revenue-amount" id="rev-month">$0.00</span>
+            <span class="revenue-count" id="rev-month-count">0 orders</span>
+          </div>
+          <div class="revenue-card">
+            <span class="revenue-label">All-time</span>
+            <span class="revenue-amount" id="rev-all">$0.00</span>
+            <span class="revenue-count" id="rev-all-count">0 orders</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDERS -->
+      <div class="admin-section">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px;">
+          <h2 style="margin:0;">Orders</h2>
+          <button class="admin-btn" id="createOrderBtn" type="button">+ Create order</button>
+        </div>
+        <div class="admin-search">
+          <input type="text" id="orderSearch" placeholder="Search by name or phone…">
+          <select id="orderStatusFilter">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="shipped">Shipped</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <!-- Pending orders are gathered in their own container on top -->
+        <div class="pending-orders-box" id="pendingOrdersBox" style="display:none;">
+          <div class="orders-group-head">
+            <h3 class="orders-group-title">Pending orders</h3>
+            <span class="orders-count" id="pendingOrdersCount">0</span>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr><th>Date</th><th>Customer</th><th>Items</th><th>Delivery</th><th>Total</th><th>Paid</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody id="pendingOrdersBody"></tbody>
+          </table>
+        </div>
+        <div class="orders-group-head" id="otherOrdersTitle" style="display:none;">
+          <h3 class="orders-group-title">Other orders</h3>
+        </div>
+        <table class="admin-table">
+          <thead>
+            <tr><th>Date</th><th>Customer</th><th>Items</th><th>Delivery</th><th>Total</th><th>Paid</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+        <div class="admin-pager">
+          <button class="admin-btn" id="ordersPrevPage">‹ Prev</button>
+          <span id="ordersPageLabel">Page 1</span>
+          <button class="admin-btn" id="ordersNextPage">Next ›</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB: PRODUCTS -->
+    <div class="admin-tab-panel" id="tab-products" style="display:none;">
+      <div class="admin-section">
+        <h2>Products</h2>
+        <div class="admin-search">
+          <input type="text" id="productSearch" placeholder="Search by name…">
+          <select id="categoryFilter">
+            <option value="">All categories</option>
+            <option value="keyboard:prebuild">Prebuild Keyboard</option>
+            <option value="keyboard:customized">Customized Keyboard</option>
+            <option value="keyboard:barebone">Barebone</option>
+            <option value="keyboard:switch">Switch</option>
+            <option value="keyboard:keycap">Keycap</option>
+            <option value="keyboard:artisan">Artisan</option>
+            <option value="accessories">Accessories</option>
+            <option value="mouse">Mouse</option>
+          </select>
+          <select id="sortFilter">
+            <option value="date">Sort: Newest first</option>
+            <option value="name">Sort: Name (A–Z)</option>
+          </select>
+        </div>
+        <table class="admin-table">
+          <thead>
+            <tr><th></th><th>Name</th><th>Category</th><th>Subtype</th><th>Base Price</th><th>Discount %<br><span style="font-weight:400;font-size:10px;color:#8a9a9f;">blank = site default</span></th><th>Stock<br><span style="font-weight:400;font-size:10px;color:#8a9a9f;">admin only</span></th><th>Sort</th><th></th></tr>
+          </thead>
+          <tbody id="productsBody"></tbody>
+        </table>
+        <div class="admin-pager">
+          <button class="admin-btn" id="prevPage">‹ Prev</button>
+          <span id="pageLabel">Page 1</span>
+          <button class="admin-btn" id="nextPage">Next ›</button>
+        </div>
+      </div>
+    </div>
+
+    <!-- TAB: INVENTORY -->
+    <div class="admin-tab-panel" id="tab-inventory" style="display:none;">
+      <div class="admin-section">
+        <h2>Inventory</h2>
+        <p class="hint">Admin-only stock counts — nothing here shows on the storefront. Sorted lowest-stock-first so anything needing attention floats to the top. Products with variants show a rolled-up total; expand a row to edit each option's count.</p>
+        <div class="admin-search">
+          <input type="text" id="inventorySearch" placeholder="Search by name…">
+        </div>
+        <div class="inventory-filters">
+          <button class="inventory-filter-chip active" data-stock-filter="">All</button>
+          <button class="inventory-filter-chip" data-stock-filter="out">Out of stock</button>
+          <button class="inventory-filter-chip" data-stock-filter="low">Low stock</button>
+          <button class="inventory-filter-chip" data-stock-filter="untracked">Not tracked</button>
+        </div>
+        <table class="admin-table">
+          <thead>
+            <tr><th></th><th>Name</th><th>Category</th><th>Stock</th><th></th></tr>
+          </thead>
+          <tbody id="inventoryBody"><tr><td colspan="5">Loading…</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+
+    <!-- TAB: ADD PRODUCT -->
+    <div class="admin-tab-panel" id="tab-addproduct" style="display:none;">
+      <div class="admin-section">
+        <h2>Add Product</h2>
+        <p class="hint">Add variants (Color, Quantity, Character…) and "Built From" links right here, or skip them and add later from the Products tab. Leave Base Price blank only if every variant option below will set its own price.</p>
+
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:28px;max-width:1100px;align-items:start;">
+          <div>
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+              <div class="admin-field">
+                <label>Category</label>
+                <select id="newCategory">
+                  <option value="keyboard">Keyboard</option>
+                  <option value="accessories">Accessories</option>
+                  <option value="mouse">Mouse</option>
+                </select>
+              </div>
+              <div class="admin-field" id="newSubtypeWrap">
+                <label>Subtype</label>
+                <select id="newSubtype"></select>
+              </div>
+            </div>
+
+            <div class="admin-field">
+              <label>Name</label>
+              <input type="text" id="newName" placeholder="e.g. KC75 Barebone">
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+              <div class="admin-field">
+                <label>Base price ($, optional)</label>
+                <input type="number" id="newBasePrice" step="0.01" min="0" placeholder="Leave blank if variants set price">
+              </div>
+              <div class="admin-field">
+                <label>Collection / brand (optional)</label>
+                <input type="text" id="newCollection" placeholder="e.g. Gateron, Naruto Series">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;">
+              <div class="admin-field">
+                <label>Festival discount % override (optional)</label>
+                <input type="number" id="newDiscountPercent" step="1" min="0" max="100" placeholder="Blank = use site default while sale is on">
+              </div>
+              <div class="admin-field">
+                <label>Initial stock (optional, admin only)</label>
+                <input type="number" id="newStockQty" step="1" min="0" placeholder="Leave blank if variants track stock">
+              </div>
+            </div>
+
+            <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;" id="themeProfileRow">
+              <div class="admin-field" id="newThemeWrap" style="display:none;">
+                <label>Theme (filter only)</label>
+                <input type="text" id="newTheme" list="themeSuggestions" placeholder="e.g. Anime, Minimalist, Myth">
+                <datalist id="themeSuggestions">
+                  <option value="Anime"></option>
+                  <option value="Minimalist"></option>
+                  <option value="Myth"></option>
+                  <option value="Gaming"></option>
+                  <option value="Nature"></option>
+                  <option value="Cyberpunk"></option>
+                  <option value="Pastel"></option>
+                  <option value="Other"></option>
+                </datalist>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;" id="themeChips">
+                  <button type="button" class="admin-btn secondary" style="padding:4px 8px;font-size:11px;" data-theme-chip="Anime">Anime</button>
+                  <button type="button" class="admin-btn secondary" style="padding:4px 8px;font-size:11px;" data-theme-chip="Minimalist">Minimalist</button>
+                  <button type="button" class="admin-btn secondary" style="padding:4px 8px;font-size:11px;" data-theme-chip="Myth">Myth</button>
+                  <button type="button" class="admin-btn secondary" style="padding:4px 8px;font-size:11px;" data-theme-chip="Gaming">Gaming</button>
+                </div>
+              </div>
+              <div class="admin-field" id="newProfileWrap" style="display:none;">
+                <label>Profile (keycap filter only)</label>
+                <input type="text" id="newProfile" list="profileSuggestions" placeholder="Cherry, OEM, or MDA">
+                <datalist id="profileSuggestions">
+                  <option value="Cherry"></option>
+                  <option value="OEM"></option>
+                  <option value="MDA"></option>
+                </datalist>
+                <div style="display:flex;flex-wrap:wrap;gap:6px;margin-top:6px;" id="profileChips">
+                  <button type="button" class="admin-btn secondary" style="padding:4px 8px;font-size:11px;" data-profile-chip="Cherry">Cherry</button>
+                  <button type="button" class="admin-btn secondary" style="padding:4px 8px;font-size:11px;" data-profile-chip="OEM">OEM</button>
+                  <button type="button" class="admin-btn secondary" style="padding:4px 8px;font-size:11px;" data-profile-chip="MDA">MDA</button>
+                </div>
+              </div>
+            </div>
+
+            <div class="admin-field">
+              <label>Specs (short line shown on the card)</label>
+              <input type="text" id="newSpecs" placeholder="e.g. 75% Layout · Hotswap · Aluminum case">
+            </div>
+
+            <div class="admin-field">
+              <label>Description (optional, one bullet per line)</label>
+              <textarea id="newDescription" rows="3" placeholder="e.g.&#10;Full aluminum CNC case&#10;Hot-swappable PCB, 5-pin&#10;Includes USB-C cable"></textarea>
+            </div>
+
+            <div class="admin-field">
+              <label>Shipping info (pre-filled with the site default — edit or clear as needed)</label>
+              <textarea id="newShippingInfo" rows="6"></textarea>
+            </div>
+
+            <div class="admin-field" style="margin-bottom:0;">
+              <label>Payment info (pre-filled with the site default — edit or clear as needed)</label>
+              <textarea id="newPaymentInfo" rows="6"></textarea>
+            </div>
+          </div>
+
+          <div>
+            <div class="admin-field" style="margin-bottom:0;">
+              <label>Images (optional)</label>
+              <div class="image-dropzone" id="newImageDropzone" tabindex="0" role="button" aria-label="Add product images">
+                <strong>Drop images here, click to browse, or paste images</strong>
+                <span>Multiple images are supported. You can drag/drop several files or press Ctrl+V / Cmd+V while this area is focused. Drag a file chip below to reorder.</span>
+                <input type="file" id="newImage" accept="image/*" multiple>
+                <div class="image-file-list" id="newImageFileList"></div>
+                <div class="image-drop-status" id="newImageDropStatus">No images selected</div>
+              </div>
+              <div id="newImageScaleWrap"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="admin-field" style="max-width:1100px;margin-top:16px;">
+          <label>Variants (optional)</label>
+          <p class="hint" style="margin:0 0 10px;">Add Color/Quantity/Character options now, or skip this and add them later from the Products tab. Image picks come from the files added above — add all your images first if you want to link one to a variant.</p>
+          <table>
+            <thead><tr><th>Group</th><th>Option</th><th>Price</th><th>Image</th><th>Stock</th><th>Sort</th><th></th></tr></thead>
+            <tbody id="newVariantsBody"></tbody>
+          </table>
+          <button class="admin-btn secondary" type="button" onclick="addNewVariantRow()">+ Add variant</button>
+          <div class="image-picker-popover" id="new-variant-image-picker"></div>
+        </div>
+
+        <div class="admin-field" style="max-width:1100px;">
+          <label>Built From (optional)</label>
+          <p class="hint" style="margin:0 0 10px;">Link to existing barebone/switch/keycap products this one is built from — only relevant for "customized" style products.</p>
+          <table>
+            <thead><tr><th>Component product</th><th>Role</th><th>Sort</th><th></th></tr></thead>
+            <tbody id="newComponentsBody"></tbody>
+          </table>
+          <button class="admin-btn secondary" type="button" onclick="addNewComponentRow()">+ Add component link</button>
+        </div>
+
+        <div class="admin-btn-row">
+          <button class="admin-btn" type="button" id="createProductBtn">Create Product</button>
+          <span class="admin-status" id="createProductStatus"></span>
+        </div>
+      </div>
+    </div>
+
+  </div>
+  </main>
+ </div>
+</div>
+
+<!-- INVOICE PREVIEW MODAL -->
+<div class="invoice-modal-backdrop" id="invoiceModalBackdrop">
+  <div class="invoice-modal">
+    <div class="invoice-modal-top">
+      <span>Invoice Preview</span>
+      <div class="admin-btn-row">
+        <button class="admin-btn" id="invoiceDownloadBtn">Download PDF</button>
+        <button class="admin-btn danger" id="invoiceCloseBtn">Close</button>
+      </div>
+    </div>
+    <iframe id="invoicePreviewFrame"></iframe>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="supabase-client.js"></script>
+<script src="shared/admin-create-order.js"></script>
+<script>
+/* =========================
+   SUBTYPE OPTIONS PER CATEGORY
+========================= */
+/* =========================
+   STOCK — shared helpers
+   Admin-only inventory count. Below this many units, a product/variant
+   shows as "low" instead of a plain green "ok" badge. Adjust freely —
+   it's just a display threshold, not stored anywhere.
+========================= */
+const LOW_STOCK_THRESHOLD = 5;
+
+function stockStatus(qty){
+  if(qty === null || qty === undefined || qty === '') return 'untracked';
+  const n = Number(qty);
+  if(n <= 0) return 'out';
+  if(n < LOW_STOCK_THRESHOLD) return 'low';
+  return 'ok';
+}
+
+function stockBadgeHTML(qty){
+  const status = stockStatus(qty);
+  // Untracked is already obvious from the input sitting right next to
+  // this badge being empty — showing a "—" badge there too just reads
+  // as a rendering glitch, so skip it and render nothing.
+  if(status === 'untracked') return '';
+  const label = status === 'out' ? 'Out' : status === 'low' ? `Low · ${qty}` : String(qty);
+  return `<span class="stock-badge ${status}">${label}</span>`;
+}
+
+// Rolled-up status for a product with variants: lowest stock among its
+// tracked variants wins (so one empty variant surfaces as "out" even if
+// others are healthy). Untracked if none of the variants have a number set.
+function rollupStockStatus(variantQtys){
+  const tracked = variantQtys.filter(q => q !== null && q !== undefined && q !== '');
+  if(!tracked.length) return { status: 'untracked', label: '—' };
+  const total = tracked.reduce((sum, q) => sum + Number(q), 0);
+  const anyOut = tracked.some(q => Number(q) <= 0);
+  const anyLow = tracked.some(q => Number(q) > 0 && Number(q) < LOW_STOCK_THRESHOLD);
+  const status = anyOut ? 'out' : anyLow ? 'low' : 'ok';
+  return { status, label: `${total} total` };
+}
+
+const SUBTYPES = {
+  keyboard: ['prebuild', 'customized', 'barebone', 'switch', 'keycap', 'artisan'],
+  accessories: ['cable', 'tool', 'stand', 'cleaner', 'wristrest'],
+  mouse: []
+};
+const SUBTYPE_LABELS = {
+  prebuild: 'Prebuild', customized: 'Customized', barebone: 'Barebone',
+  switch: 'Switch', keycap: 'Keycap', artisan: 'Artisan',
+  cable: 'Cable', tool: 'Tool', stand: 'Stand', cleaner: 'Cleaner', wristrest: 'Wrist Rest'
+};
+
+function refreshSubtypeSelect(){
+  const cat = document.querySelector('#newCategory').value;
+  const wrap = document.querySelector('#newSubtypeWrap');
+  const sel = document.querySelector('#newSubtype');
+  const opts = SUBTYPES[cat] || [];
+  if(!opts.length){
+    wrap.style.display = 'none';
+    sel.innerHTML = '';
+  }else{
+    wrap.style.display = '';
+    sel.innerHTML = opts.map(s => `<option value="${s}">${SUBTYPE_LABELS[s] || s}</option>`).join('');
+  }
+  refreshThemeProfileFields();
+}
+function refreshThemeProfileFields(){
+  const cat = document.querySelector('#newCategory')?.value;
+  const subtype = document.querySelector('#newSubtype')?.value;
+  const themeWrap = document.querySelector('#newThemeWrap');
+  const profileWrap = document.querySelector('#newProfileWrap');
+  const showTheme = cat === 'keyboard' && ['prebuild','customized','keycap'].includes(subtype);
+  const showProfile = cat === 'keyboard' && subtype === 'keycap';
+  if(themeWrap){
+    themeWrap.style.display = showTheme ? '' : 'none';
+    if(!showTheme){
+      const inp = document.querySelector('#newTheme');
+      if(inp) inp.value = '';
+    }
+  }
+  if(profileWrap){
+    profileWrap.style.display = showProfile ? '' : 'none';
+    if(!showProfile){
+      const inp = document.querySelector('#newProfile');
+      if(inp) inp.value = '';
+    }
+  }
+}
+document.querySelector('#newCategory').addEventListener('change', refreshSubtypeSelect);
+document.querySelector('#newSubtype').addEventListener('change', refreshThemeProfileFields);
+// Chip clicks set the text field (chips + free text both allowed)
+document.addEventListener('click', (e) => {
+  const t = e.target.closest('[data-theme-chip]');
+  if(t){
+    e.preventDefault();
+    const inp = document.querySelector('#newTheme');
+    if(inp) inp.value = t.getAttribute('data-theme-chip');
+  }
+  const p = e.target.closest('[data-profile-chip]');
+  if(p){
+    e.preventDefault();
+    const inp = document.querySelector('#newProfile');
+    if(inp) inp.value = p.getAttribute('data-profile-chip');
+  }
+});
+refreshSubtypeSelect();
+
+/* =========================
+   ORDERS / REVENUE / INVOICE — same logic as deskmat/admin.html's
+   Overview tab, copied in so this page stays fully independent of
+   that file. Both pages read/write the same `orders` table (catalog
+   checkout now saves here too), so this shows every order — catalog
+   or deskmat — and either admin panel has the full picture.
+========================= */
+const ORDERS_PAGE_SIZE = 20;
+let ordersPage = 0;
+let ordersSearch = '';
+let ordersStatusFilter = '';
+let ordersCache = {}; // id -> order row, populated on each loadOrders() so Invoice buttons can read full item data
+
+function formatOrderDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) +
+    ' ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
+function summarizeItems(items){
+  if(!Array.isArray(items) || !items.length) return '—';
+  // Items can come from the catalog checkout (variantSummary) or from
+  // Deskmat (type/size/thickness) — the `orders` table is shared
+  // between both, so this needs to render either shape.
+  const detail = i => i.variantSummary || [i.type, i.size, i.thickness].filter(Boolean).join(', ');
+  const full = items.map(i => { const d = detail(i); return `${i.name}${d ? ` (${d})` : ''} ×${i.qty}`; }).join('\n');
+  const short = items.map(i => `${i.name} ×${i.qty}`).join(', ');
+  const display = short.length > 60 ? short.slice(0, 57) + '…' : short;
+  return `<span class="order-items-summary" title="${escapeAttr(full)}">${escapeAttr(display)}</span>`;
+}
+
+function orderRowHTML(o){
+  return `
+      <tr data-order-id="${o.id}">
+        <td>${formatOrderDate(o.created_at)}</td>
+        <td>${escapeAttr(o.customer_name || '—')}<br><span style="color:#8a9a9f;">${escapeAttr(o.customer_phone || '')}</span></td>
+        <td>${summarizeItems(o.items)}</td>
+        <td><input type="number" class="order-input" id="odelivery-${o.id}" step="0.01" min="0" value="${Number(o.delivery_fee || 0).toFixed(2)}" oninput="onDeliveryInput('${o.id}')" aria-label="Delivery fee"></td>
+        <td><span id="ototal-${o.id}">$${Number(o.total).toFixed(2)}</span>${Number(o.order_discount_amount) > 0 ? `<br><span style="color:#8a9a9f; font-size:11px;">incl. -$${Number(o.order_discount_amount).toFixed(2)} discount</span>` : ''}</td>
+        <td>
+          <div class="paid-cell">
+            <select class="paid-mode-select" id="opaidmode-${o.id}" onchange="updatePaidMode('${o.id}')">
+              <option value="paid" ${o.paid_amount != null && Number(o.paid_amount) === Number(o.total) ? 'selected' : ''}>Paid</option>
+              <option value="amount" ${o.paid_amount != null && Number(o.paid_amount) === Number(o.total) ? '' : 'selected'}>Enter Amount</option>
+            </select>
+            <input type="number" class="order-input" id="opaid-${o.id}" oninput="onPaidAmountInput('${o.id}')" step="0.01" min="0" value="${o.paid_amount != null ? Number(o.paid_amount).toFixed(2) : '0.00'}" ${o.paid_amount != null && Number(o.paid_amount) === Number(o.total) ? 'disabled' : ''}>
+          </div>
+        </td>
+        <td>
+          <select class="status-select ${o.status}" id="ostatus-${o.id}" onchange="this.className='status-select ' + this.value">
+            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+            <option value="confirmed" ${o.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+            <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+          </select>
+        </td>
+        <td>
+          <div class="admin-btn-row">
+            <button class="admin-btn" onclick="saveOrderStatus('${o.id}', this)">Save</button>
+            <button class="admin-btn" onclick="openInvoicePreview('${o.id}')">Invoice</button>
+            <span class="admin-status" id="ostatus-msg-${o.id}"></span>
+          </div>
+        </td>
+      </tr>
+    `;
+}
+
+async function loadOrders(){
+  const body = document.querySelector('#ordersBody');
+  const pendingBox = document.querySelector('#pendingOrdersBox');
+  const pendingBody = document.querySelector('#pendingOrdersBody');
+  const otherTitle = document.querySelector('#otherOrdersTitle');
+  body.innerHTML = `<tr><td colspan="8">Loading…</td></tr>`;
+
+  // With "All statuses" selected, pending orders are pulled out into their own
+  // container on top and the list below shows everything else. Picking a
+  // specific status filter just shows the normal single list.
+  const groupPending = !ordersStatusFilter;
+
+  const applySearch = q => {
+    if(!ordersSearch) return q;
+    // Strip characters that have special meaning inside a PostgREST
+    // .or() filter string (comma separates conditions, %/_ are ILIKE
+    // wildcards, parens are grouping) so a search term containing them
+    // can't break the query or add unintended conditions.
+    const safeSearch = ordersSearch.replace(/[,%_()]/g, '');
+    return q.or(`customer_name.ilike.%${safeSearch}%,customer_phone.ilike.%${safeSearch}%`);
+  };
+
+  let query = window.KEYCAM_SUPABASE
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(ordersPage * ORDERS_PAGE_SIZE, ordersPage * ORDERS_PAGE_SIZE + ORDERS_PAGE_SIZE - 1);
+
+  if(ordersStatusFilter) query = query.eq('status', ordersStatusFilter);
+  else query = query.or('status.is.null,status.neq.pending');
+  query = applySearch(query);
+
+  let pendingRows = [];
+  if(groupPending){
+    const pres = await applySearch(
+      window.KEYCAM_SUPABASE
+        .from('orders')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(200)
+    );
+    if(pres.error) console.error('Failed to load pending orders:', pres.error);
+    else pendingRows = pres.data || [];
+  }
+
+  const { data, error } = await query;
+
+  if(error){
+    body.innerHTML = `<tr><td colspan="8">Failed to load orders: ${error.message}</td></tr>`;
+    return;
+  }
+  ordersCache = {};
+  pendingRows.forEach(o => ordersCache[o.id] = o);
+  (data || []).forEach(o => ordersCache[o.id] = o);
+
+  const showPending = groupPending && pendingRows.length > 0;
+  pendingBox.style.display = showPending ? '' : 'none';
+  otherTitle.style.display = showPending ? '' : 'none';
+  document.querySelector('#pendingOrdersCount').textContent = String(pendingRows.length);
+  pendingBody.innerHTML = showPending ? pendingRows.map(orderRowHTML).join('') : '';
+
+  if(!data.length){
+    body.innerHTML = `<tr><td colspan="8">${showPending ? 'No other orders.' : 'No orders found.'}</td></tr>`;
+  }else{
+    body.innerHTML = data.map(orderRowHTML).join('');
+  }
+
+  document.querySelector('#ordersPageLabel').textContent = `Page ${ordersPage + 1}`;
+}
+
+function round2(n){ return Math.round((Number(n) + Number.EPSILON) * 100) / 100; }
+
+// Changing the delivery fee moves the order total by the difference, so any
+// discounts already on the order stay exactly as they were.
+function orderTotalWithDelivery(order, deliveryFee){
+  return round2((Number(order.total) || 0) - (Number(order.delivery_fee) || 0) + (Number(deliveryFee) || 0));
+}
+
+function rowDeliveryFee(id){
+  const el = document.querySelector(`#odelivery-${id}`);
+  return el ? Math.max(0, Number(el.value) || 0) : 0;
+}
+
+function rowTotal(id){
+  const order = ordersCache[id];
+  return order ? orderTotalWithDelivery(order, rowDeliveryFee(id)) : 0;
+}
+
+function onDeliveryInput(id){
+  const totalEl = document.querySelector(`#ototal-${id}`);
+  if(totalEl) totalEl.textContent = '$' + rowTotal(id).toFixed(2);
+  // A fully-paid order stays fully paid when the delivery fee changes.
+  if(document.querySelector(`#opaidmode-${id}`).value === 'paid'){
+    document.querySelector(`#opaid-${id}`).value = rowTotal(id).toFixed(2);
+  }
+}
+
+// Recording a payment on a Pending order moves it to Confirmed automatically
+// (choosing "Paid", or typing an amount above 0). Shipped / Cancelled orders
+// are left alone. The change is applied to the row; press Save to store it.
+function autoConfirmIfPaid(id){
+  const statusEl = document.querySelector(`#ostatus-${id}`);
+  if(!statusEl || statusEl.value !== 'pending') return;
+  const mode = document.querySelector(`#opaidmode-${id}`).value;
+  const input = document.querySelector(`#opaid-${id}`);
+  const paid = mode === 'paid' ? rowTotal(id) : (Number(input && input.value) || 0);
+  if(paid > 0){
+    statusEl.value = 'confirmed';
+    statusEl.className = 'status-select confirmed';
+  }
+}
+
+function onPaidAmountInput(id){
+  autoConfirmIfPaid(id);
+}
+
+function updatePaidMode(id){
+  const mode = document.querySelector(`#opaidmode-${id}`).value;
+  const input = document.querySelector(`#opaid-${id}`);
+  if(mode === 'paid'){
+    input.value = rowTotal(id).toFixed(2);
+    input.disabled = true;
+  }else{
+    input.disabled = false;
+    input.focus();
+  }
+  autoConfirmIfPaid(id);
+}
+
+async function saveOrderStatus(id, btn){
+  const status = document.querySelector(`#ostatus-${id}`).value;
+  const paidMode = document.querySelector(`#opaidmode-${id}`).value;
+  const paidInput = document.querySelector(`#opaid-${id}`);
+  const order = ordersCache[id];
+  const deliveryFee = rowDeliveryFee(id);
+  const deliveryChanged = !!order && round2(deliveryFee) !== round2(Number(order.delivery_fee) || 0);
+  const newTotal = order ? (deliveryChanged ? orderTotalWithDelivery(order, deliveryFee) : Number(order.total)) : 0;
+  const paid_amount = paidMode === 'paid'
+    ? (order ? newTotal : (paidInput ? Number(paidInput.value) || 0 : 0))
+    : (paidInput ? Number(paidInput.value) || 0 : 0);
+  const statusEl = document.querySelector(`#ostatus-msg-${id}`);
+  btn.disabled = true;
+
+  // delivery_fee/total are only sent when the fee actually changed, so status
+  // and payment saves keep working even before the migration has been run.
+  const changes = { status, paid_amount };
+  if(deliveryChanged){
+    changes.delivery_fee = round2(deliveryFee);
+    changes.total = newTotal;
+  }
+
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('orders')
+    .update(changes)
+    .eq('id', id);
+
+  btn.disabled = false;
+  if(error){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed: ' + error.message + (/delivery_fee/i.test(error.message) ? ' (run tools/migration-orders-delivery-discount.sql first)' : '');
+  }else{
+    const wasPending = !!order && order.status === 'pending';
+    if(order) Object.assign(order, changes);
+    statusEl.style.color = '#3bd1a0';
+    statusEl.textContent = 'Saved ✓';
+    setTimeout(() => statusEl.textContent = '', 2000);
+    loadRevenueDashboard();
+    // Move the row between the Pending box and the list below when its
+    // status just crossed that line.
+    if(!ordersStatusFilter && order && wasPending !== (status === 'pending')){
+      setTimeout(loadOrders, 700);
+    }
+  }
+}
+
+/* =========================
+   INVOICE (PDF export)
+========================= */
+const KEYCAM_BUSINESS = {
+  name: 'Keycam',
+  address: 'Toulkork Phnom Penh Cambodia',
+  phone: '0886449944',
+  telegram: 'https://t.me/Keycamm',
+  payableTo: 'Khouch Jing',
+  accountNo: '001 192 298',
+  paymentMethod: 'ABA'
+};
+
+function invoiceTypeName(t){
+  return t === 'mousepad' ? 'Mouse Pad' : t === 'fps' ? 'FPS Mouse Pad' : t === 'glass' ? 'Glass Mouse Pad' : (t || '');
+}
+
+function invoiceNumberFor(order){
+  const d = new Date(order.created_at);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const shortId = (order.id || '').replace(/-/g, '').slice(0, 6).toUpperCase();
+  return `INV-${y}${m}${day}-${shortId}`;
+}
+
+// Same QR image as deskmat/admin.html — this page lives at the project
+// root instead of inside deskmat/, so the relative path differs.
+const KEYCAM_QR_PATH = 'deskmat/ABA_QR.jpg';
+const DEFAULT_MAINTENANCE_DISCOUNT = 0.20; // fallback for orders placed before maintenance_discount was captured
+
+function loadImageAsDataURL(url){
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try{
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        resolve({ dataUrl: canvas.toDataURL('image/jpeg'), w: img.naturalWidth, h: img.naturalHeight });
+      }catch(e){
+        resolve(null); // e.g. blocked by CORS/tainted canvas — invoice still works, just without the QR
+      }
+    };
+    img.onerror = () => resolve(null); // file not found — fine, invoice falls back to text-only payment details
+    img.src = url;
+  });
+}
+
+async function buildInvoiceDoc(order){
+  if(!window.jspdf || !window.jspdf.jsPDF) return null;
+
+  const qr = await loadImageAsDataURL(KEYCAM_QR_PATH);
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 40;
+  const rightX = pageW - margin;
+  let y = 50;
+
+  // --- Header: business info (left) / INVOICE title (right) ---
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
+  doc.text(KEYCAM_BUSINESS.name, margin, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
+  doc.text(KEYCAM_BUSINESS.address, margin, y + 16);
+  doc.text(KEYCAM_BUSINESS.phone, margin, y + 28);
+  doc.text(KEYCAM_BUSINESS.telegram, margin, y + 40);
+
+  doc.setTextColor(0);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(22);
+  doc.text('INVOICE', rightX, y, { align: 'right' });
+
+  const invoiceNo = invoiceNumberFor(order);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
+  doc.text('Invoice No.:', rightX - 90, y + 20, { align: 'right' });
+  doc.setTextColor(0);
+  doc.text(invoiceNo, rightX, y + 20, { align: 'right' });
+  doc.setTextColor(90);
+  doc.text('Date:', rightX - 90, y + 33, { align: 'right' });
+  doc.setTextColor(0);
+  doc.text(formatOrderDate(order.created_at), rightX, y + 33, { align: 'right' });
+
+  y += 60;
+  doc.setDrawColor(0); doc.setLineWidth(2);
+  doc.line(margin, y, rightX, y);
+  y += 26;
+
+  // --- Bill To ---
+  doc.setTextColor(0); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+  doc.text('Bill To', margin, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
+  doc.text(order.customer_name || '—', margin, y + 16);
+  if(order.customer_phone){
+    doc.setFontSize(9); doc.setTextColor(90);
+    doc.text(order.customer_phone, margin, y + 30);
+    doc.setTextColor(0);
+  }
+
+  y += 50;
+
+  // --- Items table ---
+  const items = Array.isArray(order.items) ? order.items : [];
+  const col = { no: margin, product: margin + 30, qty: rightX - 210, rate: rightX - 150, disc: rightX - 85, amt: rightX };
+  const rowH = 30;
+
+  function tableHeader(yy){
+    doc.setFillColor(0, 0, 0);
+    doc.rect(margin, yy, rightX - margin, 22, 'F');
+    doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    doc.text('No.', col.no + 4, yy + 15);
+    doc.text('Product', col.product, yy + 15);
+    doc.text('Qty', col.qty, yy + 15, { align: 'right' });
+    doc.text('Rate', col.rate, yy + 15, { align: 'right' });
+    doc.text('Discount', col.disc, yy + 15, { align: 'right' });
+    doc.text('Amount', col.amt, yy + 15, { align: 'right' });
+    doc.setTextColor(0);
+    return yy + 22;
+  }
+
+  function reconstructLinePricing(order, it){
+  const qty = Number(it.qty) || 0;
+  const finalPrice = Number(it.price) || 0; // what's actually stored — already discounted, if a discount applied
+
+  // Orders made with "Create order" store the exact per-item discount in
+  // dollars, so the invoice shows precisely what was entered.
+  if(it.lineDiscount != null && it.originalPrice != null){
+    const originalPrice = Number(it.originalPrice);
+    const discountTotal = Number(it.lineDiscount) || 0;
+    const amount = Math.round((originalPrice * qty - discountTotal) * 100) / 100;
+    return { rate: originalPrice, discountTotal, amount };
+  }
+
+  // Catalog checkout captures the pre-discount price directly on the item
+  // (shared/catalog-cart.js mapItemsForSupabase) whenever a Pchum Ben
+  // festival/product discount applied at the moment it was added to the
+  // order — that's the real source of truth, no reconstruction needed.
+  if(it.originalPrice != null && Number(it.originalPrice) > finalPrice){
+    const originalPrice = Number(it.originalPrice);
+    const amount = finalPrice * qty;
+    const discountTotal = Math.round((originalPrice * qty - amount) * 100) / 100;
+    return { rate: originalPrice, discountTotal, amount };
+  }
+
+  // Fallback: older Deskmat-style sitewide maintenance-mode discount
+  // (mousepad/fps items don't carry a per-item originalPrice).
+  const discountEligible = order.maintenance_mode && (it.type === 'mousepad' || it.type === 'fps');
+
+  if(!discountEligible){
+    return { rate: finalPrice, discountTotal: 0, amount: finalPrice * qty };
+  }
+
+  const rate = order.maintenance_discount != null
+    ? Number(order.maintenance_discount)
+    : DEFAULT_MAINTENANCE_DISCOUNT;
+  const originalPrice = rate < 1 ? finalPrice / (1 - rate) : finalPrice;
+  const roundedOriginal = Math.round(originalPrice * 100) / 100;
+  const amount = finalPrice * qty; // what the customer actually paid for this line — unchanged
+  const discountTotal = Math.round((roundedOriginal * qty - amount) * 100) / 100;
+
+  return { rate: roundedOriginal, discountTotal, amount };
+}
+
+  y = tableHeader(y);
+
+  let subtotal = 0;
+  let lineDiscountTotal = 0;
+  items.forEach((it, i) => {
+    const qty = Number(it.qty) || 0;
+    const { rate, discountTotal: discount, amount } = reconstructLinePricing(order, it);
+    subtotal += amount;
+    lineDiscountTotal += Number(discount) || 0;
+
+    if(y + rowH > doc.internal.pageSize.getHeight() - 140){
+      doc.addPage();
+      y = 50;
+      y = tableHeader(y);
+    }
+
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+    doc.text(String(i + 1), col.no + 4, y + 13);
+    doc.text(String(it.name || ''), col.product, y + 13);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(90);
+    // Catalog-checkout items carry a variantSummary instead of type/size/thickness.
+    const subtitle = it.variantSummary || [invoiceTypeName(it.type), it.size, it.thickness].filter(Boolean).join(', ');
+    if(subtitle) doc.text(subtitle, col.product, y + 25);
+    doc.setTextColor(0); doc.setFontSize(10);
+    doc.text(String(qty), col.qty, y + 13, { align: 'right' });
+    doc.text(rate.toFixed(2), col.rate, y + 13, { align: 'right' });
+    doc.text(discount.toFixed(2), col.disc, y + 13, { align: 'right' });
+    doc.text(amount.toFixed(2), col.amt, y + 13, { align: 'right' });
+
+    doc.setDrawColor(220);
+    doc.line(margin, y + rowH, rightX, y + rowH);
+    y += rowH;
+  });
+
+  y += 26;
+
+  // --- Payment Detail (left) + Totals (right) ---
+  const payY = y;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+  doc.text('Payment Detail', margin, payY);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
+  doc.text('Payable To', margin, payY + 16);
+  doc.text('Account No', margin, payY + 30);
+  doc.text('Other Details', margin, payY + 44);
+  doc.setTextColor(0);
+  doc.text(KEYCAM_BUSINESS.payableTo, margin + 80, payY + 16);
+  doc.text(KEYCAM_BUSINESS.accountNo, margin + 80, payY + 30);
+  doc.text(KEYCAM_BUSINESS.paymentMethod, margin + 80, payY + 44);
+
+  if(qr && qr.dataUrl){
+    const qrSize = 74;
+    const qrX = margin + 220;
+    try{
+      doc.addImage(qr.dataUrl, 'JPEG', qrX, payY - 8, qrSize, qrSize);
+      doc.setFontSize(7.5); doc.setTextColor(120);
+      doc.text('Scan to pay', qrX + qrSize / 2, payY - 8 + qrSize + 10, { align: 'center' });
+      doc.setTextColor(0);
+    }catch(e){ /* image failed to embed — invoice still renders fine without it */ }
+  }
+
+  const orderDiscount = Number(order.order_discount_amount) || 0;
+  const deliveryFee = Number(order.delivery_fee) || 0;
+  const tax = 0;
+  let total = subtotal - orderDiscount + deliveryFee + tax;
+  // Safety net: the total stored on the order is what the customer was really
+  // charged. If the itemised lines don't add up to it (e.g. an older order that
+  // never saved each item's original price), show the gap as its own row instead
+  // of silently dropping it, so the invoice total always matches the order.
+  let adjustment = 0;
+  if(order.total !== null && order.total !== undefined && isFinite(Number(order.total)) &&
+     Math.abs(Number(order.total) - total) > 0.005){
+    adjustment = total - Number(order.total); // > 0 = a discount that wasn't itemised
+    total = Number(order.total);
+  }
+  // Paid comes from the order's tracked paid_amount (deposits, partial payments).
+  // Falls back to the old status-based full/zero rule for orders saved before that column existed.
+  const paid = (order.paid_amount !== null && order.paid_amount !== undefined)
+    ? Number(order.paid_amount)
+    : ((order.status === 'confirmed' || order.status === 'shipped') ? total : 0);
+  const balance = total - paid;
+
+  const totW = 200, totX = rightX - totW;
+  let ty = payY;
+  doc.setFontSize(9); doc.setTextColor(90);
+  const totalsRow = (label, value) => {
+    doc.setTextColor(90); doc.text(label, totX, ty);
+    doc.setTextColor(0); doc.text(value, rightX, ty, { align: 'right' });
+    ty += 18;
+  };
+  const hasLineDisc = lineDiscountTotal > 0.004;
+  const hasAdjust = Math.abs(adjustment) > 0.004;
+  // Subtotal is the price before any discount, so the rows below add up to the Total.
+  if(hasLineDisc || orderDiscount > 0 || deliveryFee > 0 || hasAdjust) totalsRow('Subtotal', `$${(subtotal + lineDiscountTotal).toFixed(2)}`);
+  if(hasLineDisc) totalsRow('Item discount', `-$${lineDiscountTotal.toFixed(2)}`);
+  if(orderDiscount > 0){
+    const pct = order.order_discount_type === 'percent' ? ` (${Number(order.order_discount_value)}%)` : '';
+    totalsRow((hasLineDisc ? 'Order discount' : 'Discount') + pct, `-$${orderDiscount.toFixed(2)}`);
+  }
+  if(adjustment > 0.004) totalsRow((hasLineDisc || orderDiscount > 0) ? 'Other discount' : 'Discount', `-$${adjustment.toFixed(2)}`);
+  if(adjustment < -0.004) totalsRow('Adjustment', `+$${Math.abs(adjustment).toFixed(2)}`);
+  if(deliveryFee > 0) totalsRow('Delivery fee', `$${deliveryFee.toFixed(2)}`);
+  doc.setTextColor(90);
+  doc.text('Tax (0.0%)', totX, ty); doc.setTextColor(0); doc.text(`$${tax.toFixed(2)}`, rightX, ty, { align: 'right' });
+  ty += 18;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+  doc.text('Total', totX, ty); doc.text(`$${total.toFixed(2)}`, rightX, ty, { align: 'right' });
+  ty += 18;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
+  doc.text('Paid', totX, ty); doc.setTextColor(0); doc.text(`$${paid.toFixed(2)}`, rightX, ty, { align: 'right' });
+  ty += 10;
+  doc.setDrawColor(0); doc.line(totX, ty, rightX, ty);
+  ty += 16;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
+  doc.text('Balance', totX, ty); doc.text(`$${balance.toFixed(2)}`, rightX, ty, { align: 'right' });
+
+  y = Math.max(payY + 60, ty + 40);
+
+  // --- Terms & Conditions ---
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(0);
+  doc.text('Terms & Condition', margin, y);
+  y += 16;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(90);
+  const terms = [
+    'No returnable to cash after purchase.',
+    '1 year warranty on a new product.',
+    'If there are any technical issues within 7 days, you can exchange for the new one.',
+    'Warranty void on electric shock, seal broken, misuse, or modification.'
+  ];
+  terms.forEach(line => {
+    const wrapped = doc.splitTextToSize('• ' + line, 280);
+    doc.text(wrapped, margin, y);
+    y += wrapped.length * 12;
+  });
+
+  // --- Signature ---
+  doc.setTextColor(0); doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+  doc.text(KEYCAM_BUSINESS.name, rightX, y - 10, { align: 'right' });
+  doc.text('Signature', rightX, y + 4, { align: 'right' });
+
+  return { doc, invoiceNo };
+}
+
+async function openInvoicePreview(orderId){
+  const order = ordersCache[orderId];
+  if(!order){ alert('Order not found — try reloading the orders list.'); return; }
+
+  document.querySelector('#invoicePreviewFrame').srcdoc = '<body style="font-family:sans-serif;color:#8a9a9f;padding:24px;">Building invoice&hellip;';
+  document.querySelector('#invoiceModalBackdrop').classList.add('open');
+
+  const built = await buildInvoiceDoc(order);
+  if(!built){ alert('PDF library did not load. Check your internet connection and try again.'); return; }
+
+  const { doc, invoiceNo } = built;
+  const blobUrl = doc.output('bloburl');
+
+  document.querySelector('#invoicePreviewFrame').removeAttribute('srcdoc');
+  document.querySelector('#invoicePreviewFrame').src = blobUrl;
+  document.querySelector('#invoiceDownloadBtn').onclick = () => doc.save(`${invoiceNo}.pdf`);
+}
+
+document.querySelector('#invoiceCloseBtn').addEventListener('click', () => {
+  document.querySelector('#invoiceModalBackdrop').classList.remove('open');
+  document.querySelector('#invoicePreviewFrame').src = 'about:blank';
+});
+document.querySelector('#invoiceModalBackdrop').addEventListener('click', (e) => {
+  if(e.target.id === 'invoiceModalBackdrop'){
+    document.querySelector('#invoiceModalBackdrop').classList.remove('open');
+    document.querySelector('#invoicePreviewFrame').src = 'about:blank';
+  }
+});
+
+/* =========================
+   REVENUE DASHBOARD
+========================= */
+async function loadRevenueDashboard(){
+  const { data, error } = await window.KEYCAM_SUPABASE
+    .from('orders')
+    .select('total, created_at')
+    .in('status', ['confirmed', 'shipped']);
+
+  if(error){ console.error("Failed to load revenue:", error); return; }
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfWeek = new Date(startOfToday);
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const today = { rev: 0, count: 0 };
+  const week = { rev: 0, count: 0 };
+  const month = { rev: 0, count: 0 };
+  const all = { rev: 0, count: 0 };
+
+  (data || []).forEach(o => {
+    const d = new Date(o.created_at);
+    const total = Number(o.total) || 0;
+    all.rev += total; all.count++;
+    if(d >= startOfMonth){ month.rev += total; month.count++; }
+    if(d >= startOfWeek){ week.rev += total; week.count++; }
+    if(d >= startOfToday){ today.rev += total; today.count++; }
+  });
+
+  setRevenueCard('today', today);
+  setRevenueCard('week', week);
+  setRevenueCard('month', month);
+  setRevenueCard('all', all);
+}
+
+function setRevenueCard(key, { rev, count }){
+  const revEl = document.querySelector(`#rev-${key}`);
+  const countEl = document.querySelector(`#rev-${key}-count`);
+  if(revEl) revEl.textContent = '$' + rev.toFixed(2);
+  if(countEl) countEl.textContent = `${count} order${count === 1 ? '' : 's'}`;
+}
+
+/* =========================
+   PCHUM BEN FESTIVAL DISCOUNT SETTINGS
+   Lives on the same store_settings singleton row (id=1) as Deskmat's
+   maintenance_mode/maintenance_discount, but its own festival_discount_*
+   columns — the two toggles are completely independent of each other.
+========================= */
+function isoToLocalInputValue(iso){
+  if(!iso) return '';
+  const d = new Date(iso);
+  if(isNaN(d)) return '';
+  const pad = n => String(n).padStart(2, '0');
+  return `${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`;
+}
+
+async function loadFestivalDiscountSettings(){
+  const { data, error } = await window.KEYCAM_SUPABASE
+    .from('store_settings')
+    .select('festival_discount_mode, festival_discount_percent, festival_discount_label, festival_discount_starts_at, festival_discount_ends_at')
+    .eq('id', 1)
+    .maybeSingle();
+
+  const modeEl = document.querySelector('#festivalDiscountMode');
+  const pctEl = document.querySelector('#festivalDiscountPercent');
+  const labelEl = document.querySelector('#festivalDiscountLabel');
+  const startEl = document.querySelector('#festivalDiscountStart');
+  const endEl = document.querySelector('#festivalDiscountEnd');
+  const statusEl = document.querySelector('#festivalDiscountStatus');
+
+  if(error){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed to load: ' + error.message;
+    return;
+  }
+  modeEl.checked = data ? !!data.festival_discount_mode : false;
+  pctEl.value = data && data.festival_discount_percent != null ? Number(data.festival_discount_percent) : 20;
+  labelEl.value = (data && data.festival_discount_label) || 'Pchum Ben Festival Sale';
+  startEl.value = isoToLocalInputValue(data && data.festival_discount_starts_at);
+  endEl.value = isoToLocalInputValue(data && data.festival_discount_ends_at);
+}
+
+document.querySelector('#saveFestivalDiscountBtn').addEventListener('click', async () => {
+  const btn = document.querySelector('#saveFestivalDiscountBtn');
+  const statusEl = document.querySelector('#festivalDiscountStatus');
+
+  const festival_discount_mode = document.querySelector('#festivalDiscountMode').checked;
+  const pct = Number(document.querySelector('#festivalDiscountPercent').value) || 0;
+  const festival_discount_percent = Math.max(0, Math.min(100, pct));
+  const festival_discount_label = document.querySelector('#festivalDiscountLabel').value.trim() || 'Pchum Ben Festival Sale';
+  const startRaw = document.querySelector('#festivalDiscountStart').value;
+  const endRaw = document.querySelector('#festivalDiscountEnd').value;
+  const festival_discount_starts_at = startRaw ? new Date(startRaw).toISOString() : null;
+  const festival_discount_ends_at = endRaw ? new Date(endRaw).toISOString() : null;
+
+  btn.disabled = true;
+  statusEl.style.color = '#8a9a9f';
+  statusEl.textContent = 'Saving…';
+
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('store_settings')
+    .update({ festival_discount_mode, festival_discount_percent, festival_discount_label, festival_discount_starts_at, festival_discount_ends_at })
+    .eq('id', 1);
+
+  btn.disabled = false;
+  if(error){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed: ' + error.message;
+  }else{
+    statusEl.style.color = '#3bd1a0';
+    statusEl.textContent = 'Saved ✓ — live on the storefront now';
+    setTimeout(() => statusEl.textContent = '', 3000);
+  }
+});
+
+document.querySelector('#orderSearch').addEventListener('input', (e) => {
+  clearTimeout(window._orderSearchDebounce);
+  window._orderSearchDebounce = setTimeout(() => {
+    ordersSearch = e.target.value.trim();
+    ordersPage = 0;
+    loadOrders();
+  }, 400);
+});
+
+document.querySelector('#orderStatusFilter').addEventListener('change', (e) => {
+  ordersStatusFilter = e.target.value;
+  ordersPage = 0;
+  loadOrders();
+});
+
+document.querySelector('#ordersPrevPage').addEventListener('click', () => {
+  if(ordersPage > 0){ ordersPage--; loadOrders(); }
+});
+document.querySelector('#ordersNextPage').addEventListener('click', () => {
+  ordersPage++; loadOrders();
+});
+
+document.querySelector('#createOrderBtn').addEventListener('click', () => {
+  if(!window.KeycamCreateOrder){
+    alert('The Create order script did not load. Make sure shared/admin-create-order.js is uploaded with the site files.');
+    return;
+  }
+  window.KeycamCreateOrder.open({
+    onSaved: async (row, openInvoice) => {
+      // Show the new order at the top of an unfiltered list.
+      ordersPage = 0; ordersSearch = ''; ordersStatusFilter = '';
+      document.querySelector('#orderSearch').value = '';
+      document.querySelector('#orderStatusFilter').value = '';
+      await loadOrders();
+      loadRevenueDashboard();
+      if(openInvoice){
+        ordersCache[row.id] = row;
+        openInvoicePreview(row.id);
+      }
+    }
+  });
+});
+
+/* =========================
+   TABS
+========================= */
+function switchTab(tab){
+  document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.toggle('active', b.dataset.tab === tab));
+  document.querySelectorAll('.admin-tab-panel').forEach(p => p.style.display = 'none');
+  const panel = document.querySelector(`#tab-${tab}`);
+  if(panel) panel.style.display = 'block';
+}
+document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    switchTab(btn.dataset.tab);
+    if(btn.dataset.tab === 'inventory') loadInventory();
+  });
+});
+
+/* =========================
+   AUTH — same pattern & Supabase project as deskmat/admin.html,
+   so the same login works here too.
+========================= */
+const loginView = document.querySelector('#loginView');
+const adminView = document.querySelector('#adminView');
+const loginForm = document.querySelector('#loginForm');
+const loginError = document.querySelector('#loginError');
+const loginSubmit = document.querySelector('#loginSubmit');
+
+async function showAdmin(){
+  loginView.style.display = 'none';
+  adminView.style.display = 'block';
+  loadProducts();
+  loadOrders();
+  loadRevenueDashboard();
+  loadFestivalDiscountSettings();
+  startIdleTimer();
+}
+function showLogin(){
+  adminView.style.display = 'none';
+  loginView.style.display = 'flex';
+  stopIdleTimer();
+}
+
+async function checkSession(){
+  const { data } = await window.KEYCAM_SUPABASE.auth.getSession();
+  if(data.session){ showAdmin(); } else { showLogin(); }
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  loginError.style.display = 'none';
+  loginSubmit.disabled = true;
+  loginSubmit.textContent = 'Signing in…';
+
+  const email = document.querySelector('#loginEmail').value.trim();
+  const password = document.querySelector('#loginPassword').value;
+  const { error } = await window.KEYCAM_SUPABASE.auth.signInWithPassword({ email, password });
+
+  loginSubmit.disabled = false;
+  loginSubmit.textContent = 'Sign in';
+
+  if(error){
+    loginError.textContent = 'Incorrect email or password.';
+    loginError.style.display = 'block';
+    return;
+  }
+  showAdmin();
+});
+
+document.querySelector('#signOutBtn').addEventListener('click', async () => {
+  await window.KEYCAM_SUPABASE.auth.signOut();
+  showLogin();
+});
+
+const IDLE_LIMIT_MS = 10 * 60 * 1000;
+let idleTimer = null;
+function startIdleTimer(){
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(async () => {
+    await window.KEYCAM_SUPABASE.auth.signOut();
+    loginError.textContent = 'Signed out after 10 minutes of inactivity.';
+    loginError.style.display = 'block';
+    showLogin();
+  }, IDLE_LIMIT_MS);
+}
+function stopIdleTimer(){ clearTimeout(idleTimer); }
+['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(evt =>
+  document.addEventListener(evt, () => {
+    if(adminView.style.display === 'block') startIdleTimer();
+  }, { passive: true })
+);
+window.addEventListener('pagehide', () => { sessionStorage.clear(); });
+window.addEventListener('pageshow', (event) => {
+  if(event.persisted){ checkSession(); }
+});
+
+/* =========================
+   HELPERS
+========================= */
+function escapeAttr(s){
+  return (s || '').toString().replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+// Standard variant groups. If a row's saved group_name doesn't match one
+// of these (older/custom data), it's appended as an extra selected
+// option so editing the row never silently drops/changes its value.
+const VARIANT_GROUP_PRESETS = ['Color', 'Quantity', 'Character'];
+function variantGroupOptionsHTML(selected){
+  const opts = [`<option value="" ${!selected ? 'selected' : ''}>Select group…</option>`];
+  VARIANT_GROUP_PRESETS.forEach(g => {
+    opts.push(`<option value="${g}" ${g === selected ? 'selected' : ''}>${g}</option>`);
+  });
+  if(selected && !VARIANT_GROUP_PRESETS.includes(selected)){
+    opts.push(`<option value="${escapeAttr(selected)}" selected>${selected}</option>`);
+  }
+  return opts.join('');
+}
+
+// Default Shipping / Payment text applied to every product unless that
+// product has its own value saved. Kept in sync with product.html.
+const DEFAULT_SHIPPING_INFO = `Delivery Fee
+========
+- Phnom Penh 1.5$-3$ ( Grab express, fee depends on exactly distance)
+- Province 1.5$ Fix ( VET J&T....)
+- COD delivery 1.5$ + COD fee 0.5$
+🆓 Free delivery on Full Customize
+Info for delivery
+==========
+👉For delivery to door ( ZTO, J&T, Grab)
+- Phone number ( Optional )
+- Telegram
+- Location Map
+- Building name
+👉Pick up ( VET, J&T, ZTO)
+- Phone number
+- Address`;
+
+const DEFAULT_PAYMENT_INFO = `Payment Method
+========
+🏦Local Bank: ABA Aclida ( KHQR )
+🚚Cash On delivery ( ZTO express )
+🟠Cryptocurrency ( Binance.... )
+🟢<100$ => $1.015/USDT
+🟢>100$ =>$1.006/USDT`;
+
+function slugifyPath(text){
+  return (text || '').toString().toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'item';
+}
+
+// Turns a public Supabase Storage URL into the path Storage APIs expect
+// (the part after /object/public/keycam-images/). Returns null for
+// anything that isn't a keycam-images URL (e.g. already null/empty).
+function storagePathFromUrl(url){
+  if(!url) return null;
+  const marker = '/storage/v1/object/public/keycam-images/';
+  const idx = url.indexOf(marker);
+  if(idx === -1) return null;
+  return decodeURIComponent(url.slice(idx + marker.length));
+}
+
+function generateThumbnail(file, maxDim = 600, quality = 0.82){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let { width, height } = img;
+      if(width > height){
+        if(width > maxDim){ height = Math.round(height * maxDim / width); width = maxDim; }
+      }else{
+        if(height > maxDim){ width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        URL.revokeObjectURL(url);
+        if(blob) resolve(blob); else reject(new Error('Thumbnail generation failed'));
+      }, 'image/webp', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read image')); };
+    img.src = url;
+  });
+}
+
+// Same idea as generateThumbnail, but starting from an already-uploaded
+// image URL instead of a local File. Used when setting an existing
+// gallery image as the cover. Resolves to null (not a rejection) if the
+// browser can't read the remote image back (e.g. a CORS quirk) so
+// callers can fall back to just reusing the full-size URL.
+function generateThumbnailFromUrl(url, maxDim = 600, quality = 0.82){
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.crossOrigin = 'anonymous';
+    img.onload = () => {
+      try{
+        let { width, height } = img;
+        if(width > height){
+          if(width > maxDim){ height = Math.round(height * maxDim / width); width = maxDim; }
+        }else{
+          if(height > maxDim){ width = Math.round(width * maxDim / height); height = maxDim; }
+        }
+        const canvas = document.createElement('canvas');
+        canvas.width = width;
+        canvas.height = height;
+        canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+        canvas.toBlob(blob => resolve(blob || null), 'image/webp', quality);
+      }catch(e){ resolve(null); }
+    };
+    img.onerror = () => resolve(null);
+    img.src = url;
+  });
+}
+
+// Longest side, in px, for images stored in Supabase. Originals are resized
+// (and re-encoded as WebP) in the browser before upload so full-resolution
+// files never use up storage. Change this one number to go bigger/smaller.
+const MAX_UPLOAD_DIM = 1600;
+
+// Resizes an image file to `scale` (0-1) of its original dimensions, then caps
+// the longest side at MAX_UPLOAD_DIM, re-encoded as webp. If the image is
+// already small enough (and scale is 1) the original file is returned
+// untouched. Backs the "Standard / Reduce 70% / Reduce 50%" upload toggle,
+// separate from generateThumbnail (always small, for the gallery strip/cover).
+function resizeImageToScale(file, scale, quality = 0.85){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      const s = (!scale || scale > 1) ? 1 : scale;
+      let width = Math.max(1, Math.round(img.naturalWidth * s));
+      let height = Math.max(1, Math.round(img.naturalHeight * s));
+      const longest = Math.max(width, height);
+      if(longest > MAX_UPLOAD_DIM){
+        const k = MAX_UPLOAD_DIM / longest;
+        width = Math.max(1, Math.round(width * k));
+        height = Math.max(1, Math.round(height * k));
+      }
+      if(width === img.naturalWidth && height === img.naturalHeight){
+        URL.revokeObjectURL(url);
+        return resolve(file); // already within the limit — upload untouched
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        URL.revokeObjectURL(url);
+        if(blob) resolve(blob); else reject(new Error('Image resize failed'));
+      }, 'image/webp', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read image')); };
+    img.src = url;
+  });
+}
+
+// Same as uploadCatalogImage, but applies the upload-size toggle and the
+// MAX_UPLOAD_DIM cap first. Images already within the limit are uploaded as
+// the original file; anything larger goes up as a resized .webp instead.
+async function uploadCatalogImageScaled(file, category, nameForSlug, scale){
+  const blob = await resizeImageToScale(file, scale);
+  if(blob === file) return uploadCatalogImage(file, category, nameForSlug);
+  const rand = Math.random().toString(16).slice(2, 8);
+  const path = `catalog/${category}/${slugifyPath(nameForSlug)}-${rand}.webp`;
+  const { error } = await window.KEYCAM_SUPABASE.storage
+    .from('keycam-images')
+    .upload(path, blob, { contentType: 'image/webp', upsert: true });
+  if(error) throw new Error('Image upload failed: ' + error.message);
+  return window.KEYCAM_SUPABASE.storage.from('keycam-images').getPublicUrl(path).data.publicUrl;
+}
+
+// Markup + wiring for the reusable "Full size / Reduce 70% / Reduce 50%"
+// toggle. containerId's element ends up with data-scale set to whichever
+// button is active (default "1" = full size, matching the old behavior).
+function uploadScaleToggleHTML(containerId){
+  return `
+    <div class="upload-scale-toggle" id="${containerId}" data-scale="1">
+      <span class="upload-scale-label">Upload size:</span>
+      <button type="button" class="scale-btn active" data-scale="1">Standard (max 1600px)</button>
+      <button type="button" class="scale-btn" data-scale="0.7">Reduce 70%</button>
+      <button type="button" class="scale-btn" data-scale="0.5">Reduce 50%</button>
+    </div>
+  `;
+}
+function wireUploadScaleToggle(containerId){
+  const el = document.querySelector(`#${containerId}`);
+  if(!el) return;
+  el.querySelectorAll('.scale-btn').forEach(btn => {
+    btn.addEventListener('click', () => {
+      el.querySelectorAll('.scale-btn').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      el.dataset.scale = btn.dataset.scale;
+    });
+  });
+}
+
+// Uploads one File into the keycam-images bucket under catalog/<category>/
+// and returns its public URL. Reused by both product creation and the
+// per-product Images manager.
+async function uploadCatalogImage(file, category, nameForSlug){
+  const ext = (file.name.split('.').pop() || 'jpg').toLowerCase();
+  const rand = Math.random().toString(16).slice(2, 8);
+  const path = `catalog/${category}/${slugifyPath(nameForSlug)}-${rand}.${ext}`;
+  const { error } = await window.KEYCAM_SUPABASE.storage
+    .from('keycam-images')
+    .upload(path, file, { contentType: file.type, upsert: true });
+  if(error) throw new Error('Image upload failed: ' + error.message);
+  return window.KEYCAM_SUPABASE.storage.from('keycam-images').getPublicUrl(path).data.publicUrl;
+}
+
+/* =========================
+   PRODUCTS LIST (catalog_products)
+========================= */
+const PAGE_SIZE = 25;
+let currentPage = 0;
+let currentSearch = '';
+let currentCategory = '';
+let currentSort = 'date';
+const openVariantPanels = new Set(); // product ids currently expanded
+const openImagePanels = new Set(); // product ids with the Images panel expanded
+const openInfoPanels = new Set(); // product ids with the Info panel expanded
+const openComponentPanels = new Set(); // product ids with the Built From panel expanded
+
+async function loadProducts(){
+  const body = document.querySelector('#productsBody');
+  body.innerHTML = `<tr><td colspan="9">Loading…</td></tr>`;
+
+  let query = window.KEYCAM_SUPABASE
+    .from('catalog_products')
+    .select('*')
+    .range(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE - 1);
+
+  if(currentSearch) query = query.ilike('name', `%${currentSearch}%`);
+  if(currentCategory){
+    // "keyboard:barebone" style values narrow by category AND subtype;
+    // plain "accessories"/"mouse" narrow by category only.
+    const [cat, subtype] = currentCategory.split(':');
+    query = query.eq('category', cat);
+    if(subtype) query = query.eq('subtype', subtype);
+  }
+  query = currentSort === 'name'
+    ? query.order('name')
+    : query.order('created_at', { ascending: false });
+
+  const { data, error } = await query;
+
+  if(error){
+    body.innerHTML = `<tr><td colspan="9">Failed to load: ${error.message}</td></tr>`;
+    return;
+  }
+  if(!data.length){
+    body.innerHTML = `<tr><td colspan="9">No products found.</td></tr>`;
+  }else{
+    body.innerHTML = data.map(p => productRowHTML(p)).join('');
+    // Re-open any variant/image panels that were open before this reload
+    data.forEach(p => {
+      if(openVariantPanels.has(p.id)) toggleVariants(p.id, true);
+      if(openImagePanels.has(p.id)) toggleImages(p.id, true);
+      if(openInfoPanels.has(p.id)) toggleInfo(p.id, true);
+      if(openComponentPanels.has(p.id)) toggleComponents(p.id, true);
+    });
+  }
+  document.querySelector('#pageLabel').textContent = `Page ${currentPage + 1}`;
+}
+
+/* =========================
+   ROW ACTION MENUS ("Details ▾" / "⋯")
+   Small popovers replacing what used to be a row of 8 separate
+   buttons. Only one open at a time; clicking elsewhere closes it.
+========================= */
+function closeRowMenus(){
+  document.querySelectorAll('.row-menu-popover.open').forEach(p => p.classList.remove('open'));
+}
+function toggleRowMenu(productId, which){
+  const menu = document.querySelector(`#${which}-menu-${productId}`);
+  const wasOpen = menu.classList.contains('open');
+  closeRowMenus();
+  if(!wasOpen){
+    menu.classList.add('open');
+    setTimeout(() => {
+      document.addEventListener('click', closeRowMenusOnOutsideClick, { once: true, capture: true });
+    }, 0);
+  }
+}
+function closeRowMenusOnOutsideClick(e){
+  if(e.target.closest('.row-menu-popover') || e.target.closest('.row-actions button')) return;
+  closeRowMenus();
+}
+
+function productRowHTML(p){
+  const name = escapeAttr(p.name);
+  return `
+    <tr data-id="${p.id}" class="${p.archived ? 'archived' : ''}">
+      <td><img src="${p.thumbnail || p.image || ''}" alt="" onerror="this.style.visibility='hidden'"></td>
+      <td><input type="text" value="${name}" id="name-${p.id}"></td>
+      <td>
+        <select id="category-${p.id}" onchange="onRowCategoryChange('${p.id}')">
+          <option value="keyboard" ${p.category==='keyboard'?'selected':''}>Keyboard</option>
+          <option value="accessories" ${p.category==='accessories'?'selected':''}>Accessories</option>
+          <option value="mouse" ${p.category==='mouse'?'selected':''}>Mouse</option>
+        </select>
+      </td>
+      <td id="subtype-cell-${p.id}">${rowSubtypeSelectHTML(p)}</td>
+      <td><input type="number" step="0.01" min="0" value="${p.base_price ?? ''}" id="price-${p.id}" placeholder="—"></td>
+      <td><input type="number" step="1" min="0" max="100" value="${p.discount_percent ?? ''}" id="discount-${p.id}" placeholder="—" style="width:70px;"></td>
+      <td>
+        <div class="stock-cell">
+          <input type="number" step="1" min="0" value="${p.stock_qty ?? ''}" id="stock-${p.id}" placeholder="—" title="Only used if this product has no variants — otherwise track stock per-variant in the Variants panel.">
+          <span id="stock-badge-${p.id}">${stockBadgeHTML(p.stock_qty)}</span>
+        </div>
+      </td>
+      <td><input type="number" value="${p.sort_order ?? 0}" id="sort-${p.id}" style="width:60px;"></td>
+      <td>
+        <div class="row-actions">
+          <button class="admin-btn" onclick="saveProduct('${p.id}', this)">Save</button>
+          <button class="admin-btn secondary" onclick="toggleRowMenu('${p.id}', 'details')">Details ▾</button>
+          <div class="row-menu-popover" id="details-menu-${p.id}">
+            <button class="admin-btn secondary" onclick="closeRowMenus(); toggleInfo('${p.id}')">Info</button>
+            <button class="admin-btn secondary" onclick="closeRowMenus(); toggleImages('${p.id}')">Images</button>
+            <button class="admin-btn secondary" onclick="closeRowMenus(); toggleVariants('${p.id}')">Variants</button>
+            <button class="admin-btn secondary" onclick="closeRowMenus(); toggleComponents('${p.id}')">Built From</button>
+          </div>
+          <button class="admin-btn secondary" onclick="toggleRowMenu('${p.id}', 'more')">⋯</button>
+          <div class="row-menu-popover" id="more-menu-${p.id}">
+            <button class="admin-btn success" onclick="closeRowMenus(); duplicateProduct('${p.id}', this)">Duplicate</button>
+            <button class="admin-btn secondary" onclick="closeRowMenus(); toggleArchive('${p.id}', ${!!p.archived}, this)">${p.archived ? 'Unarchive' : 'Archive'}</button>
+            <button class="admin-btn danger" onclick="closeRowMenus(); deleteProduct('${p.id}', this)">Delete</button>
+          </div>
+        </div>
+        <span class="admin-status" id="status-${p.id}"></span>
+      </td>
+    </tr>
+    <tr class="variant-row" id="info-row-${p.id}" style="display:none;">
+      <td colspan="9"><div class="image-panel" id="info-panel-${p.id}"></div></td>
+    </tr>
+    <tr class="variant-row" id="image-row-${p.id}" style="display:none;">
+      <td colspan="9"><div class="image-panel" id="image-panel-${p.id}"></div></td>
+    </tr>
+    <tr class="variant-row" id="variant-row-${p.id}" style="display:none;">
+      <td colspan="9"><div class="variant-panel" id="variant-panel-${p.id}"></div></td>
+    </tr>
+    <tr class="variant-row" id="component-row-${p.id}" style="display:none;">
+      <td colspan="9"><div class="variant-panel" id="component-panel-${p.id}"></div></td>
+    </tr>
+  `;
+}
+
+function rowSubtypeSelectHTML(p){
+  const opts = SUBTYPES[p.category] || [];
+  if(!opts.length) return '<span class="badge">—</span>';
+  return `<select id="subtype-${p.id}">${opts.map(s =>
+    `<option value="${s}" ${s === p.subtype ? 'selected' : ''}>${SUBTYPE_LABELS[s] || s}</option>`
+  ).join('')}</select>`;
+}
+
+function onRowCategoryChange(id){
+  const cat = document.querySelector(`#category-${id}`).value;
+  document.querySelector(`#subtype-cell-${id}`).innerHTML = rowSubtypeSelectHTML({ id, category: cat, subtype: null });
+}
+
+async function saveProduct(id, btn){
+  const name = document.querySelector(`#name-${id}`).value.trim();
+  const category = document.querySelector(`#category-${id}`).value;
+  const subtypeEl = document.querySelector(`#subtype-${id}`);
+  const subtype = subtypeEl ? subtypeEl.value : null;
+  const priceRaw = document.querySelector(`#price-${id}`).value;
+  const base_price = priceRaw === '' ? null : parseFloat(priceRaw);
+  const discountRaw = document.querySelector(`#discount-${id}`).value;
+  const discount_percent = discountRaw === '' ? null : Math.max(0, Math.min(100, parseFloat(discountRaw)));
+  const stockRaw = document.querySelector(`#stock-${id}`).value;
+  const stock_qty = stockRaw === '' ? null : Math.max(0, parseInt(stockRaw, 10) || 0);
+  const sort_order = parseInt(document.querySelector(`#sort-${id}`).value, 10) || 0;
+  const statusEl = document.querySelector(`#status-${id}`);
+
+  btn.disabled = true;
+  // Specs / Collection / Theme / Profile are edited in the Details ▾ →
+  // Info panel now (see saveInfo()), not here — this Save only covers
+  // what's actually visible in the collapsed row.
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('catalog_products')
+    .update({ name, category, subtype, base_price, discount_percent, stock_qty, sort_order })
+    .eq('id', id);
+
+  btn.disabled = false;
+  if(error){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed: ' + error.message;
+  }else{
+    const badgeEl = document.querySelector(`#stock-badge-${id}`);
+    if(badgeEl) badgeEl.innerHTML = stockBadgeHTML(stock_qty);
+    statusEl.style.color = '#3bd1a0';
+    statusEl.textContent = 'Saved ✓';
+    setTimeout(() => statusEl.textContent = '', 2000);
+  }
+}
+
+async function toggleArchive(id, isArchived, btn){
+  btn.disabled = true;
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('catalog_products')
+    .update({ archived: !isArchived })
+    .eq('id', id);
+  btn.disabled = false;
+  if(error){ alert('Failed: ' + error.message); return; }
+  refreshProductPickerList(); // archived products should drop out of "Built From" pickers
+  loadProducts();
+}
+
+async function duplicateProduct(id, btn){
+  btn.disabled = true;
+  const statusEl = document.querySelector(`#status-${id}`);
+  if(statusEl){ statusEl.style.color = '#8a9a9f'; statusEl.textContent = 'Loading…'; }
+
+  try{
+    const { data: product, error: pErr } = await window.KEYCAM_SUPABASE.from('catalog_products').select('*').eq('id', id).single();
+    if(pErr) throw new Error(pErr.message);
+    const [{ data: variants }, { data: images }, { data: components }] = await Promise.all([
+      window.KEYCAM_SUPABASE.from('catalog_variants').select('*').eq('product_id', id).order('sort_order'),
+      window.KEYCAM_SUPABASE.from('catalog_product_images').select('*').eq('product_id', id).order('sort_order'),
+      window.KEYCAM_SUPABASE.from('catalog_product_components').select('*').eq('product_id', id).order('sort_order')
+    ]);
+
+    await fillAddProductFormFrom(product, variants || [], images || [], components || []);
+
+    if(statusEl) statusEl.textContent = '';
+  }catch(err){
+    alert('Could not load product to duplicate: ' + err.message);
+  }
+  btn.disabled = false;
+}
+
+// Duplicate no longer inserts a DB row directly — it loads the source
+// product into the Add Product form (same tab used for brand-new
+// products) so the person can review/tweak it before anything is saved.
+// Nothing touches the database until they click "Create Product" there;
+// images are re-fetched as real files so they upload to fresh storage
+// paths through the normal create-product path, same as any other pick.
+async function fillAddProductFormFrom(product, variants, images, components){
+  switchTab('addproduct');
+
+  // Clear out anything already sitting in the Add Product form first —
+  // otherwise a half-filled-in "new" product and this copy would merge.
+  newProductImageFiles = [];
+  syncNewImageInput();
+  document.querySelector('#newVariantsBody').innerHTML = '';
+  document.querySelector('#newComponentsBody').innerHTML = '';
+
+  document.querySelector('#newCategory').value = product.category;
+  refreshSubtypeSelect();
+  if(product.subtype) document.querySelector('#newSubtype').value = product.subtype;
+  document.querySelector('#newName').value = `${product.name} (Copy)`;
+  document.querySelector('#newBasePrice').value = product.base_price ?? '';
+  document.querySelector('#newDiscountPercent').value = product.discount_percent ?? '';
+  document.querySelector('#newCollection').value = product.collection || '';
+  document.querySelector('#newTheme').value = product.theme || '';
+  document.querySelector('#newProfile').value = product.profile || '';
+  refreshThemeProfileFields();
+  document.querySelector('#newSpecs').value = product.specs || '';
+  document.querySelector('#newDescription').value = product.description || '';
+  document.querySelector('#newShippingInfo').value = product.shipping_info || DEFAULT_SHIPPING_INFO;
+  document.querySelector('#newPaymentInfo').value = product.payment_info || DEFAULT_PAYMENT_INFO;
+
+  const statusEl = document.querySelector('#createProductStatus');
+
+  // Images — pulled down as real files (not just copied URLs) so they go
+  // through uploadCatalogImageScaled like any freshly picked image would,
+  // landing at a brand new storage path once Create Product runs. Falls
+  // back to the standalone cover image if there's no gallery yet.
+  const sourceImages = images.length ? images : (product.image ? [{ url: product.image }] : []);
+  const urlToFileId = {};
+  for(let i = 0; i < sourceImages.length; i++){
+    const im = sourceImages[i];
+    try{
+      if(statusEl){ statusEl.style.color = '#8a9a9f'; statusEl.textContent = `Loading image ${i + 1} of ${sourceImages.length}…`; }
+      const res = await fetch(im.url);
+      if(!res.ok) throw new Error('fetch failed');
+      const blob = await res.blob();
+      const ext = (blob.type.split('/')[1] || 'jpg').replace('jpeg', 'jpg');
+      const file = new File([blob], `copy-${i + 1}.${ext}`, { type: blob.type || 'image/jpeg' });
+      addNewProductImageFiles([file]);
+      urlToFileId[im.url] = file._kcId;
+    }catch(e){
+      console.error('Could not load image for duplicate:', im.url, e);
+    }
+  }
+
+  variants.forEach(v => {
+    addNewVariantRow();
+    const row = document.querySelector('#newVariantsBody').lastElementChild;
+    const tmpId = row.dataset.vid;
+    const vgroupSel = document.querySelector(`#newvgroup-${tmpId}`);
+    if(v.group_name && !Array.from(vgroupSel.options).some(o => o.value === v.group_name)){
+      vgroupSel.insertAdjacentHTML('beforeend', `<option value="${escapeAttr(v.group_name)}">${v.group_name}</option>`);
+    }
+    vgroupSel.value = v.group_name || '';
+    document.querySelector(`#newvoption-${tmpId}`).value = v.option_label || '';
+    document.querySelector(`#newvprice-${tmpId}`).value = v.price ?? '';
+    document.querySelector(`#newvsort-${tmpId}`).value = v.sort_order ?? 0;
+    if(v.in_stock === false) toggleNewVariantStock(tmpId);
+    if(v.image && urlToFileId[v.image]) pickNewVariantImage(tmpId, urlToFileId[v.image]);
+  });
+
+  for(const c of components){
+    await addNewComponentRow();
+    const row = document.querySelector('#newComponentsBody').lastElementChild;
+    const tmpId = row.dataset.cid;
+    const sel = document.querySelector(`#newccomponent-${tmpId}`);
+    if(sel) sel.value = c.component_product_id;
+    if(c.role_label){
+      if(!COMPONENT_ROLES.includes(c.role_label)) COMPONENT_ROLES.push(c.role_label);
+      const roleSel = document.querySelector(`#newcrole-${tmpId}`);
+      if(roleSel){ roleSel.innerHTML = roleOptionsHTML(c.role_label); roleSel.value = c.role_label; }
+    }
+    document.querySelector(`#newcsort-${tmpId}`).value = c.sort_order ?? 0;
+  }
+
+  if(statusEl){
+    statusEl.style.color = '#8a9a9f';
+    statusEl.textContent = `Loaded from "${product.name}" — review and click Create Product to save as a new product.`;
+  }
+  document.querySelector('#newName').focus();
+  document.querySelector('#newName').select();
+  document.querySelector('#tab-addproduct').scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+async function deleteProduct(id, btn){
+  if(!confirm('Delete this product permanently? This also deletes its variants, images, and the image files in storage. Cannot be undone.')) return;
+  btn.disabled = true;
+
+  try{
+    // Gather every file this product owns BEFORE deleting the rows that
+    // point to them — once the product row is gone (and cascades take its
+    // catalog_product_images rows with it), these URLs are unrecoverable.
+    const { data: product } = await window.KEYCAM_SUPABASE
+      .from('catalog_products')
+      .select('image, thumbnail')
+      .eq('id', id)
+      .single();
+
+    const { data: images } = await window.KEYCAM_SUPABASE
+      .from('catalog_product_images')
+      .select('url, thumb_url')
+      .eq('product_id', id);
+
+    const urls = [
+      product?.image, product?.thumbnail,
+      ...(images || []).flatMap(im => [im.url, im.thumb_url])
+    ];
+    const paths = [...new Set(urls.map(storagePathFromUrl).filter(Boolean))];
+
+    const { error } = await window.KEYCAM_SUPABASE.from('catalog_products').delete().eq('id', id);
+    if(error) throw new Error(error.message);
+
+    if(paths.length){
+      const { error: rmErr } = await window.KEYCAM_SUPABASE.storage.from('keycam-images').remove(paths);
+      // Product + DB rows are already gone at this point — a storage cleanup
+      // miss shouldn't block the delete or need a retry from the user, just
+      // log it so an orphan file isn't a silent mystery later.
+      if(rmErr) console.error('Product deleted, but some storage files could not be removed:', rmErr);
+    }
+  }catch(err){
+    alert('Delete failed: ' + err.message);
+    btn.disabled = false;
+    return;
+  }
+  document.querySelector(`tr[data-id="${id}"]`)?.remove();
+  document.querySelector(`#variant-row-${id}`)?.remove();
+  document.querySelector(`#image-row-${id}`)?.remove();
+  document.querySelector(`#info-row-${id}`)?.remove();
+  document.querySelector(`#component-row-${id}`)?.remove();
+  openVariantPanels.delete(id);
+  openImagePanels.delete(id);
+  openComponentPanels.delete(id);
+  openInfoPanels.delete(id);
+  delete variantImagesCache[id];
+  refreshProductPickerList();
+}
+
+document.querySelector('#productSearch').addEventListener('input', (e) => {
+  clearTimeout(window._searchDebounce);
+  window._searchDebounce = setTimeout(() => {
+    currentSearch = e.target.value.trim();
+    currentPage = 0;
+    loadProducts();
+  }, 400);
+});
+document.querySelector('#categoryFilter').addEventListener('change', (e) => {
+  currentCategory = e.target.value;
+  currentPage = 0;
+  loadProducts();
+});
+document.querySelector('#sortFilter').addEventListener('change', (e) => {
+  currentSort = e.target.value;
+  currentPage = 0;
+  loadProducts();
+});
+document.querySelector('#prevPage').addEventListener('click', () => {
+  if(currentPage > 0){ currentPage--; loadProducts(); }
+});
+document.querySelector('#nextPage').addEventListener('click', () => {
+  currentPage++; loadProducts();
+});
+
+/* =========================
+   INFO (description / shipping / payment, bullet text per line)
+========================= */
+async function toggleInfo(productId, forceOpen){
+  const row = document.querySelector(`#info-row-${productId}`);
+  if(!row) return;
+  const isOpen = row.style.display !== 'none';
+
+  if(isOpen && !forceOpen){
+    row.style.display = 'none';
+    openInfoPanels.delete(productId);
+    return;
+  }
+
+  row.style.display = 'table-row';
+  openInfoPanels.add(productId);
+  await loadInfo(productId);
+}
+
+async function loadInfo(productId){
+  const panel = document.querySelector(`#info-panel-${productId}`);
+  panel.innerHTML = 'Loading…';
+
+  const { data, error } = await window.KEYCAM_SUPABASE
+    .from('catalog_products')
+    .select('specs, collection, theme, profile, category, subtype, description, shipping_info, payment_info')
+    .eq('id', productId)
+    .single();
+
+  if(error){
+    panel.innerHTML = `Failed to load: ${error.message}`;
+    return;
+  }
+
+  const shippingIsDefault = !data.shipping_info;
+  const paymentIsDefault = !data.payment_info;
+  const showTheme = data.category === 'keyboard' && ['prebuild','customized','keycap'].includes(data.subtype);
+  const showProfile = data.category === 'keyboard' && data.subtype === 'keycap';
+  const specs = escapeAttr(data.specs);
+  const collection = escapeAttr(data.collection);
+  const theme = escapeAttr(data.theme);
+  const profile = escapeAttr(data.profile);
+
+  panel.innerHTML = `
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;margin-bottom:14px;">
+      <div class="admin-field" style="margin-bottom:0;">
+        <label>Specs (short line shown on the card)</label>
+        <input type="text" value="${specs}" id="info-specs-${productId}" placeholder="e.g. 75% Layout · Hotswap · Aluminum case">
+      </div>
+      <div class="admin-field" style="margin-bottom:0;">
+        <label>Collection / brand</label>
+        <input type="text" value="${collection}" id="info-collection-${productId}" placeholder="e.g. Gateron, Naruto Series">
+      </div>
+      ${showTheme ? `
+      <div class="admin-field" style="margin-bottom:0;">
+        <label>Theme (filter only)</label>
+        <input type="text" value="${theme}" id="info-theme-${productId}" list="themeSuggestions" placeholder="e.g. Anime, Minimalist, Myth">
+      </div>` : `<input type="hidden" id="info-theme-${productId}" value="${theme}">`}
+      ${showProfile ? `
+      <div class="admin-field" style="margin-bottom:0;">
+        <label>Profile (keycap filter only)</label>
+        <input type="text" value="${profile}" id="info-profile-${productId}" list="profileSuggestions" placeholder="Cherry, OEM, or MDA">
+      </div>` : `<input type="hidden" id="info-profile-${productId}" value="${profile}">`}
+    </div>
+    <p style="color:#8a9a9f;font-size:11px;margin:0 0 12px;">One line = one bullet point on the product page. Description left blank won't show. Shipping/Payment fall back to the site-wide default (shown pre-filled below) until you edit and save them for this product.</p>
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:14px;">
+      <div class="admin-field" style="margin-bottom:0;">
+        <label>Description</label>
+        <textarea id="info-description-${productId}" rows="5">${escapeAttr(data.description)}</textarea>
+      </div>
+      <div class="admin-field" style="margin-bottom:0;">
+        <label>Shipping${shippingIsDefault ? ' <span style="color:#8a9a9f;font-weight:400;">(default)</span>' : ''}</label>
+        <textarea id="info-shipping-${productId}" rows="5">${escapeAttr(data.shipping_info || DEFAULT_SHIPPING_INFO)}</textarea>
+      </div>
+      <div class="admin-field" style="margin-bottom:0;">
+        <label>Payment${paymentIsDefault ? ' <span style="color:#8a9a9f;font-weight:400;">(default)</span>' : ''}</label>
+        <textarea id="info-payment-${productId}" rows="5">${escapeAttr(data.payment_info || DEFAULT_PAYMENT_INFO)}</textarea>
+      </div>
+    </div>
+    <div class="admin-btn-row" style="margin-top:10px;">
+      <button class="admin-btn" onclick="saveInfo('${productId}', this)">Save</button>
+      <button class="admin-btn admin-btn-secondary" onclick="resetInfoToDefault('${productId}')" type="button">Reset Shipping/Payment to default</button>
+      <span class="admin-status" id="info-status-${productId}"></span>
+    </div>
+  `;
+}
+
+function resetInfoToDefault(productId){
+  document.querySelector(`#info-shipping-${productId}`).value = DEFAULT_SHIPPING_INFO;
+  document.querySelector(`#info-payment-${productId}`).value = DEFAULT_PAYMENT_INFO;
+}
+
+async function saveInfo(productId, btn){
+  const statusEl = document.querySelector(`#info-status-${productId}`);
+  const specs = document.querySelector(`#info-specs-${productId}`).value.trim() || null;
+  const collection = document.querySelector(`#info-collection-${productId}`).value.trim() || null;
+  const theme = document.querySelector(`#info-theme-${productId}`).value.trim() || null;
+  const profile = document.querySelector(`#info-profile-${productId}`).value.trim() || null;
+  const description = document.querySelector(`#info-description-${productId}`).value.trim() || null;
+  const shipping_info = document.querySelector(`#info-shipping-${productId}`).value.trim() || null;
+  const payment_info = document.querySelector(`#info-payment-${productId}`).value.trim() || null;
+
+  btn.disabled = true;
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('catalog_products')
+    .update({ specs, collection, theme, profile, description, shipping_info, payment_info })
+    .eq('id', productId);
+  btn.disabled = false;
+
+  if(error){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed: ' + error.message;
+  }else{
+    statusEl.style.color = '#3bd1a0';
+    statusEl.textContent = 'Saved ✓';
+    setTimeout(() => statusEl.textContent = '', 2000);
+  }
+}
+
+/* =========================
+   IMAGES (catalog_product_images) — expandable per product
+========================= */
+async function toggleImages(productId, forceOpen){
+  const row = document.querySelector(`#image-row-${productId}`);
+  if(!row) return;
+  const isOpen = row.style.display !== 'none';
+
+  if(isOpen && !forceOpen){
+    row.style.display = 'none';
+    openImagePanels.delete(productId);
+    return;
+  }
+
+  row.style.display = 'table-row';
+  openImagePanels.add(productId);
+  await loadImages(productId);
+}
+
+async function loadImages(productId){
+  const panel = document.querySelector(`#image-panel-${productId}`);
+  panel.innerHTML = 'Loading images…';
+
+  const { data, error } = await window.KEYCAM_SUPABASE
+    .from('catalog_product_images')
+    .select('*')
+    .eq('product_id', productId)
+    .order('sort_order');
+
+  if(error){
+    panel.innerHTML = `Failed to load images: ${error.message}`;
+    return;
+  }
+
+  const coverUrl = document.querySelector(`tr[data-id="${productId}"] img`)?.getAttribute('src') || null;
+  panel.innerHTML = imageGridHTML(productId, data || [], coverUrl);
+  wireImageReorder(productId);
+  wireUploadScaleToggle(`addImageScaleToggle-${productId}`);
+  wireAddImageDropzone(productId);
+}
+
+/* =========================
+   EXISTING PRODUCT — "ADD IMAGES" DROPZONE
+   Same drag/drop + paste + reorder-before-upload UX as the New Product
+   form's dropzone, scoped per product since several panels could in
+   theory be open/rendered at once.
+========================= */
+const pendingAddImages = {}; // productId -> File[] staged, not yet uploaded
+
+function syncAddImageInput(productId){
+  const input = document.querySelector(`#addImages-${productId}`);
+  const list = document.querySelector(`#addImageFileList-${productId}`);
+  const status = document.querySelector(`#addImageDropStatus-${productId}`);
+  if(!input || !list || !status) return;
+  const files = pendingAddImages[productId] || [];
+
+  const dt = new DataTransfer();
+  files.forEach(file => dt.items.add(file));
+  input.files = dt.files;
+
+  list.innerHTML = files.map(file =>
+    `<span class="image-file-chip" draggable="true" data-kc-id="${file._kcId}">${escapeAttr(file.name || 'pasted-image')}</span>`
+  ).join('');
+  status.textContent = files.length
+    ? `${files.length} image${files.length === 1 ? '' : 's'} ready — drag a chip to reorder`
+    : 'No images selected';
+  wireAddImageFileReorder(productId);
+}
+
+function wireAddImageFileReorder(productId){
+  const list = document.querySelector(`#addImageFileList-${productId}`);
+  if(!list) return;
+  let dragEl = null;
+
+  list.querySelectorAll('.image-file-chip').forEach(chip => {
+    chip.addEventListener('dragstart', () => {
+      dragEl = chip;
+      chip.classList.add('dragging');
+    });
+    chip.addEventListener('dragover', e => {
+      e.preventDefault();
+      if(!dragEl || dragEl === chip) return;
+      const rect = chip.getBoundingClientRect();
+      const after = (e.clientX - rect.left) > rect.width / 2;
+      list.insertBefore(dragEl, after ? chip.nextSibling : chip);
+    });
+    chip.addEventListener('dragend', () => {
+      chip.classList.remove('dragging');
+      dragEl = null;
+      const order = Array.from(list.querySelectorAll('.image-file-chip')).map(c => c.dataset.kcId);
+      pendingAddImages[productId] = order
+        .map(id => (pendingAddImages[productId] || []).find(f => f._kcId === id))
+        .filter(Boolean);
+      syncAddImageInput(productId);
+    });
+  });
+}
+
+function addAddImageFiles(productId, files){
+  const incoming = assignFileIds(Array.from(files || []).filter(f => f && f.type && f.type.startsWith('image/')));
+  if(!incoming.length) return;
+  pendingAddImages[productId] = [...(pendingAddImages[productId] || []), ...incoming];
+  syncAddImageInput(productId);
+}
+
+function wireAddImageDropzone(productId){
+  pendingAddImages[productId] = [];
+  const dropzone = document.querySelector(`#addImageDropzone-${productId}`);
+  const input = document.querySelector(`#addImages-${productId}`);
+  if(!dropzone || !input) return;
+
+  dropzone.addEventListener('click', e => { if(e.target !== input) input.click(); });
+  dropzone.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){ e.preventDefault(); input.click(); }
+  });
+  input.addEventListener('change', () => {
+    pendingAddImages[productId] = assignFileIds(Array.from(input.files || []));
+    syncAddImageInput(productId);
+  });
+  ['dragenter','dragover'].forEach(type => dropzone.addEventListener(type, e => {
+    e.preventDefault(); e.stopPropagation();
+    dropzone.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(type => dropzone.addEventListener(type, e => {
+    e.preventDefault(); e.stopPropagation();
+    dropzone.classList.remove('dragover');
+  }));
+  dropzone.addEventListener('drop', e => addAddImageFiles(productId, e.dataTransfer.files));
+  dropzone.addEventListener('paste', e => {
+    const files = [];
+    for(const item of Array.from(e.clipboardData?.items || [])){
+      if(item.kind === 'file' && item.type.startsWith('image/')){
+        const file = item.getAsFile();
+        if(file) files.push(new File([file], `pasted-image-${Date.now()}-${files.length + 1}.${(file.type.split('/')[1] || 'png')}`, {type:file.type}));
+      }
+    }
+    if(files.length){ e.preventDefault(); addAddImageFiles(productId, files); }
+  });
+}
+
+function imageGridHTML(productId, rows, coverUrl){
+  const thumbs = rows.map(im => `
+    <div class="image-thumb" draggable="true" data-img-id="${im.id}">
+      <div class="image-thumb-frame ${im.url === coverUrl ? 'cover' : ''}">
+        ${im.url === coverUrl ? '<span class="cover-badge">Cover</span>' : ''}
+        <img src="${im.thumb_url || im.url}" alt="" loading="lazy">
+      </div>
+      <div class="image-thumb-actions">
+        <button class="admin-btn secondary" onclick="setAsCover('${productId}', '${escapeAttr(im.url)}', this)">Set as cover</button>
+        <button class="admin-btn danger" onclick="deleteImage('${productId}', '${im.id}', this)">Remove</button>
+      </div>
+    </div>
+  `).join('');
+
+  return `
+    <p class="image-reorder-hint">Drag a thumbnail to reorder the gallery — order is saved automatically. "Remove" only takes an image out of this gallery, the uploaded file itself stays in storage.</p>
+    <div class="image-thumb-grid" id="image-grid-${productId}">${thumbs || '<span style="color:#8a9a9f;font-size:12px;">No images yet.</span>'}</div>
+    <div class="admin-field" style="max-width:420px;margin-bottom:0;">
+      <label>Add images</label>
+      <div class="image-dropzone" id="addImageDropzone-${productId}" tabindex="0" role="button" aria-label="Add product images">
+        <strong>Drop images here, click to browse, or paste images</strong>
+        <span>Multiple images are supported. Drag a file chip below to reorder before uploading.</span>
+        <input type="file" accept="image/*" multiple id="addImages-${productId}">
+        <div class="image-file-list" id="addImageFileList-${productId}"></div>
+        <div class="image-drop-status" id="addImageDropStatus-${productId}">No images selected</div>
+      </div>
+      ${uploadScaleToggleHTML(`addImageScaleToggle-${productId}`)}
+    </div>
+    <div class="admin-btn-row" style="margin-top:8px;">
+      <button class="admin-btn" onclick="addImages('${productId}', this)">Upload</button>
+      <span class="admin-status" id="image-status-${productId}"></span>
+    </div>
+  `;
+}
+
+// Native HTML5 drag/drop reorder for an existing product's image grid.
+// Persists the new order immediately on drop (no separate save step).
+function wireImageReorder(productId){
+  const grid = document.querySelector(`#image-grid-${productId}`);
+  if(!grid) return;
+  let dragEl = null;
+
+  grid.querySelectorAll('.image-thumb').forEach(el => {
+    el.addEventListener('dragstart', () => {
+      dragEl = el;
+      el.classList.add('dragging');
+    });
+    el.addEventListener('dragover', e => {
+      e.preventDefault();
+      if(!dragEl || dragEl === el) return;
+      const rect = el.getBoundingClientRect();
+      const after = (e.clientX - rect.left) > rect.width / 2;
+      grid.insertBefore(dragEl, after ? el.nextSibling : el);
+    });
+    el.addEventListener('dragend', () => {
+      el.classList.remove('dragging');
+      dragEl = null;
+      saveImageOrder(productId);
+    });
+  });
+}
+
+async function saveImageOrder(productId){
+  const grid = document.querySelector(`#image-grid-${productId}`);
+  const statusEl = document.querySelector(`#image-status-${productId}`);
+  if(!grid) return;
+  const ids = Array.from(grid.querySelectorAll('.image-thumb')).map(el => el.dataset.imgId);
+
+  if(statusEl){ statusEl.style.color = '#8a9a9f'; statusEl.textContent = 'Saving order…'; }
+  try{
+    const results = await Promise.all(ids.map((id, i) =>
+      window.KEYCAM_SUPABASE.from('catalog_product_images').update({ sort_order: i }).eq('id', id)
+    ));
+    const failed = results.find(r => r.error);
+    if(failed) throw new Error(failed.error.message);
+    if(statusEl){
+      statusEl.style.color = '#3bd1a0';
+      statusEl.textContent = 'Order saved ✓';
+      setTimeout(() => { if(statusEl.textContent === 'Order saved ✓') statusEl.textContent = ''; }, 2000);
+    }
+  }catch(err){
+    if(statusEl){ statusEl.style.color = '#e05a5a'; statusEl.textContent = 'Failed to save order: ' + err.message; }
+  }
+}
+
+async function addImages(productId, btn){
+  const input = document.querySelector(`#addImages-${productId}`);
+  const statusEl = document.querySelector(`#image-status-${productId}`);
+  const files = Array.from(input.files || []);
+  if(!files.length){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Choose at least one file.';
+    return;
+  }
+
+  const category = document.querySelector(`#category-${productId}`)?.value || 'keyboard';
+  const name = document.querySelector(`#name-${productId}`)?.value || 'product';
+  const scale = parseFloat(document.querySelector(`#addImageScaleToggle-${productId}`)?.dataset.scale || '1');
+
+  btn.disabled = true;
+  try{
+    const { data: existing } = await window.KEYCAM_SUPABASE
+      .from('catalog_product_images')
+      .select('sort_order')
+      .eq('product_id', productId)
+      .order('sort_order', { ascending: false })
+      .limit(1);
+    let nextSort = (existing && existing[0] ? existing[0].sort_order : -1) + 1;
+
+    for(const file of files){
+      statusEl.textContent = `Uploading ${file.name}…`;
+      const url = await uploadCatalogImageScaled(file, category, name, scale);
+
+      // Also generate a small thumbnail for the gallery strip (product.html
+      // shows a full-res image per thumb otherwise). Falls back to the full
+      // url if thumbnail generation/upload fails, so a gallery image is
+      // never lost over this.
+      let thumbUrl = url;
+      try{
+        const thumbBlob = await generateThumbnail(file, 300, 0.75);
+        if(thumbBlob){
+          const rand = Math.random().toString(16).slice(2, 8);
+          const thumbPath = `catalog/${category}/thumb-${rand}.webp`;
+          const { error: thumbErr } = await window.KEYCAM_SUPABASE.storage
+            .from('keycam-images')
+            .upload(thumbPath, thumbBlob, { contentType: 'image/webp', upsert: true });
+          if(!thumbErr){
+            thumbUrl = window.KEYCAM_SUPABASE.storage.from('keycam-images').getPublicUrl(thumbPath).data.publicUrl;
+          }
+        }
+      }catch(e){
+        console.error('Gallery thumbnail generation failed, using full image instead:', e);
+      }
+
+      const { error } = await window.KEYCAM_SUPABASE
+        .from('catalog_product_images')
+        .insert({ product_id: productId, url, thumb_url: thumbUrl, sort_order: nextSort });
+      if(error) throw new Error(error.message);
+      nextSort++;
+    }
+    statusEl.style.color = '#3bd1a0';
+    statusEl.textContent = 'Uploaded ✓';
+    input.value = '';
+    loadImages(productId);
+  }catch(err){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed: ' + err.message;
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function setAsCover(productId, url, btn){
+  btn.disabled = true;
+  try{
+    let thumbUrl = url;
+    const thumbBlob = await generateThumbnailFromUrl(url);
+    if(thumbBlob){
+      const category = document.querySelector(`#category-${productId}`)?.value || 'keyboard';
+      const rand = Math.random().toString(16).slice(2, 8);
+      const path = `catalog/${category}/thumb-cover-${rand}.webp`;
+      const { error: upErr } = await window.KEYCAM_SUPABASE.storage
+        .from('keycam-images')
+        .upload(path, thumbBlob, { contentType: 'image/webp', upsert: true });
+      if(!upErr){
+        thumbUrl = window.KEYCAM_SUPABASE.storage.from('keycam-images').getPublicUrl(path).data.publicUrl;
+      }
+    }
+    const { error } = await window.KEYCAM_SUPABASE
+      .from('catalog_products')
+      .update({ image: url, thumbnail: thumbUrl })
+      .eq('id', productId);
+    if(error) throw new Error(error.message);
+    loadProducts();
+  }catch(err){
+    alert('Failed to set cover: ' + err.message);
+  }finally{
+    btn.disabled = false;
+  }
+}
+
+async function deleteImage(productId, imageId, btn){
+  if(!confirm('Remove this image from the gallery? (The uploaded file itself stays in storage.)')) return;
+  btn.disabled = true;
+  const { error } = await window.KEYCAM_SUPABASE.from('catalog_product_images').delete().eq('id', imageId);
+  btn.disabled = false;
+  if(error){ alert('Failed: ' + error.message); return; }
+  loadImages(productId);
+}
+
+/* =========================
+   VARIANTS (catalog_variants) — expandable per product
+========================= */
+async function toggleVariants(productId, forceOpen){
+  const row = document.querySelector(`#variant-row-${productId}`);
+  if(!row) return;
+  const isOpen = row.style.display !== 'none';
+
+  if(isOpen && !forceOpen){
+    row.style.display = 'none';
+    openVariantPanels.delete(productId);
+    return;
+  }
+
+  row.style.display = 'table-row';
+  openVariantPanels.add(productId);
+  await loadVariants(productId);
+}
+
+const variantImagesCache = {}; // productId -> [{url}] from the last loadVariants() call
+
+async function loadVariants(productId){
+  const panel = document.querySelector(`#variant-panel-${productId}`);
+  panel.innerHTML = 'Loading variants…';
+
+  const [{ data, error }, { data: images, error: imgErr }] = await Promise.all([
+    window.KEYCAM_SUPABASE
+      .from('catalog_variants')
+      .select('*')
+      .eq('product_id', productId)
+      .order('group_name')
+      .order('sort_order'),
+    window.KEYCAM_SUPABASE
+      .from('catalog_product_images')
+      .select('*')
+      .eq('product_id', productId)
+      .order('sort_order')
+  ]);
+
+  if(error){
+    panel.innerHTML = `Failed to load variants: ${error.message}`;
+    return;
+  }
+  if(imgErr) console.error('Failed to load images for variant picker:', imgErr);
+
+  variantImagesCache[productId] = images || [];
+  panel.innerHTML = variantTableHTML(productId, data || [], images || []);
+}
+
+function imageOptionsHTML(images, selectedUrl){
+  // kept only for reference; picking is now done via the visual
+  // popover (openImagePicker / pickVariantImage) instead of a <select>.
+}
+
+function variantTableHTML(productId, rows, images){
+  const body = rows.map(v => variantRowHTML(productId, v, images)).join('');
+  const noImages = !images.length;
+  return `
+    <table>
+      <thead>
+        <tr><th>Group</th><th>Option</th><th>Price (blank = base price)</th><th>Image</th><th>Stock</th><th>Sort</th><th></th></tr>
+      </thead>
+      <tbody id="variants-body-${productId}">${body}</tbody>
+    </table>
+    ${noImages ? `<p style="color:#8a9a9f;font-size:11px;margin:0 0 8px;">Upload images for this product (via the Images button) to be able to link one to a variant option.</p>` : ''}
+    <button class="admin-btn secondary" onclick="addBlankVariantRow('${productId}')">+ Add variant</button>
+    <div class="image-picker-popover" id="image-picker-${productId}"></div>
+  `;
+}
+
+function variantImageCellHTML(vid, selectedUrl, selectedThumbUrl){
+  return `
+    <button type="button" class="variant-image-thumb-btn" id="vimage-thumb-${vid}" onclick="openImagePicker('${vid}')">
+      ${selectedUrl
+        ? `<img src="${selectedThumbUrl || selectedUrl}" alt="">`
+        : `<span class="no-image-label">No<br>image</span>`}
+    </button>
+    <input type="hidden" id="vimage-${vid}" value="${selectedUrl ? escapeAttr(selectedUrl) : ''}">
+  `;
+}
+
+function variantStockCellHTML(vid, inStock, stockQty){
+  return `
+    <div class="stock-cell">
+      <button type="button"
+        class="admin-btn ${inStock ? 'secondary' : 'danger'}"
+        id="vstock-btn-${vid}"
+        data-in-stock="${inStock ? '1' : '0'}"
+        onclick="toggleVariantStockField('${vid}')">
+        ${inStock ? 'In Stock' : 'Out of Stock'}
+      </button>
+      <input type="number" step="1" min="0" value="${stockQty ?? ''}" id="vqty-${vid}" placeholder="qty" title="Admin-only count for this specific option">
+    </div>
+  `;
+}
+
+// Flips the button's own pending state (doesn't hit the DB yet — that
+// happens when Save/Create is clicked, same as every other field here).
+function toggleVariantStockField(vid){
+  const btn = document.querySelector(`#vstock-btn-${vid}`);
+  const nowInStock = btn.dataset.inStock !== '1';
+  btn.dataset.inStock = nowInStock ? '1' : '0';
+  btn.textContent = nowInStock ? 'In Stock' : 'Out of Stock';
+  btn.classList.toggle('secondary', nowInStock);
+  btn.classList.toggle('danger', !nowInStock);
+}
+
+function variantRowHTML(productId, v, images){
+  const vid = v.id;
+  const matchedImage = (images || []).find(im => im.url === v.image);
+  return `
+    <tr data-vid="${vid}" data-product-id="${productId}">
+      <td><select id="vgroup-${vid}">${variantGroupOptionsHTML(v.group_name)}</select></td>
+      <td><input type="text" value="${escapeAttr(v.option_label)}" id="voption-${vid}" placeholder="Black / 35pcs / Naruto"></td>
+      <td><input type="number" step="0.01" min="0" value="${v.price ?? ''}" id="vprice-${vid}" placeholder="inherits base price"></td>
+      <td>${variantImageCellHTML(vid, v.image, matchedImage?.thumb_url)}</td>
+      <td>${variantStockCellHTML(vid, v.in_stock !== false, v.stock_qty)}</td>
+      <td><input type="number" value="${v.sort_order ?? 0}" id="vsort-${vid}" style="width:60px;"></td>
+      <td>
+        <div class="admin-btn-row">
+          <button class="admin-btn" onclick="saveVariant('${productId}', '${vid}', this)">Save</button>
+          <button class="admin-btn danger" onclick="deleteVariant('${productId}', '${vid}', this)">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+// Opens the shared picker popover for this product, right under the
+// variant table, and remembers which row's hidden input to fill in.
+function openImagePicker(vid){
+  const row = document.querySelector(`tr[data-vid="${vid}"]`);
+  const productId = row.dataset.productId;
+  const popover = document.querySelector(`#image-picker-${productId}`);
+  const images = variantImagesCache[productId] || [];
+  const currentUrl = document.querySelector(`#vimage-${vid}`).value;
+
+  if(!images.length){
+    popover.innerHTML = `<span style="color:#8a9a9f;font-size:11px;">No images uploaded for this product yet — use the Images button first.</span>`;
+    popover.classList.add('open');
+    popover.dataset.activeVid = vid;
+    return;
+  }
+
+  const noneOption = `
+    <div class="picker-option" onclick="pickVariantImage('${vid}', '')">
+      <div class="picker-option-frame ${!currentUrl ? 'selected' : ''}"><span style="font-size:9px;color:#8a9a9f;">None</span></div>
+    </div>
+  `;
+  const imgOptions = images.map(im => `
+    <div class="picker-option" onclick="pickVariantImage('${vid}', '${escapeAttr(im.url)}', '${escapeAttr(im.thumb_url || im.url)}')">
+      <div class="picker-option-frame ${im.url === currentUrl ? 'selected' : ''}"><img src="${im.thumb_url || im.url}" alt=""></div>
+    </div>
+  `).join('');
+
+  popover.innerHTML = noneOption + imgOptions;
+  popover.classList.add('open');
+  popover.dataset.activeVid = vid;
+
+  // If they click elsewhere, close it.
+  setTimeout(() => {
+    document.addEventListener('click', closeImagePickerOnOutsideClick, { once: true, capture: true });
+  }, 0);
+}
+
+function closeImagePickerOnOutsideClick(e){
+  if(e.target.closest('.image-picker-popover') || e.target.closest('.variant-image-thumb-btn')) return;
+  document.querySelectorAll('.image-picker-popover.open').forEach(p => p.classList.remove('open'));
+}
+
+function pickVariantImage(vid, url, thumbUrl){
+  document.querySelector(`#vimage-${vid}`).value = url;
+  const thumbBtn = document.querySelector(`#vimage-thumb-${vid}`);
+  thumbBtn.innerHTML = url ? `<img src="${thumbUrl || url}" alt="">` : `<span class="no-image-label">No<br>image</span>`;
+  document.querySelectorAll('.image-picker-popover.open').forEach(p => p.classList.remove('open'));
+}
+
+function addBlankVariantRow(productId){
+  const tmpId = `new-${Date.now()}`;
+  const body = document.querySelector(`#variants-body-${productId}`);
+
+  // Auto-fill the group name from the last row in the table, so adding
+  // several options for the same group (e.g. more Colors) doesn't
+  // require retyping "Color" every time.
+  const groupInputs = body.querySelectorAll('select[id^="vgroup-"]');
+  const lastGroupInput = groupInputs[groupInputs.length - 1];
+  const inheritedGroup = lastGroupInput ? lastGroupInput.value.trim() : '';
+
+  body.insertAdjacentHTML('beforeend', `
+    <tr data-vid="${tmpId}" data-product-id="${productId}">
+      <td><select id="vgroup-${tmpId}">${variantGroupOptionsHTML(inheritedGroup)}</select></td>
+      <td><input type="text" id="voption-${tmpId}" placeholder="Black / 35pcs / Naruto"></td>
+      <td><input type="number" step="0.01" min="0" id="vprice-${tmpId}" placeholder="inherits base price"></td>
+      <td>${variantImageCellHTML(tmpId, null)}</td>
+      <td>${variantStockCellHTML(tmpId, true, null)}</td>
+      <td><input type="number" value="0" id="vsort-${tmpId}" style="width:60px;"></td>
+      <td>
+        <div class="admin-btn-row">
+          <button class="admin-btn" onclick="saveVariant('${productId}', '${tmpId}', this)">Create</button>
+          <button class="admin-btn danger" onclick="document.querySelector('tr[data-vid=\\'${tmpId}\\']').remove()">Cancel</button>
+        </div>
+      </td>
+    </tr>
+  `);
+  document.querySelector(`#voption-${tmpId}`).focus();
+}
+
+async function saveVariant(productId, vid, btn){
+  const group_name = document.querySelector(`#vgroup-${vid}`).value.trim();
+  const option_label = document.querySelector(`#voption-${vid}`).value.trim();
+  const priceRaw = document.querySelector(`#vprice-${vid}`).value;
+  const price = priceRaw === '' ? null : parseFloat(priceRaw);
+  const image = document.querySelector(`#vimage-${vid}`).value || null;
+  const in_stock = document.querySelector(`#vstock-btn-${vid}`).dataset.inStock === '1';
+  const qtyRaw = document.querySelector(`#vqty-${vid}`).value;
+  const stock_qty = qtyRaw === '' ? null : Math.max(0, parseInt(qtyRaw, 10) || 0);
+  const sort_order = parseInt(document.querySelector(`#vsort-${vid}`).value, 10) || 0;
+
+  if(!group_name || !option_label){
+    alert('Group and Option are both required.');
+    return;
+  }
+
+  btn.disabled = true;
+  const isNew = vid.startsWith('new-');
+  const { error } = isNew
+    ? await window.KEYCAM_SUPABASE.from('catalog_variants').insert({ product_id: productId, group_name, option_label, price, image, in_stock, stock_qty, sort_order })
+    : await window.KEYCAM_SUPABASE.from('catalog_variants').update({ group_name, option_label, price, image, in_stock, stock_qty, sort_order }).eq('id', vid);
+
+  btn.disabled = false;
+  if(error){
+    alert('Failed: ' + error.message);
+    return;
+  }
+  loadVariants(productId);
+}
+
+async function deleteVariant(productId, vid, btn){
+  if(vid.startsWith('new-')){
+    document.querySelector(`tr[data-vid="${vid}"]`)?.remove();
+    return;
+  }
+  if(!confirm('Delete this variant option?')) return;
+  btn.disabled = true;
+  const { error } = await window.KEYCAM_SUPABASE.from('catalog_variants').delete().eq('id', vid);
+  btn.disabled = false;
+  if(error){ alert('Failed: ' + error.message); return; }
+  document.querySelector(`tr[data-vid="${vid}"]`)?.remove();
+}
+
+/* =========================
+   BUILT FROM (catalog_product_components) — expandable per product
+   Lets a "customized" keyboard link to the barebone/switch/keycap
+   products it's actually built from, so the storefront product page
+   can show clickable "Built From" cards pointing at each part.
+========================= */
+let productPickerListPromise = null; // lazy-loaded, shared across all panels
+
+// Lightweight {id, name, category, subtype} list of every non-archived
+// product, used to populate the "link to product" dropdown. Loaded once
+// and reused — call refreshProductPickerList() after creating a brand
+// new product if it needs to be linkable right away.
+function loadProductPickerList(){
+  if(!productPickerListPromise) productPickerListPromise = fetchProductPickerList();
+  return productPickerListPromise;
+}
+function refreshProductPickerList(){
+  productPickerListPromise = fetchProductPickerList();
+  return productPickerListPromise;
+}
+async function fetchProductPickerList(){
+  const { data, error } = await window.KEYCAM_SUPABASE
+    .from('catalog_products')
+    .select('id, name, category, subtype')
+    .eq('archived', false)
+    .order('category')
+    .order('name');
+  if(error){ console.error('Failed to load product picker list:', error); return []; }
+  return data || [];
+}
+
+async function toggleComponents(productId, forceOpen){
+  const row = document.querySelector(`#component-row-${productId}`);
+  if(!row) return;
+  const isOpen = row.style.display !== 'none';
+
+  if(isOpen && !forceOpen){
+    row.style.display = 'none';
+    openComponentPanels.delete(productId);
+    return;
+  }
+
+  row.style.display = 'table-row';
+  openComponentPanels.add(productId);
+  await loadComponents(productId);
+}
+
+async function loadComponents(productId){
+  const panel = document.querySelector(`#component-panel-${productId}`);
+  panel.innerHTML = 'Loading…';
+
+  const [{ data, error }, pickerList] = await Promise.all([
+    window.KEYCAM_SUPABASE
+      .from('catalog_product_components')
+      .select('*')
+      .eq('product_id', productId)
+      .order('sort_order'),
+    loadProductPickerList()
+  ]);
+
+  if(error){
+    panel.innerHTML = `Failed to load: ${error.message}. (Run tools/catalog_product_components.sql in Supabase first if this table doesn't exist yet.)`;
+    return;
+  }
+
+  panel.innerHTML = componentTableHTML(productId, data || [], pickerList);
+}
+
+function productPickerOptionsHTML(pickerList, productId, selectedId, filterText = ''){
+  const choices = pickerList.filter(p => p.id !== productId);
+  const q = (filterText || '').trim().toLowerCase();
+  const filtered = q ? choices.filter(p =>
+    `${p.name} ${p.subtype || ''} ${p.category || ''}`.toLowerCase().includes(q)
+  ) : choices;
+  return `<option value="">— choose a product —</option>` + filtered.map(p =>
+    `<option value="${p.id}" ${p.id === selectedId ? 'selected' : ''}>${escapeAttr(p.name)} (${p.subtype || p.category})</option>`
+  ).join('');
+}
+
+const COMPONENT_ROLES = ['barebone', 'switch', 'keycap', 'kit'];
+
+function roleOptionsHTML(selected){
+  return `<option value="">— choose role —</option>` +
+    COMPONENT_ROLES.map(r => `<option value="${r}" ${r === selected ? 'selected' : ''}>${r === 'kit' ? 'Kit' : r.charAt(0).toUpperCase()+r.slice(1)}</option>`).join('') +
+    `<option value="__new__">+ Add new role…</option>`;
+}
+
+function componentTableHTML(productId, rows, pickerList){
+  const body = rows.map(c => componentRowHTML(productId, c, pickerList)).join('');
+  return `
+    <p style="color:#8a9a9f;font-size:11px;margin:0 0 8px;">Choose the product and its role. Roles are now selected from a dropdown; use “Add new role…” if you need another one.</p>
+    <table>
+      <thead>
+        <tr><th>Component product</th><th>Role</th><th>Sort</th><th></th></tr>
+      </thead>
+      <tbody id="components-body-${productId}">${body}</tbody>
+    </table>
+    <button class="admin-btn secondary" onclick="addBlankComponentRow('${productId}')">+ Add component link</button>
+  `;
+}
+
+function componentRowHTML(productId, c, pickerList){
+  const cid = c.id;
+  const selectedRole = (c.role_label || '').toLowerCase();
+  return `
+    <tr data-cid="${cid}" data-product-id="${productId}">
+      <td>
+        <div class="component-product-picker">
+          <input class="component-product-search" id="csearch-${cid}" type="text" placeholder="Search product…" oninput="filterComponentPicker('${productId}','${cid}')">
+          <select id="ccomponent-${cid}">${productPickerOptionsHTML(pickerList, productId, c.component_product_id)}</select>
+        </div>
+      </td>
+      <td><select class="component-role-select" id="crole-${cid}" onchange="handleRoleChange('${cid}')">${roleOptionsHTML(selectedRole)}</select></td>
+      <td><input type="number" value="${c.sort_order ?? 0}" id="csort-${cid}" style="width:60px;"></td>
+      <td>
+        <div class="admin-btn-row">
+          <button class="admin-btn" onclick="saveComponent('${productId}', '${cid}', this)">Save</button>
+          <button class="admin-btn danger" onclick="deleteComponent('${productId}', '${cid}', this)">Delete</button>
+        </div>
+      </td>
+    </tr>
+  `;
+}
+
+function filterComponentPicker(productId, cid){
+  const row = document.querySelector(`tr[data-cid="${cid}"]`);
+  if(!row) return;
+  const search = document.querySelector(`#csearch-${cid}`)?.value || '';
+  const select = document.querySelector(`#ccomponent-${cid}`);
+  const selected = select.value;
+  loadProductPickerList().then(list => {
+    select.innerHTML = productPickerOptionsHTML(list, productId, selected, search);
+    if(selected && !Array.from(select.options).some(o => o.value === selected)){
+      select.insertAdjacentHTML('beforeend', productPickerOptionsHTML(list.filter(p => p.id === selected), productId, selected, ''));
+      select.value = selected;
+    }
+  });
+}
+
+function handleRoleChange(cid){
+  const sel = document.querySelector(`#crole-${cid}`);
+  if(!sel || sel.value !== '__new__') return;
+  const value = prompt('Enter the new role name:');
+  if(!value || !value.trim()){
+    sel.value = '';
+    return;
+  }
+  const role = value.trim();
+  // Keep the new role available for the current page/session and select it.
+  if(!COMPONENT_ROLES.includes(role.toLowerCase())) COMPONENT_ROLES.push(role.toLowerCase());
+  const normalized = role.toLowerCase();
+  sel.innerHTML = roleOptionsHTML(normalized);
+  sel.value = normalized;
+}
+
+function addBlankComponentRow(productId){
+  const tmpId = `new-${Date.now()}`;
+  const body = document.querySelector(`#components-body-${productId}`);
+
+  loadProductPickerList().then(list => {
+    body.insertAdjacentHTML('beforeend', `
+      <tr data-cid="${tmpId}" data-product-id="${productId}">
+        <td>
+          <div class="component-product-picker">
+            <input class="component-product-search" id="csearch-${tmpId}" type="text" placeholder="Search product…" oninput="filterComponentPicker('${productId}','${tmpId}')">
+            <select id="ccomponent-${tmpId}">${productPickerOptionsHTML(list, productId, null)}</select>
+          </div>
+        </td>
+        <td><select class="component-role-select" id="crole-${tmpId}" onchange="handleRoleChange('${tmpId}')">${roleOptionsHTML('')}</select></td>
+        <td><input type="number" value="0" id="csort-${tmpId}" style="width:60px;"></td>
+        <td>
+          <div class="admin-btn-row">
+            <button class="admin-btn" onclick="saveComponent('${productId}', '${tmpId}', this)">Create</button>
+            <button class="admin-btn danger" onclick="document.querySelector('tr[data-cid=\\'${tmpId}\\']').remove()">Cancel</button>
+          </div>
+        </td>
+      </tr>
+    `);
+  });
+}
+
+async function saveComponent(productId, cid, btn){
+  const component_product_id = document.querySelector(`#ccomponent-${cid}`).value;
+  const roleRaw = document.querySelector(`#crole-${cid}`).value.trim();
+  const role_label = roleRaw === '__new__' ? null : (roleRaw || null);
+  const sort_order = parseInt(document.querySelector(`#csort-${cid}`).value, 10) || 0;
+
+  if(!component_product_id){
+    alert('Choose which product this links to.');
+    return;
+  }
+
+  btn.disabled = true;
+  const isNew = cid.startsWith('new-');
+  const { error } = isNew
+    ? await window.KEYCAM_SUPABASE.from('catalog_product_components').insert({ product_id: productId, component_product_id, role_label, sort_order })
+    : await window.KEYCAM_SUPABASE.from('catalog_product_components').update({ component_product_id, role_label, sort_order }).eq('id', cid);
+
+  btn.disabled = false;
+  if(error){
+    alert('Failed: ' + error.message);
+    return;
+  }
+  loadComponents(productId);
+}
+
+async function deleteComponent(productId, cid, btn){
+  if(cid.startsWith('new-')){
+    document.querySelector(`tr[data-cid="${cid}"]`)?.remove();
+    return;
+  }
+  if(!confirm('Remove this component link?')) return;
+  btn.disabled = true;
+  const { error } = await window.KEYCAM_SUPABASE.from('catalog_product_components').delete().eq('id', cid);
+  btn.disabled = false;
+  if(error){ alert('Failed: ' + error.message); return; }
+  document.querySelector(`tr[data-cid="${cid}"]`)?.remove();
+}
+
+/* =========================
+   ADD PRODUCT — VARIANTS BUILDER
+   Same shape/UX as the per-product Variants panel, but purely local:
+   nothing hits the DB until Create Product runs, since there's no
+   product_id yet. Variant images are picked from the files sitting in
+   the dropzone above (previewed via local object URLs) and stored as a
+   FILE INDEX, not a URL — the real Supabase URL only exists after
+   upload, and gets swapped in at Create time.
+========================= */
+function addNewVariantRow(){
+  const tmpId = `newv-${Date.now()}-${Math.random().toString(16).slice(2,6)}`;
+  const body = document.querySelector('#newVariantsBody');
+
+  const groupInputs = body.querySelectorAll('select[id^="newvgroup-"]');
+  const lastGroupInput = groupInputs[groupInputs.length - 1];
+  const inheritedGroup = lastGroupInput ? lastGroupInput.value.trim() : '';
+
+  body.insertAdjacentHTML('beforeend', `
+    <tr data-vid="${tmpId}">
+      <td><select id="newvgroup-${tmpId}">${variantGroupOptionsHTML(inheritedGroup)}</select></td>
+      <td><input type="text" id="newvoption-${tmpId}" placeholder="Black / 35pcs / Naruto"></td>
+      <td><input type="number" step="0.01" min="0" id="newvprice-${tmpId}" placeholder="inherits base price"></td>
+      <td>
+        <button type="button" class="variant-image-thumb-btn" id="newvimage-thumb-${tmpId}" onclick="openNewVariantImagePicker('${tmpId}')">
+          <span class="no-image-label">No<br>image</span>
+        </button>
+        <input type="hidden" id="newvimage-${tmpId}" value="">
+      </td>
+      <td>
+        <div class="stock-cell">
+          <button type="button" class="admin-btn secondary" id="newvstock-btn-${tmpId}" data-in-stock="1" onclick="toggleNewVariantStock('${tmpId}')">In Stock</button>
+          <input type="number" step="1" min="0" id="newvqty-${tmpId}" placeholder="qty" title="Admin-only count for this specific option">
+        </div>
+      </td>
+      <td><input type="number" value="0" id="newvsort-${tmpId}" style="width:60px;"></td>
+      <td><button class="admin-btn danger" type="button" onclick="document.querySelector('tr[data-vid=\\'${tmpId}\\']').remove()">Remove</button></td>
+    </tr>
+  `);
+  document.querySelector(`#newvoption-${tmpId}`).focus();
+}
+
+function toggleNewVariantStock(vid){
+  const btn = document.querySelector(`#newvstock-btn-${vid}`);
+  const nowInStock = btn.dataset.inStock !== '1';
+  btn.dataset.inStock = nowInStock ? '1' : '0';
+  btn.textContent = nowInStock ? 'In Stock' : 'Out of Stock';
+  btn.classList.toggle('secondary', nowInStock);
+  btn.classList.toggle('danger', !nowInStock);
+}
+
+function openNewVariantImagePicker(vid){
+  const popover = document.querySelector('#new-variant-image-picker');
+  if(!newProductImageFiles.length){
+    popover.innerHTML = `<span style="color:#8a9a9f;font-size:11px;">Add images above first.</span>`;
+    popover.classList.add('open');
+    return;
+  }
+  const currentId = document.querySelector(`#newvimage-${vid}`).value;
+  const noneOption = `
+    <div class="picker-option" onclick="pickNewVariantImage('${vid}', '')">
+      <div class="picker-option-frame ${currentId==='' ? 'selected' : ''}"><span style="font-size:9px;color:#8a9a9f;">None</span></div>
+    </div>
+  `;
+  const opts = newProductImageFiles.map(f => `
+    <div class="picker-option" onclick="pickNewVariantImage('${vid}', '${f._kcId}')">
+      <div class="picker-option-frame ${f._kcId===currentId ? 'selected' : ''}"><img src="${URL.createObjectURL(f)}" alt=""></div>
+    </div>
+  `).join('');
+  popover.innerHTML = noneOption + opts;
+  popover.classList.add('open');
+  setTimeout(() => {
+    document.addEventListener('click', closeNewVariantImagePickerOnOutsideClick, { once: true, capture: true });
+  }, 0);
+}
+function closeNewVariantImagePickerOnOutsideClick(e){
+  if(e.target.closest('#new-variant-image-picker') || e.target.closest('.variant-image-thumb-btn')) return;
+  document.querySelector('#new-variant-image-picker')?.classList.remove('open');
+}
+function pickNewVariantImage(vid, fileId){
+  document.querySelector(`#newvimage-${vid}`).value = fileId;
+  const thumbBtn = document.querySelector(`#newvimage-thumb-${vid}`);
+  const f = fileId === '' ? null : newProductImageFiles.find(x => x._kcId === fileId);
+  thumbBtn.innerHTML = f ? `<img src="${URL.createObjectURL(f)}" alt="">` : `<span class="no-image-label">No<br>image</span>`;
+  document.querySelector('#new-variant-image-picker')?.classList.remove('open');
+}
+
+// Reads every variant row currently in the table. Rows missing Group or
+// Option are silently skipped (treated as never filled in) rather than
+// blocking product creation.
+function collectNewVariantRows(){
+  const body = document.querySelector('#newVariantsBody');
+  return Array.from(body.querySelectorAll('tr')).map(tr => {
+    const vid = tr.dataset.vid;
+    const group_name = document.querySelector(`#newvgroup-${vid}`).value.trim();
+    const option_label = document.querySelector(`#newvoption-${vid}`).value.trim();
+    const priceRaw = document.querySelector(`#newvprice-${vid}`).value;
+    const price = priceRaw === '' ? null : parseFloat(priceRaw);
+    const imageFileId = document.querySelector(`#newvimage-${vid}`).value || null;
+    const in_stock = document.querySelector(`#newvstock-btn-${vid}`).dataset.inStock === '1';
+    const qtyRaw = document.querySelector(`#newvqty-${vid}`).value;
+    const stock_qty = qtyRaw === '' ? null : Math.max(0, parseInt(qtyRaw, 10) || 0);
+    const sort_order = parseInt(document.querySelector(`#newvsort-${vid}`).value, 10) || 0;
+    return { group_name, option_label, price, imageFileId, in_stock, stock_qty, sort_order };
+  }).filter(v => v.group_name && v.option_label);
+}
+
+/* =========================
+   ADD PRODUCT — BUILT FROM BUILDER
+   Same idea: local rows, nothing hits the DB until Create Product runs.
+   Links to EXISTING products only, so this can safely reuse the same
+   product picker list as the per-product Built From panel.
+========================= */
+function addNewComponentRow(){
+  const tmpId = `newc-${Date.now()}-${Math.random().toString(16).slice(2,6)}`;
+  const body = document.querySelector('#newComponentsBody');
+
+  return loadProductPickerList().then(list => {
+    body.insertAdjacentHTML('beforeend', `
+      <tr data-cid="${tmpId}">
+        <td>
+          <div class="component-product-picker">
+            <input class="component-product-search" id="newcsearch-${tmpId}" type="text" placeholder="Search product…" oninput="filterNewComponentPicker('${tmpId}')">
+            <select id="newccomponent-${tmpId}">${productPickerOptionsHTML(list, null, null)}</select>
+          </div>
+        </td>
+        <td><select class="component-role-select" id="newcrole-${tmpId}" onchange="handleNewRoleChange('${tmpId}')">${roleOptionsHTML('')}</select></td>
+        <td><input type="number" value="0" id="newcsort-${tmpId}" style="width:60px;"></td>
+        <td><button class="admin-btn danger" type="button" onclick="document.querySelector('tr[data-cid=\\'${tmpId}\\']').remove()">Remove</button></td>
+      </tr>
+    `);
+  });
+}
+
+function filterNewComponentPicker(cid){
+  const search = document.querySelector(`#newcsearch-${cid}`)?.value || '';
+  const select = document.querySelector(`#newccomponent-${cid}`);
+  const selected = select.value;
+  loadProductPickerList().then(list => {
+    select.innerHTML = productPickerOptionsHTML(list, null, selected, search);
+    if(selected && !Array.from(select.options).some(o => o.value === selected)){
+      select.insertAdjacentHTML('beforeend', productPickerOptionsHTML(list.filter(p => p.id === selected), null, selected, ''));
+      select.value = selected;
+    }
+  });
+}
+
+function handleNewRoleChange(cid){
+  const sel = document.querySelector(`#newcrole-${cid}`);
+  if(!sel || sel.value !== '__new__') return;
+  const value = prompt('Enter the new role name:');
+  if(!value || !value.trim()){ sel.value = ''; return; }
+  const role = value.trim().toLowerCase();
+  if(!COMPONENT_ROLES.includes(role)) COMPONENT_ROLES.push(role);
+  sel.innerHTML = roleOptionsHTML(role);
+  sel.value = role;
+}
+
+// Reads every component row currently in the table. Rows with no product
+// chosen yet are silently skipped rather than blocking product creation.
+function collectNewComponentRows(){
+  const body = document.querySelector('#newComponentsBody');
+  return Array.from(body.querySelectorAll('tr')).map(tr => {
+    const cid = tr.dataset.cid;
+    const component_product_id = document.querySelector(`#newccomponent-${cid}`).value;
+    const roleRaw = document.querySelector(`#newcrole-${cid}`).value.trim();
+    const role_label = roleRaw === '__new__' ? null : (roleRaw || null);
+    const sort_order = parseInt(document.querySelector(`#newcsort-${cid}`).value, 10) || 0;
+    return { component_product_id, role_label, sort_order };
+  }).filter(c => c.component_product_id);
+}
+
+/* =========================
+   ADD PRODUCT IMAGE INPUT
+   Supports file picker, drag/drop, multi-image clipboard paste, and
+   drag-to-reorder of the chip list (order here becomes each image's
+   sort_order once uploaded).
+========================= */
+let newProductImageFiles = [];
+let newImageIdCounter = 0;
+
+// Every file gets a small stable id the moment it's added, independent
+// of its position in the array — so reordering later (drag-to-sort)
+// never invalidates a variant's already-picked image link.
+function assignFileIds(files){
+  files.forEach(f => { if(!f._kcId) f._kcId = `f${Date.now()}-${newImageIdCounter++}`; });
+  return files;
+}
+
+function syncNewImageInput(){
+  const input = document.querySelector('#newImage');
+  const list = document.querySelector('#newImageFileList');
+  const status = document.querySelector('#newImageDropStatus');
+  if(!input || !list || !status) return;
+
+  const dt = new DataTransfer();
+  newProductImageFiles.forEach(file => dt.items.add(file));
+  input.files = dt.files;
+
+  list.innerHTML = newProductImageFiles.map(file =>
+    `<span class="image-file-chip" draggable="true" data-kc-id="${file._kcId}">${escapeAttr(file.name || 'pasted-image')}</span>`
+  ).join('');
+  status.textContent = newProductImageFiles.length
+    ? `${newProductImageFiles.length} image${newProductImageFiles.length === 1 ? '' : 's'} ready — drag a chip to reorder`
+    : 'No images selected';
+  wireNewImageFileReorder();
+}
+
+// Native HTML5 drag/drop reorder of the pending file chips. Commits the
+// new order into newProductImageFiles on drop, then re-syncs (which also
+// rebuilds the underlying FileList so upload order matches what's shown).
+function wireNewImageFileReorder(){
+  const list = document.querySelector('#newImageFileList');
+  if(!list) return;
+  let dragEl = null;
+
+  list.querySelectorAll('.image-file-chip').forEach(chip => {
+    chip.addEventListener('dragstart', () => {
+      dragEl = chip;
+      chip.classList.add('dragging');
+    });
+    chip.addEventListener('dragover', e => {
+      e.preventDefault();
+      if(!dragEl || dragEl === chip) return;
+      const rect = chip.getBoundingClientRect();
+      const after = (e.clientX - rect.left) > rect.width / 2;
+      list.insertBefore(dragEl, after ? chip.nextSibling : chip);
+    });
+    chip.addEventListener('dragend', () => {
+      chip.classList.remove('dragging');
+      dragEl = null;
+      const order = Array.from(list.querySelectorAll('.image-file-chip')).map(c => c.dataset.kcId);
+      newProductImageFiles = order
+        .map(id => newProductImageFiles.find(f => f._kcId === id))
+        .filter(Boolean);
+      syncNewImageInput();
+    });
+  });
+}
+
+function addNewProductImageFiles(files){
+  const incoming = assignFileIds(Array.from(files || []).filter(f => f && f.type && f.type.startsWith('image/')));
+  if(!incoming.length) return;
+  newProductImageFiles.push(...incoming);
+  syncNewImageInput();
+}
+
+// Render + wire the "Full size / Reduce 70% / Reduce 50%" toggle for this form.
+const newImageScaleWrap = document.querySelector('#newImageScaleWrap');
+if(newImageScaleWrap){
+  newImageScaleWrap.innerHTML = uploadScaleToggleHTML('newImageScaleToggle');
+  wireUploadScaleToggle('newImageScaleToggle');
+}
+
+const newImageDropzone = document.querySelector('#newImageDropzone');
+const newImageInput = document.querySelector('#newImage');
+if(newImageDropzone && newImageInput){
+  newImageDropzone.addEventListener('click', e => {
+    if(e.target !== newImageInput) newImageInput.click();
+  });
+  newImageDropzone.addEventListener('keydown', e => {
+    if(e.key === 'Enter' || e.key === ' '){
+      e.preventDefault();
+      newImageInput.click();
+    }
+  });
+  newImageInput.addEventListener('change', () => {
+    newProductImageFiles = assignFileIds(Array.from(newImageInput.files || []));
+    syncNewImageInput();
+  });
+  ['dragenter','dragover'].forEach(type => newImageDropzone.addEventListener(type, e => {
+    e.preventDefault(); e.stopPropagation();
+    newImageDropzone.classList.add('dragover');
+  }));
+  ['dragleave','drop'].forEach(type => newImageDropzone.addEventListener(type, e => {
+    e.preventDefault(); e.stopPropagation();
+    newImageDropzone.classList.remove('dragover');
+  }));
+  newImageDropzone.addEventListener('drop', e => {
+    addNewProductImageFiles(e.dataTransfer.files);
+  });
+  newImageDropzone.addEventListener('paste', e => {
+    const files = [];
+    for(const item of Array.from(e.clipboardData?.items || [])){
+      if(item.kind === 'file' && item.type.startsWith('image/')){
+        const file = item.getAsFile();
+        if(file) files.push(new File([file], `pasted-image-${Date.now()}-${files.length + 1}.${(file.type.split('/')[1] || 'png')}`, {type:file.type}));
+      }
+    }
+    if(files.length){
+      e.preventDefault();
+      addNewProductImageFiles(files);
+    }
+  });
+}
+
+/* =========================
+   ADD PRODUCT
+========================= */
+document.querySelector('#createProductBtn').addEventListener('click', async () => {
+  const statusEl = document.querySelector('#createProductStatus');
+  const btn = document.querySelector('#createProductBtn');
+
+  const category = document.querySelector('#newCategory').value;
+  const subtypeEl = document.querySelector('#newSubtype');
+  const subtype = (SUBTYPES[category] || []).length ? subtypeEl.value : null;
+  const name = document.querySelector('#newName').value.trim();
+  const priceRaw = document.querySelector('#newBasePrice').value;
+  const base_price = priceRaw === '' ? null : parseFloat(priceRaw);
+  const discountRaw = document.querySelector('#newDiscountPercent').value;
+  const discount_percent = discountRaw === '' ? null : Math.max(0, Math.min(100, parseFloat(discountRaw)));
+  const stockRaw = document.querySelector('#newStockQty').value;
+  const stock_qty = stockRaw === '' ? null : Math.max(0, parseInt(stockRaw, 10) || 0);
+  const collection = document.querySelector('#newCollection').value.trim() || null;
+  const theme = document.querySelector('#newTheme')?.value.trim() || null;
+  const profile = document.querySelector('#newProfile')?.value.trim() || null;
+  const specs = document.querySelector('#newSpecs').value.trim() || null;
+  const description = document.querySelector('#newDescription').value.trim() || null;
+  const shipping_info = document.querySelector('#newShippingInfo').value.trim() || null;
+  const payment_info = document.querySelector('#newPaymentInfo').value.trim() || null;
+  const files = newProductImageFiles.slice();
+  const uploadScale = parseFloat(document.querySelector('#newImageScaleToggle')?.dataset.scale || '1');
+
+  if(!name){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Name is required.';
+    return;
+  }
+
+  btn.disabled = true;
+  statusEl.style.color = '#8a9a9f';
+  statusEl.textContent = 'Creating…';
+
+  try{
+    let image = null, thumbnail = null;
+    const galleryEntries = []; // {url, thumbUrl}
+    const fileIdToEntry = {}; // file._kcId -> the matching galleryEntries item, for variant image linking
+
+    // Small helper: upload a file (at the chosen upload-size scale),
+    // generate+upload a matching thumbnail, fall back to the full url if
+    // thumbnail generation fails.
+    async function uploadWithThumb(file){
+      const url = await uploadCatalogImageScaled(file, category, name, uploadScale);
+      let thumbUrl = url;
+      try{
+        const blob = await generateThumbnail(file, 300, 0.75);
+        if(blob){
+          const rand = Math.random().toString(16).slice(2, 8);
+          const path = `catalog/${category}/thumb-${rand}.webp`;
+          const { error: tErr } = await window.KEYCAM_SUPABASE.storage
+            .from('keycam-images')
+            .upload(path, blob, { contentType: 'image/webp', upsert: true });
+          if(!tErr) thumbUrl = window.KEYCAM_SUPABASE.storage.from('keycam-images').getPublicUrl(path).data.publicUrl;
+        }
+      }catch(e){
+        console.error('Gallery thumbnail generation failed, using full image instead:', e);
+      }
+      return { url, thumbUrl };
+    }
+
+    if(files.length){
+      // First file also becomes the cover / listing thumbnail.
+      statusEl.textContent = `Uploading image 1 of ${files.length}…`;
+      const firstFile = files[0];
+      const thumbBlob = await generateThumbnail(firstFile);
+      const rand = Math.random().toString(16).slice(2, 8);
+      const thumbPath = `catalog/${category}/thumb-${slugifyPath(name)}-${rand}.webp`;
+
+      image = await uploadCatalogImageScaled(firstFile, category, name, uploadScale);
+      const { error: thumbErr } = await window.KEYCAM_SUPABASE.storage
+        .from('keycam-images')
+        .upload(thumbPath, thumbBlob, { contentType: 'image/webp', upsert: true });
+      if(thumbErr) throw new Error('Thumbnail upload failed: ' + thumbErr.message);
+      thumbnail = window.KEYCAM_SUPABASE.storage.from('keycam-images').getPublicUrl(thumbPath).data.publicUrl;
+      // First gallery entry reuses the cover thumbnail we just made — no need to generate it twice.
+      galleryEntries.push({ url: image, thumbUrl: thumbnail });
+      fileIdToEntry[firstFile._kcId] = galleryEntries[0];
+
+      for(let i = 1; i < files.length; i++){
+        statusEl.textContent = `Uploading image ${i + 1} of ${files.length}…`;
+        const entry = await uploadWithThumb(files[i]);
+        galleryEntries.push(entry);
+        fileIdToEntry[files[i]._kcId] = entry;
+      }
+    }
+
+    statusEl.textContent = 'Saving product…';
+    const { data: inserted, error: dbErr } = await window.KEYCAM_SUPABASE.from('catalog_products').insert({
+      category, subtype, name, base_price, discount_percent, stock_qty, collection, theme, profile, specs, description, shipping_info, payment_info, image, thumbnail
+    }).select().single();
+    if(dbErr) throw new Error(dbErr.message);
+
+    if(galleryEntries.length){
+      const rows = galleryEntries.map((g, i) => ({ product_id: inserted.id, url: g.url, thumb_url: g.thumbUrl, sort_order: i }));
+      const { error: imgRowErr } = await window.KEYCAM_SUPABASE.from('catalog_product_images').insert(rows);
+      if(imgRowErr) throw new Error('Product created, but saving the image gallery failed: ' + imgRowErr.message);
+    }
+
+    const pendingVariants = collectNewVariantRows();
+    if(pendingVariants.length){
+      statusEl.textContent = 'Saving variants…';
+      const variantRows = pendingVariants.map(v => ({
+        product_id: inserted.id,
+        group_name: v.group_name,
+        option_label: v.option_label,
+        price: v.price,
+        image: v.imageFileId ? (fileIdToEntry[v.imageFileId]?.url || null) : null,
+        in_stock: v.in_stock,
+        stock_qty: v.stock_qty,
+        sort_order: v.sort_order
+      }));
+      const { error: variantErr } = await window.KEYCAM_SUPABASE.from('catalog_variants').insert(variantRows);
+      if(variantErr) throw new Error('Product created, but saving variants failed: ' + variantErr.message);
+    }
+
+    const pendingComponents = collectNewComponentRows();
+    if(pendingComponents.length){
+      statusEl.textContent = 'Saving Built From links…';
+      const componentRows = pendingComponents.map(c => ({
+        product_id: inserted.id,
+        component_product_id: c.component_product_id,
+        role_label: c.role_label,
+        sort_order: c.sort_order
+      }));
+      const { error: compErr } = await window.KEYCAM_SUPABASE.from('catalog_product_components').insert(componentRows);
+      if(compErr) throw new Error('Product created, but saving Built From links failed: ' + compErr.message);
+    }
+
+    statusEl.style.color = '#3bd1a0';
+    statusEl.textContent = 'Created ✓';
+    // Deliberately NOT resetting Name/Base Price/Collection/Specs/Description/
+    // Shipping/Payment — makes it fast to create several similar products in a
+    // row without retyping everything each time. Only clear what's genuinely
+    // specific to the product just created: its images, variants, and Built
+    // From links.
+    document.querySelector('#newImage').value = '';
+    newProductImageFiles = [];
+    syncNewImageInput();
+    const scaleToggle = document.querySelector('#newImageScaleToggle');
+    if(scaleToggle){
+      scaleToggle.dataset.scale = '1';
+      scaleToggle.querySelectorAll('.scale-btn').forEach(b => b.classList.toggle('active', b.dataset.scale === '1'));
+    }
+    document.querySelector('#newVariantsBody').innerHTML = '';
+    document.querySelector('#newComponentsBody').innerHTML = '';
+    currentPage = 0;
+    refreshProductPickerList(); // so the new product shows up in "Built From" pickers right away
+    loadProducts();
+  }catch(err){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed: ' + err.message;
+  }finally{
+    btn.disabled = false;
+  }
+});
+
+document.querySelector('#newShippingInfo').value = DEFAULT_SHIPPING_INFO;
+document.querySelector('#newPaymentInfo').value = DEFAULT_PAYMENT_INFO;
+checkSession();
+
+/* =========================
+   INVENTORY TAB
+   A lean, stock-first view separate from the Products tab — built for
+   "quickly check what's low", not for editing everything else about a
+   product. Loads every non-archived product + every variant in two
+   queries, then renders client-side (this catalog is small enough that
+   this is simpler and faster than paginating).
+========================= */
+let inventoryData = []; // [{product, variants: [...]}]
+let inventoryFilter = '';   // '', 'out', 'low', 'untracked'
+let inventorySearch = '';
+
+async function loadInventory(){
+  const body = document.querySelector('#inventoryBody');
+  body.innerHTML = '<tr><td colspan="5">Loading…</td></tr>';
+
+  const [{ data: products, error: pErr }, { data: variants, error: vErr }] = await Promise.all([
+    window.KEYCAM_SUPABASE
+      .from('catalog_products')
+      .select('id, name, thumbnail, image, category, subtype, stock_qty, archived')
+      .eq('archived', false),
+    window.KEYCAM_SUPABASE
+      .from('catalog_variants')
+      .select('id, product_id, group_name, option_label, stock_qty, sort_order')
+  ]);
+
+  if(pErr){ body.innerHTML = `<tr><td colspan="5">Failed to load: ${pErr.message}</td></tr>`; return; }
+  if(vErr) console.error('Failed to load variants for inventory:', vErr);
+
+  inventoryData = (products || []).map(p => ({
+    product: p,
+    variants: (variants || []).filter(v => v.product_id === p.id).sort((a,b) => (a.sort_order||0)-(b.sort_order||0))
+  }));
+
+  renderInventory();
+}
+
+function inventoryRowStatus(entry){
+  return entry.variants.length
+    ? rollupStockStatus(entry.variants.map(v => v.stock_qty))
+    : { status: stockStatus(entry.product.stock_qty), label: entry.product.stock_qty ?? '—' };
+}
+
+const STATUS_SORT_RANK = { out: 0, low: 1, ok: 2, untracked: 3 };
+
+function renderInventory(){
+  const body = document.querySelector('#inventoryBody');
+  const term = inventorySearch.trim().toLowerCase();
+
+  let rows = inventoryData.filter(entry => {
+    if(term && !(entry.product.name || '').toLowerCase().includes(term)) return false;
+    if(inventoryFilter && inventoryRowStatus(entry).status !== inventoryFilter) return false;
+    return true;
+  });
+
+  rows = rows.slice().sort((a, b) => {
+    const sa = inventoryRowStatus(a), sb = inventoryRowStatus(b);
+    const rankDiff = STATUS_SORT_RANK[sa.status] - STATUS_SORT_RANK[sb.status];
+    if(rankDiff !== 0) return rankDiff;
+    return (a.product.name || '').localeCompare(b.product.name || '');
+  });
+
+  if(!rows.length){
+    body.innerHTML = '<tr><td colspan="5">No products match.</td></tr>';
+    return;
+  }
+
+  body.innerHTML = rows.map(entry => inventoryRowHTML(entry)).join('');
+}
+
+function inventoryRowHTML(entry){
+  const p = entry.product;
+  const hasVariants = entry.variants.length > 0;
+  const rollup = inventoryRowStatus(entry);
+
+  const stockCell = hasVariants
+    ? `<span class="stock-badge ${rollup.status}">${rollup.label}</span> <button class="admin-btn secondary" style="padding:3px 8px;font-size:11px;" onclick="toggleInventoryVariants('${p.id}')">${entry.variants.length} option${entry.variants.length===1?'':'s'} ▾</button>`
+    : `<div class="stock-cell">
+        <input type="number" step="1" min="0" value="${p.stock_qty ?? ''}" id="inv-stock-${p.id}" placeholder="—"
+          onchange="saveInventoryProductStock('${p.id}')">
+        <span id="inv-badge-${p.id}">${stockBadgeHTML(p.stock_qty)}</span>
+      </div>`;
+
+  return `
+    <tr data-inv-id="${p.id}">
+      <td><img src="${p.thumbnail || p.image || ''}" alt="" onerror="this.style.visibility='hidden'"></td>
+      <td>${escapeAttr(p.name)}</td>
+      <td>${escapeAttr(p.category)}${p.subtype ? ' / ' + escapeAttr(p.subtype) : ''}</td>
+      <td>${stockCell}</td>
+      <td></td>
+    </tr>
+    ${hasVariants ? `<tr id="inv-variants-row-${p.id}" style="display:none;"><td colspan="5"><div class="inventory-variant-list" id="inv-variants-${p.id}"></div></td></tr>` : ''}
+  `;
+}
+
+async function saveInventoryProductStock(productId){
+  const input = document.querySelector(`#inv-stock-${productId}`);
+  const raw = input.value;
+  const stock_qty = raw === '' ? null : Math.max(0, parseInt(raw, 10) || 0);
+  const { error } = await window.KEYCAM_SUPABASE.from('catalog_products').update({ stock_qty }).eq('id', productId);
+  if(error){ alert('Failed to save: ' + error.message); return; }
+  const entry = inventoryData.find(e => e.product.id === productId);
+  if(entry) entry.product.stock_qty = stock_qty;
+  const badge = document.querySelector(`#inv-badge-${productId}`);
+  if(badge) badge.innerHTML = stockBadgeHTML(stock_qty);
+  // Also keep the Products tab row in sync if it's currently rendered.
+  const productsTabInput = document.querySelector(`#stock-${productId}`);
+  if(productsTabInput) productsTabInput.value = stock_qty ?? '';
+  const productsTabBadge = document.querySelector(`#stock-badge-${productId}`);
+  if(productsTabBadge) productsTabBadge.innerHTML = stockBadgeHTML(stock_qty);
+}
+
+function toggleInventoryVariants(productId){
+  const row = document.querySelector(`#inv-variants-row-${productId}`);
+  if(!row) return;
+  const isOpen = row.style.display !== 'none';
+  if(isOpen){ row.style.display = 'none'; return; }
+  row.style.display = 'table-row';
+  const entry = inventoryData.find(e => e.product.id === productId);
+  const wrap = document.querySelector(`#inv-variants-${productId}`);
+  wrap.innerHTML = (entry?.variants || []).map(v => `
+    <div class="inventory-variant-row">
+      <span style="min-width:160px;">${escapeAttr(v.group_name)}: ${escapeAttr(v.option_label)}</span>
+      <input type="number" step="1" min="0" value="${v.stock_qty ?? ''}" id="inv-vstock-${v.id}" placeholder="—"
+        onchange="saveInventoryVariantStock('${productId}', '${v.id}')">
+      ${stockBadgeHTML(v.stock_qty)}
+    </div>
+  `).join('');
+}
+
+async function saveInventoryVariantStock(productId, variantId){
+  const input = document.querySelector(`#inv-vstock-${variantId}`);
+  const raw = input.value;
+  const stock_qty = raw === '' ? null : Math.max(0, parseInt(raw, 10) || 0);
+  const { error } = await window.KEYCAM_SUPABASE.from('catalog_variants').update({ stock_qty }).eq('id', variantId);
+  if(error){ alert('Failed to save: ' + error.message); return; }
+  const entry = inventoryData.find(e => e.product.id === productId);
+  const v = entry?.variants.find(v => v.id === variantId);
+  if(v) v.stock_qty = stock_qty;
+  // Refresh this product's row badge (rollup) without collapsing the open panel.
+  const rowsBody = document.querySelector('#inventoryBody');
+  const currentlyOpen = document.querySelector(`#inv-variants-row-${productId}`)?.style.display !== 'none';
+  renderInventory();
+  if(currentlyOpen) toggleInventoryVariants(productId);
+  // Also refresh the same variant's row in the Products tab's Variants panel, if open.
+  const productsTabVQty = document.querySelector(`#vqty-${variantId}`);
+  if(productsTabVQty) productsTabVQty.value = stock_qty ?? '';
+}
+
+document.querySelector('#inventorySearch').addEventListener('input', (e) => {
+  inventorySearch = e.target.value;
+  renderInventory();
+});
+document.querySelectorAll('.inventory-filter-chip').forEach(chip => {
+  chip.addEventListener('click', () => {
+    document.querySelectorAll('.inventory-filter-chip').forEach(c => c.classList.remove('active'));
+    chip.classList.add('active');
+    inventoryFilter = chip.dataset.stockFilter;
+    renderInventory();
+  });
+});
+</script>
+</body>
+</html>

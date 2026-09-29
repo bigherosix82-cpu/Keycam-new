@@ -1,0 +1,184 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#0b0f12">
+<meta name="description" content="KeyCam Cambodia — custom keyboards, switches, keycaps, mice and desk mats.">
+<title>KeyCam — Cambodia</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="deskmat/styles.css">
+<link rel="stylesheet" href="shared/catalog.css">
+</head>
+<body>
+
+<div id="siteHeader"></div>
+
+<main>
+<section class="hero hub-hero">
+  <div class="container hero-grid">
+    <div>
+      <p class="eyebrow">KEYCAM · CAMBODIA</p>
+      <h1>Everything for<br>your <em>setup.</em></h1>
+      <p class="hero-copy">Custom keyboards, switches, keycaps, mice and desk mats — configure online, order direct on Telegram.</p>
+      <div class="hero-actions hero-social">
+        <a href="https://maps.app.goo.gl/SFp44sTmpm52HC5i7" target="_blank" rel="noopener" aria-label="Location"><img src="assets/icons/location.png" alt=""></a>
+        <a href="https://t.me/Key_Cam" target="_blank" rel="noopener" aria-label="Telegram"><img src="assets/icons/telegram.png" alt=""></a>
+        <a href="https://www.facebook.com/share/1EyHBrqsXP/" target="_blank" rel="noopener" aria-label="Facebook"><img src="assets/icons/facebook.png" alt=""></a>
+        <a href="https://www.instagram.com/key_camm?igsh=bWVjeWd6bWFvZHB4" target="_blank" rel="noopener" aria-label="Instagram"><img src="assets/icons/instagram.webp" alt=""></a>
+        <a href="https://www.tiktok.com/@keycamm?_r=1&amp;_t=ZS-98MRrdf6b" target="_blank" rel="noopener" aria-label="TikTok"><img src="assets/icons/tiktok.png" alt=""></a>
+      </div>
+    </div>
+    <div class="hero-visual" aria-roledescription="carousel" aria-label="Featured setup photos">
+      <div class="hero-carousel" id="heroCarousel">
+        <div class="hero-carousel-track" id="heroCarouselTrack">
+          <div class="hero-carousel-slide is-active" data-index="0">
+            <img src="assets/carousel/1.jpg" alt="Custom keyboard setup" width="1200" height="750" decoding="async">
+          </div>
+          <div class="hero-carousel-slide" data-index="1">
+            <img src="assets/carousel/2.jpg" alt="Keyboard and cable" width="1200" height="750" decoding="async">
+          </div>
+          <div class="hero-carousel-slide" data-index="2">
+            <img src="assets/carousel/3.jpg" alt="KeyCam setup" width="1200" height="750" decoding="async">
+          </div>
+        </div>
+        <button type="button" class="hero-carousel-btn prev" id="heroPrev" aria-label="Previous slide">‹</button>
+        <button type="button" class="hero-carousel-btn next" id="heroNext" aria-label="Next slide">›</button>
+        <div class="hero-carousel-dots" id="heroDots" role="tablist" aria-label="Carousel slides">
+          <button type="button" class="hero-carousel-dot is-active" data-index="0" aria-label="Slide 1" aria-selected="true"></button>
+          <button type="button" class="hero-carousel-dot" data-index="1" aria-label="Slide 2" aria-selected="false"></button>
+          <button type="button" class="hero-carousel-dot" data-index="2" aria-label="Slide 3" aria-selected="false"></button>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section class="container hub-categories">
+  <div class="section-head-inline">
+    <p class="eyebrow">SHOP BY CATEGORY</p>
+    <h2>What are you building?</h2>
+  </div>
+  <div class="category-tiles cols-4" id="tiles"></div>
+</section>
+
+<section class="container hub-all-products">
+  <div class="section-head-inline">
+    <p class="eyebrow">FULL CATALOG</p>
+    <h2 id="allProductsHeading">All products</h2>
+  </div>
+  <p class="listing-results-count" id="allProductsCount"></p>
+  <div class="listing-grid" id="allProductsGrid"><div class="catalog-loading">Loading…</div></div>
+</section>
+</main>
+
+<div id="siteFooter"></div>
+<div id="siteOverlays"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="supabase-client.js"></script>
+<script src="shared/catalog-client.js"></script>
+<script src="shared/catalog-cart.js"></script>
+<script src="shared/layout.js"></script>
+<script>
+initLayout({ base: "", active: "" });
+
+const SECTIONS = [
+  ["keyboard/index.html", "Keyboard", "Prebuild, custom, barebones, switches, keycaps", "BuildYourKeyboard.jpg"],
+  ["accessories/collection.html", "Accessories", "Cables, tools, stands, cleaners, wrist rests", "accessories.jpg"],
+  ["mouse/collection.html", "Mouse", "Wired and wireless options", "mouse.jpg"],
+  ["deskmat/index.html", "Deskmat", "Original designs — 3MM / 5MM, FPS, glass", "Mousepad.png"],
+];
+
+document.querySelector("#tiles").innerHTML = SECTIONS.map(([href, title, desc, thumb], i) => `
+  <a class="collection-card featured" href="${href}" style="background-image:url('assets/index_thumbnail/${thumb}');">
+    <span class="collection-number">${String(i + 1).padStart(2, "0")}</span>
+    <h3>${title}</h3>
+    <small>${desc}</small>
+  </a>
+`).join("");
+
+/* All Products grid (below SHOP BY CATEGORY) + festival sale banner.
+   Pulls straight from window.CATALOG — Keyboard/Accessories/Mouse only,
+   since Deskmat lives in a separate products table this file never
+   touches. Waits on CATALOG_READY so the festival discount (if on) is
+   already known before anything renders. */
+window.CATALOG_READY.then(() => {
+  const products = window.CATALOG.products || [];
+
+  // All Products grid.
+  const grid = document.querySelector("#allProductsGrid");
+  const countEl = document.querySelector("#allProductsCount");
+  if(!grid) return;
+
+  if(!products.length){
+    grid.innerHTML = `<p style="color:var(--muted);grid-column:1/-1;">No products yet.</p>`;
+    if(countEl) countEl.textContent = "";
+    return;
+  }
+
+  if(countEl) countEl.textContent = `${products.length} product${products.length === 1 ? "" : "s"}`;
+
+  grid.innerHTML = products.map(p => `
+    <a class="product-card" href="${p.category}/product.html?id=${p.id}">
+      <div class="product-art">
+        ${catalogDiscountBadgeHTML(p)}
+        ${p.thumbnail ? `<img src="${p.thumbnail}" alt="${p.name}" loading="lazy" style="width:100%;height:100%;object-fit:cover;">` : ""}
+      </div>
+      <div style="padding:14px;">
+        <span class="pc-cat-tag">${p.category}${p.subtype ? ` · ${p.subtype}` : ""}</span>
+        <strong style="display:block;font:600 14px 'Space Grotesk';">${p.name}</strong>
+        <div style="margin-top:8px;font:700 15px 'Space Grotesk';color:var(--blue);">${catalogPriceRangeHTML(p)}</div>
+      </div>
+    </a>
+  `).join("");
+});
+
+/* Hero carousel: auto-play + arrows + dots */
+(function(){
+  const slides = Array.from(document.querySelectorAll("#heroCarouselTrack .hero-carousel-slide"));
+  const dots = Array.from(document.querySelectorAll("#heroDots .hero-carousel-dot"));
+  if(!slides.length) return;
+  let index = 0;
+  let timer = null;
+  const INTERVAL = 5000;
+
+  function goTo(i){
+    index = (i + slides.length) % slides.length;
+    slides.forEach((s, n) => s.classList.toggle("is-active", n === index));
+    dots.forEach((d, n) => {
+      d.classList.toggle("is-active", n === index);
+      d.setAttribute("aria-selected", n === index ? "true" : "false");
+    });
+  }
+  function next(){ goTo(index + 1); }
+  function prev(){ goTo(index - 1); }
+  function start(){
+    stop();
+    timer = setInterval(next, INTERVAL);
+  }
+  function stop(){
+    if(timer){ clearInterval(timer); timer = null; }
+  }
+
+  document.querySelector("#heroNext")?.addEventListener("click", () => { next(); start(); });
+  document.querySelector("#heroPrev")?.addEventListener("click", () => { prev(); start(); });
+  dots.forEach(d => d.addEventListener("click", () => {
+    goTo(Number(d.dataset.index));
+    start();
+  }));
+
+  const carousel = document.querySelector("#heroCarousel");
+  carousel?.addEventListener("mouseenter", stop);
+  carousel?.addEventListener("mouseleave", start);
+  carousel?.addEventListener("focusin", stop);
+  carousel?.addEventListener("focusout", start);
+
+  goTo(0);
+  start();
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,3398 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Admin — KeyCam</title>
+<meta name="robots" content="noindex, nofollow">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@400;500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="styles.css">
+<style>
+  /* ============================================================
+     KeyCam Deskmat Admin — same design system as admin-catalog.html
+     (component-datasheet aesthetic: dark surfaces, cyan trace accent,
+     JetBrains Mono reserved for numeric data, bracket-cornered stat
+     cards as the one signature flourish).
+     ============================================================ */
+  :root{
+    --surface:#111a1e;
+    --surface-2:#172226;
+    --surface-3:#1c2a2f;
+    --ink:#edf4f5;
+    --ink-dim:#89a0a7;
+    --ink-faint:#5c7178;
+    --amber:#e0b23c;
+    --green:#3bd1a0;
+    --red:#e05a5a;
+    --mono:"JetBrains Mono", ui-monospace, monospace;
+    --sans:"DM Sans", sans-serif;
+    --disp:"Space Grotesk", sans-serif;
+  }
+
+  *{ box-sizing:border-box; }
+
+  /* ---------- login ---------- */
+  .admin-shell{
+    min-height:100vh;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+    background:
+      radial-gradient(600px 300px at 15% 8%, rgba(32,195,223,.07), transparent 60%),
+      var(--bg);
+  }
+  .admin-card{
+    width:100%;
+    max-width:360px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    padding:34px 30px;
+    position:relative;
+  }
+  .admin-card::before{
+    content:"";
+    position:absolute;
+    top:14px; left:14px; right:14px; bottom:14px;
+    border:1px solid rgba(32,195,223,.14);
+    border-radius:6px;
+    pointer-events:none;
+  }
+  .admin-card h1{
+    font:600 21px var(--disp);
+    color:var(--ink);
+    margin:0 0 6px;
+    letter-spacing:-.01em;
+  }
+  .admin-card p.sub{
+    font-size:13px;
+    line-height:1.5;
+    color:var(--ink-dim);
+    margin:0 0 26px;
+  }
+  .admin-field{
+    display:flex;
+    flex-direction:column;
+    gap:6px;
+    margin-bottom:14px;
+  }
+  .admin-field label{
+    font-size:11px;
+    color:var(--ink-dim);
+    letter-spacing:.02em;
+  }
+  .admin-field input{
+    background:#0b1113;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:10px 12px;
+    font:500 14px var(--sans);
+    border-radius:5px;
+  }
+  .admin-field input:focus{
+    outline:none;
+    border-color:var(--blue);
+  }
+  .admin-submit{
+    width:100%;
+    background:var(--blue);
+    color:#04191d;
+    border:none;
+    padding:11px;
+    border-radius:5px;
+    font:600 14px var(--disp);
+    cursor:pointer;
+    margin-top:8px;
+    transition:filter .12s;
+  }
+  .admin-submit:hover{ filter:brightness(1.08); }
+  .admin-submit:disabled{
+    opacity:.6;
+    cursor:default;
+    filter:none;
+  }
+  .admin-error{
+    font-size:12px;
+    color:var(--red);
+    margin:10px 0 0;
+    display:none;
+  }
+
+  /* ---------- app shell: sidebar + main ---------- */
+  .admin-shell-app{
+    display:flex;
+    align-items:stretch;
+    min-height:100vh;
+  }
+  .admin-sidebar{
+    width:222px;
+    flex:none;
+    display:flex;
+    flex-direction:column;
+    border-right:1px solid var(--line);
+    background:var(--surface);
+    position:sticky;
+    top:0;
+    height:100vh;
+  }
+  .admin-brand{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    padding:22px 20px 18px;
+    border-bottom:1px solid var(--line);
+  }
+  .admin-brand-mark{
+    width:32px;
+    height:32px;
+    flex:none;
+    display:flex;
+    align-items:center;
+    justify-content:center;
+    border:1px solid var(--blue);
+    border-radius:6px;
+    color:var(--blue);
+    font:700 12px var(--mono);
+    letter-spacing:.02em;
+  }
+  .admin-brand-text{
+    display:flex;
+    flex-direction:column;
+    line-height:1.3;
+    min-width:0;
+  }
+  .admin-brand-text strong{
+    font:600 14px var(--disp);
+    color:var(--ink);
+  }
+  .admin-brand-text span{
+    font-size:10.5px;
+    color:var(--ink-faint);
+    white-space:nowrap;
+    overflow:hidden;
+    text-overflow:ellipsis;
+  }
+  .admin-nav{
+    display:flex;
+    flex-direction:column;
+    gap:2px;
+    padding:14px 12px;
+    flex:1;
+  }
+  .admin-tab-btn{
+    display:flex;
+    align-items:center;
+    gap:10px;
+    background:none;
+    border:none;
+    border-radius:6px;
+    color:var(--ink-dim);
+    padding:9px 12px;
+    font:500 13px var(--sans);
+    cursor:pointer;
+    text-align:left;
+    transition:background .12s, color .12s;
+  }
+  .admin-tab-btn:hover{
+    background:var(--surface-2);
+    color:var(--ink);
+  }
+  .admin-nav-tick{
+    width:5px;
+    height:5px;
+    border-radius:1px;
+    background:var(--ink-faint);
+    flex:none;
+    transition:background .12s;
+  }
+  .admin-tab-btn.active{
+    color:var(--ink);
+    background:var(--surface-2);
+  }
+  .admin-tab-btn.active .admin-nav-tick{
+    background:var(--blue);
+    box-shadow:0 0 0 3px rgba(32,195,223,.15);
+  }
+  .admin-sidebar-foot{
+    padding:14px 20px 20px;
+    border-top:1px solid var(--line);
+    display:flex;
+    flex-direction:column;
+    gap:10px;
+  }
+  .admin-sidebar-foot a{
+    font-size:12px;
+    color:var(--ink-dim);
+    text-decoration:none;
+  }
+  .admin-sidebar-foot a:hover{ color:var(--blue); }
+  .admin-signout{
+    background:none;
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    padding:8px 14px;
+    border-radius:5px;
+    font:500 12px var(--sans);
+    cursor:pointer;
+    text-align:center;
+    transition:border-color .12s, color .12s;
+  }
+  .admin-signout:hover{ border-color:var(--red); color:var(--red); }
+
+  .admin-main{
+    flex:1;
+    min-width:0;
+  }
+  .admin-body{
+    padding:36px 40px 60px;
+    max-width:1100px;
+    margin:0 auto;
+  }
+  .admin-section{
+    margin-bottom:44px;
+  }
+  .admin-section h2{
+    font:600 16px var(--disp);
+    color:var(--ink);
+    margin:0 0 14px;
+    letter-spacing:-.005em;
+  }
+
+  /* ---------- tables ---------- */
+  .admin-table{
+    width:100%;
+    border-collapse:collapse;
+    font-size:13px;
+  }
+  .admin-table th{
+    text-align:left;
+    color:var(--ink-faint);
+    font:600 10.5px var(--mono);
+    letter-spacing:.03em;
+    text-transform:uppercase;
+    padding:9px 10px;
+    border-bottom:1px solid var(--line);
+  }
+  .admin-table td{
+    padding:9px 10px;
+    border-bottom:1px solid var(--line);
+    color:var(--ink);
+    vertical-align:middle;
+  }
+  .admin-table tbody tr:hover td{
+    background:var(--surface-2);
+  }
+  .admin-table input[type="number"],
+  .admin-table input[type="text"],
+  .admin-table select{
+    background:#0b1113;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:6px 8px;
+    font:500 13px var(--sans);
+    border-radius:5px;
+    width:100%;
+  }
+  .admin-table input[type="number"]{
+    font-family:var(--mono);
+  }
+  .admin-table img{
+    width:40px;
+    height:40px;
+    object-fit:cover;
+    border-radius:5px;
+    display:block;
+  }
+
+  /* ---------- buttons ---------- */
+  .admin-btn{
+    background:var(--blue);
+    color:#04191d;
+    border:none;
+    padding:7px 13px;
+    border-radius:5px;
+    font:600 12px var(--disp);
+    cursor:pointer;
+    white-space:nowrap;
+    transition:filter .12s;
+  }
+  .admin-btn:hover{ filter:brightness(1.08); }
+  .admin-btn.danger{
+    background:transparent;
+    border:1px solid var(--red);
+    color:var(--red);
+  }
+  .admin-btn:disabled{opacity:.5;cursor:default;filter:none;}
+  .admin-btn-row{display:flex;gap:6px;flex-wrap:wrap;align-items:center;}
+  .stock-check-label{
+    display:flex;
+    align-items:center;
+    gap:5px;
+    font-size:12px;
+    color:var(--ink-dim);
+    cursor:pointer;
+    white-space:nowrap;
+  }
+  .stock-check-label input{
+    width:15px;
+    height:15px;
+    cursor:pointer;
+  }
+  .admin-status{
+    font-size:11px;
+    color:var(--green);
+    margin-left:8px;
+    font-family:var(--mono);
+  }
+  .admin-search{
+    display:flex;
+    gap:10px;
+    margin-bottom:16px;
+    flex-wrap:wrap;
+  }
+  .admin-search input{
+    flex:1 1 160px;
+    background:#0b1113;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:9px 12px;
+    font:500 13px var(--sans);
+    border-radius:5px;
+  }
+  .admin-search select{
+    flex:1 1 160px;
+    background:#0b1113;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:9px 12px;
+    font:500 13px var(--sans);
+    border-radius:5px;
+  }
+  .admin-search input:focus, .admin-search select:focus{
+    outline:none; border-color:var(--blue);
+  }
+  .admin-pager{
+    display:flex;
+    gap:10px;
+    align-items:center;
+    margin-top:16px;
+    font-size:12px;
+    color:var(--ink-dim);
+    font-family:var(--mono);
+  }
+
+  /* ---------- dropzone / uploads ---------- */
+  .admin-dropzone{
+    border:1px dashed #33505a;
+    background:#0b1113;
+    border-radius:8px;
+    padding:36px;
+    text-align:center;
+    color:var(--ink-dim);
+    cursor:pointer;
+    transition:border-color .15s, color .15s, background .15s;
+    font-size:13px;
+  }
+  .admin-dropzone.dragover{
+    border-color:var(--blue);
+    color:var(--ink);
+    background:rgba(32,195,223,.06);
+  }
+  .upload-queue{
+    margin-top:14px;
+  }
+  .upload-item{
+    display:flex;
+    justify-content:space-between;
+    align-items:center;
+    padding:8px 10px;
+    border-bottom:1px solid var(--line);
+    font-size:13px;
+  }
+  .upload-item .up-name{
+    color:var(--ink);
+    overflow:hidden;
+    text-overflow:ellipsis;
+    white-space:nowrap;
+    max-width:60%;
+  }
+  .upload-item .up-status{color:var(--ink-dim); font-family:var(--mono);}
+  .upload-item .up-status.done{color:var(--green);}
+  .upload-item .up-status.error{color:var(--red);}
+  .new-collection-form{
+    display:none;
+    margin:10px 0 16px;
+    padding:14px;
+    border:1px solid var(--line);
+    border-radius:7px;
+    background:var(--surface);
+  }
+
+  /* ---------- orders / revenue ---------- */
+  .order-items-summary{
+    font-size:12px;
+    color:var(--ink-dim);
+    max-width:220px;
+  }
+  .status-select{
+    padding:5px 8px !important;
+  }
+  .status-select.pending{color:var(--amber);}
+  .pending-orders-box{border:1px solid rgba(240,179,60,.45); background:rgba(240,179,60,.05); border-radius:12px; padding:14px 14px 4px; margin:6px 0 22px;}
+  .orders-group-head{display:flex; align-items:center; gap:10px; margin:0 0 8px;}
+  .orders-group-title{margin:0; font-size:15px;}
+  .pending-orders-box .orders-group-title{color:var(--amber);}
+  .orders-count{display:inline-block; min-width:22px; padding:1px 8px; border-radius:999px; font-size:12px; font-weight:700; text-align:center; background:var(--amber); color:#111;}
+  .status-select.confirmed{color:#3b9be8;}
+  .status-select.shipped{color:var(--green);}
+  .status-select.cancelled{color:var(--red);}
+  .revenue-grid{
+    display:grid;
+    grid-template-columns:repeat(auto-fit, minmax(160px, 1fr));
+    gap:14px;
+  }
+  .revenue-card{
+    display:flex;
+    flex-direction:column;
+    gap:5px;
+    padding:18px 18px 16px;
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:8px;
+    position:relative;
+  }
+  .revenue-card::before, .revenue-card::after{
+    content:"";
+    position:absolute;
+    width:9px; height:9px;
+    border-top:1px solid rgba(32,195,223,.55);
+    border-left:1px solid rgba(32,195,223,.55);
+    top:7px; left:7px;
+  }
+  .revenue-card::after{
+    left:auto; right:7px; top:auto; bottom:7px;
+    border-top:none; border-left:none;
+    border-bottom:1px solid rgba(32,195,223,.55);
+    border-right:1px solid rgba(32,195,223,.55);
+  }
+  .revenue-label{
+    font-size:10.5px;
+    color:var(--ink-dim);
+    text-transform:uppercase;
+    letter-spacing:.05em;
+  }
+  .revenue-amount{
+    font:600 25px var(--mono);
+    color:var(--ink);
+    letter-spacing:-.01em;
+  }
+  .revenue-count{
+    font-size:12px;
+    color:var(--ink-faint);
+  }
+  .admin-table tr.archived{
+    opacity:.5;
+  }
+  .cover-thumb-wrap{
+    position:relative;
+    width:40px;
+    height:40px;
+  }
+  .cover-thumb-wrap img{
+    width:40px;
+    height:40px;
+    object-fit:cover;
+    border-radius:5px;
+    display:block;
+    background:#0b1113;
+    border:1px solid var(--line);
+  }
+  .cover-upload-label{
+    display:inline-block;
+    cursor:pointer;
+  }
+  .cover-upload-label input{
+    display:none;
+  }
+  .order-input{
+    width:56px !important;
+    font-family:var(--mono);
+  }
+  .paid-cell{
+    display:flex;
+    flex-direction:column;
+    gap:4px;
+    min-width:84px;
+  }
+  .paid-mode-select{
+    background:#0b1113;
+    border:1px solid var(--line);
+    color:var(--ink);
+    padding:5px 6px;
+    font:500 11px var(--sans);
+    border-radius:5px;
+    width:100%;
+  }
+  .paid-cell .order-input{
+    width:100% !important;
+  }
+  .paid-cell .order-input:disabled{
+    opacity:.55;
+  }
+
+  /* ---------- editing sub-tabs ---------- */
+  .admin-subtabs{
+    display:flex;
+    gap:4px;
+    flex-wrap:wrap;
+    margin-bottom:24px;
+    border-bottom:1px solid var(--line);
+  }
+  .admin-subtab-btn{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-bottom:none;
+    color:var(--ink-dim);
+    padding:9px 14px;
+    font:600 12px var(--disp);
+    cursor:pointer;
+    border-radius:7px 7px 0 0;
+    margin-bottom:-1px;
+    transition:color .12s;
+  }
+  .admin-subtab-btn:hover{ color:var(--ink); }
+  .admin-subtab-btn.active{
+    color:var(--ink);
+    background:#0b1113;
+    border-color:var(--blue);
+    border-bottom:1px solid #0b1113;
+  }
+  .admin-subtab-panel{
+    animation:none;
+  }
+  .admin-select-col{
+    width:30px;
+  }
+  .admin-table input[type="checkbox"].row-select{
+    width:16px;
+    height:16px;
+    cursor:pointer;
+  }
+  .cover-thumb-wrap.expandable{
+    cursor:zoom-in;
+  }
+  .cover-thumb-wrap.expandable::after{
+    content:"⤢";
+    position:absolute;
+    bottom:-2px;
+    right:-2px;
+    background:#0b1113;
+    border:1px solid var(--line);
+    color:var(--ink-dim);
+    font-size:9px;
+    line-height:1;
+    padding:2px 3px;
+    border-radius:3px;
+    pointer-events:none;
+  }
+
+  /* ---------- lightbox ---------- */
+  .lightbox-backdrop{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(4,8,10,.82);
+    z-index:1100;
+    align-items:center;
+    justify-content:center;
+    padding:40px;
+  }
+  .lightbox-backdrop.open{
+    display:flex;
+  }
+  .lightbox-backdrop img{
+    max-width:min(600px, 90vw);
+    max-height:85vh;
+    object-fit:contain;
+    border-radius:8px;
+    border:1px solid var(--line);
+    background:var(--surface);
+  }
+  .lightbox-close{
+    position:absolute;
+    top:20px;
+    right:24px;
+    background:none;
+    border:1px solid var(--line);
+    color:var(--ink);
+    width:34px;
+    height:34px;
+    border-radius:50%;
+    cursor:pointer;
+    font-size:16px;
+  }
+
+  /* ---------- invoice modal ---------- */
+  .invoice-modal-backdrop{
+    display:none;
+    position:fixed;
+    inset:0;
+    background:rgba(4,8,10,.72);
+    z-index:1000;
+    align-items:center;
+    justify-content:center;
+    padding:24px;
+  }
+  .invoice-modal-backdrop.open{
+    display:flex;
+  }
+  .invoice-modal{
+    background:var(--surface);
+    border:1px solid var(--line);
+    border-radius:10px;
+    width:100%;
+    max-width:720px;
+    height:90vh;
+    display:flex;
+    flex-direction:column;
+    overflow:hidden;
+  }
+  .invoice-modal-top{
+    display:flex;
+    align-items:center;
+    justify-content:space-between;
+    padding:12px 16px;
+    border-bottom:1px solid var(--line);
+    color:var(--ink);
+    font:600 14px var(--disp);
+  }
+  .invoice-modal iframe{
+    flex:1;
+    border:none;
+    background:white;
+  }
+
+  /* ---------- responsive: sidebar collapses to a top strip ---------- */
+  @media (max-width: 860px){
+    .admin-shell-app{ flex-direction:column; }
+    .admin-sidebar{
+      width:100%;
+      height:auto;
+      position:static;
+      flex-direction:row;
+      align-items:center;
+      flex-wrap:wrap;
+    }
+    .admin-brand{ border-bottom:none; border-right:1px solid var(--line); padding:14px 16px; }
+    .admin-brand-text span{ display:none; }
+    .admin-nav{
+      flex-direction:row;
+      overflow-x:auto;
+      padding:8px 10px;
+      gap:4px;
+    }
+    .admin-tab-btn{ white-space:nowrap; }
+    .admin-sidebar-foot{
+      flex-direction:row;
+      border-top:none;
+      border-left:1px solid var(--line);
+      padding:10px 14px;
+    }
+    .admin-body{ padding:24px 18px 48px; }
+  }
+</style>
+</head>
+<body>
+
+<!-- LOGIN VIEW -->
+<div class="admin-shell" id="loginView">
+  <div class="admin-card">
+    <h1>KeyCam Admin</h1>
+    <p class="sub">Sign in to manage products and pricing.</p>
+    <form id="loginForm">
+      <div class="admin-field">
+        <label>Email</label>
+        <input type="email" id="loginEmail" autocomplete="username" required>
+      </div>
+      <div class="admin-field">
+        <label>Password</label>
+        <input type="password" id="loginPassword" autocomplete="current-password" required>
+      </div>
+      <button type="submit" class="admin-submit" id="loginSubmit">Sign in</button>
+      <p class="admin-error" id="loginError">Incorrect email or password.</p>
+    </form>
+  </div>
+</div>
+
+<!-- ADMIN VIEW (shown only once signed in) -->
+<div id="adminView" style="display:none;">
+ <div class="admin-shell-app">
+
+  <aside class="admin-sidebar">
+    <div class="admin-brand">
+      <span class="admin-brand-mark">KC</span>
+      <div class="admin-brand-text">
+        <strong>KeyCam</strong>
+        <span>Deskmat store</span>
+      </div>
+    </div>
+
+    <nav class="admin-nav">
+      <button class="admin-tab-btn active" data-tab="overview"><span class="admin-nav-tick"></span>Overview</button>
+      <button class="admin-tab-btn" data-tab="editing"><span class="admin-nav-tick"></span>Editing</button>
+      <button class="admin-tab-btn" data-tab="addproducts"><span class="admin-nav-tick"></span>Add Products</button>
+      <button class="admin-tab-btn" data-tab="importstock"><span class="admin-nav-tick"></span>Import Stock Mousepad</button>
+    </nav>
+
+    <div class="admin-sidebar-foot">
+      <a href="../admin-catalog.html">Catalog Admin ↗</a>
+      <button class="admin-signout" id="signOutBtn">Sign out</button>
+    </div>
+  </aside>
+
+  <main class="admin-main">
+  <div class="admin-body">
+
+    <!-- TAB: OVERVIEW -->
+    <div class="admin-tab-panel" id="tab-overview">
+
+      <!-- REVENUE -->
+      <div class="admin-section">
+        <h2>Revenue</h2>
+        <p style="font-size:12px; color:#8a9a9f; margin:-6px 0 14px;">Counts orders marked Confirmed or Shipped only — Pending and Cancelled don't count toward revenue.</p>
+        <div class="revenue-grid">
+          <div class="revenue-card">
+            <span class="revenue-label">Today</span>
+            <span class="revenue-amount" id="rev-today">$0.00</span>
+            <span class="revenue-count" id="rev-today-count">0 orders</span>
+          </div>
+          <div class="revenue-card">
+            <span class="revenue-label">This Week</span>
+            <span class="revenue-amount" id="rev-week">$0.00</span>
+            <span class="revenue-count" id="rev-week-count">0 orders</span>
+          </div>
+          <div class="revenue-card">
+            <span class="revenue-label">This Month</span>
+            <span class="revenue-amount" id="rev-month">$0.00</span>
+            <span class="revenue-count" id="rev-month-count">0 orders</span>
+          </div>
+          <div class="revenue-card">
+            <span class="revenue-label">All-time</span>
+            <span class="revenue-amount" id="rev-all">$0.00</span>
+            <span class="revenue-count" id="rev-all-count">0 orders</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- ORDERS -->
+      <div class="admin-section">
+        <div style="display:flex; align-items:center; justify-content:space-between; gap:12px; flex-wrap:wrap; margin-bottom:6px;">
+          <h2 style="margin:0;">Orders</h2>
+          <button class="admin-btn" id="createOrderBtn" type="button">+ Create order</button>
+        </div>
+        <div class="admin-search">
+          <input type="text" id="orderSearch" placeholder="Search by name or phone…">
+          <select id="orderStatusFilter">
+            <option value="">All statuses</option>
+            <option value="pending">Pending</option>
+            <option value="confirmed">Confirmed</option>
+            <option value="shipped">Shipped</option>
+            <option value="cancelled">Cancelled</option>
+          </select>
+        </div>
+        <!-- Pending orders are gathered in their own container on top -->
+        <div class="pending-orders-box" id="pendingOrdersBox" style="display:none;">
+          <div class="orders-group-head">
+            <h3 class="orders-group-title">Pending orders</h3>
+            <span class="orders-count" id="pendingOrdersCount">0</span>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr><th>Date</th><th>Customer</th><th>Items</th><th>Delivery</th><th>Total</th><th>Paid</th><th>Status</th><th></th></tr>
+            </thead>
+            <tbody id="pendingOrdersBody"></tbody>
+          </table>
+        </div>
+        <div class="orders-group-head" id="otherOrdersTitle" style="display:none;">
+          <h3 class="orders-group-title">Other orders</h3>
+        </div>
+        <table class="admin-table">
+          <thead>
+            <tr><th>Date</th><th>Customer</th><th>Items</th><th>Delivery</th><th>Total</th><th>Paid</th><th>Status</th><th></th></tr>
+          </thead>
+          <tbody id="ordersBody"></tbody>
+        </table>
+        <div class="admin-pager">
+          <button class="admin-btn" id="ordersPrevPage">‹ Prev</button>
+          <span id="ordersPageLabel">Page 1</span>
+          <button class="admin-btn" id="ordersNextPage">Next ›</button>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB: EDITING -->
+    <div class="admin-tab-panel" id="tab-editing" style="display:none;">
+
+      <div class="admin-subtabs">
+        <button class="admin-subtab-btn active" data-subtab="settings">Store Settings</button>
+        <button class="admin-subtab-btn" data-subtab="pricing">Pricing</button>
+        <button class="admin-subtab-btn" data-subtab="collections">Collections</button>
+        <button class="admin-subtab-btn" data-subtab="series">Series</button>
+        <button class="admin-subtab-btn" data-subtab="products">Products</button>
+      </div>
+
+      <!-- STORE SETTINGS -->
+      <div class="admin-subtab-panel" id="editsub-settings">
+        <div class="admin-section">
+          <h2>Store Settings</h2>
+          <p style="font-size:12px; color:#8a9a9f; margin:-6px 0 14px;">Controls the maintenance-mode banner and discount shown on the storefront — no code edits needed.</p>
+          <label style="display:flex;align-items:center;gap:8px;font-size:13px;color:white;margin-bottom:14px;cursor:pointer;">
+            <input type="checkbox" id="settingsMaintenanceMode">
+            Maintenance mode ON (shows the banner and applies the discount to Mouse Pad &amp; FPS)
+          </label>
+          <div class="admin-field" style="max-width:220px;">
+            <label>Maintenance discount (%)</label>
+            <input type="number" id="settingsMaintenanceDiscount" min="0" max="100" step="1">
+          </div>
+          <div class="admin-btn-row">
+            <button class="admin-btn" type="button" id="saveSettingsBtn">Save Settings</button>
+            <span class="admin-status" id="settingsStatus"></span>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRICING -->
+      <div class="admin-subtab-panel" id="editsub-pricing" style="display:none;">
+        <div class="admin-section">
+          <h2>Pricing</h2>
+          <table class="admin-table" id="pricingTable">
+            <thead>
+              <tr><th>Type</th><th>Thickness</th><th>Size</th><th>Price ($)</th><th></th></tr>
+            </thead>
+            <tbody id="pricingBody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- COLLECTIONS -->
+      <div class="admin-subtab-panel" id="editsub-collections" style="display:none;">
+        <div class="admin-section">
+          <h2>Collections</h2>
+          <table class="admin-table">
+            <thead>
+              <tr><th></th><th>Order</th><th>Name</th><th>Hide from home</th><th>Products</th><th></th></tr>
+            </thead>
+            <tbody id="collectionsBody"></tbody>
+          </table>
+          <label style="display:flex;align-items:center;gap:6px;margin-top:12px;font-size:12px;color:#8a9a9f;cursor:pointer;">
+            <input type="checkbox" id="showArchivedCollections">
+            Show archived collections
+          </label>
+        </div>
+      </div>
+
+      <!-- SERIES -->
+      <div class="admin-subtab-panel" id="editsub-series" style="display:none;">
+        <div class="admin-section">
+          <h2>Series</h2>
+          <p style="font-size:12px; color:#8a9a9f; margin:-6px 0 14px;">Series live on products. Rename updates every product that uses the slug. Link &amp; import copies products of a series into another collection and keeps them synced — a new image added to a linked series is copied automatically, no need to import again.</p>
+          <div class="admin-search">
+            <select id="seriesCollectionFilter" style="min-width:180px;">
+              <option value="">All collections</option>
+            </select>
+            <input type="text" id="seriesSearch" placeholder="Search series name…">
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr><th>Series</th><th>Collection</th><th>Products</th><th>Also shown in</th><th></th></tr>
+            </thead>
+            <tbody id="seriesBody"></tbody>
+          </table>
+          <div style="margin-top:16px; padding:14px; border:1px solid var(--line); border-radius:6px;">
+            <h3 style="font:600 13px 'Space Grotesk'; color:white; margin:0 0 10px;">Link series into another collection</h3>
+            <p style="font-size:12px; color:#8a9a9f; margin:-4px 0 10px;">Pulls this series into the target collection — no copying, no duplicate rows. Existing and future images in this series both show up there automatically, live.</p>
+            <div style="display:flex; flex-wrap:wrap; gap:10px; align-items:flex-end;">
+              <div class="admin-field" style="margin:0; min-width:160px;">
+                <label>Source collection</label>
+                <select id="importSrcCollection"></select>
+              </div>
+              <div class="admin-field" style="margin:0; min-width:160px;">
+                <label>Series to link</label>
+                <select id="importSeries"></select>
+              </div>
+              <div class="admin-field" style="margin:0; min-width:160px;">
+                <label>Target collection</label>
+                <select id="importTargetCollection"></select>
+              </div>
+              <button class="admin-btn" type="button" id="importSeriesBtn">Link series</button>
+              <span class="admin-status" id="importSeriesStatus"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- PRODUCTS -->
+      <div class="admin-subtab-panel" id="editsub-products" style="display:none;">
+        <div class="admin-section">
+          <h2>Products</h2>
+
+          <div style="margin-bottom:16px; padding:14px; border:1px solid var(--line); border-radius:6px;">
+            <h3 style="font:600 13px 'Space Grotesk'; color:white; margin:0 0 6px;">Fix junk names</h3>
+            <p style="font-size:12px; color:#8a9a9f; margin:0 0 10px;">Finds products whose name is just a random hash or number (from a source filename like <code>a6a63da79…c1a.jpg</code>) instead of a real title, and renames them to their series or collection name + a number.</p>
+            <div class="admin-btn-row">
+              <button class="admin-btn" type="button" id="scanJunkNamesBtn">Scan for junk names</button>
+              <span class="admin-status" id="junkNamesStatus"></span>
+            </div>
+            <div id="junkNamesResults" style="display:none; margin-top:12px;">
+              <div class="admin-btn-row" style="margin-bottom:8px;">
+                <label style="display:flex; align-items:center; gap:6px; font-size:12px; color:#8a9a9f;">
+                  <input type="checkbox" id="junkNamesSelectAll" checked> Select all
+                </label>
+                <button class="admin-btn" type="button" id="renameJunkBtn">Rename Selected</button>
+                <span class="admin-status" id="renameJunkStatus"></span>
+              </div>
+              <table class="admin-table">
+                <thead>
+                  <tr><th class="admin-select-col"></th><th>Current name</th><th>Collection</th><th>Series</th><th>New name</th></tr>
+                </thead>
+                <tbody id="junkNamesBody"></tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="admin-search">
+            <input type="text" id="productSearch" placeholder="Search by name…">
+            <select id="productFilterCollection">
+              <option value="">All collections</option>
+            </select>
+            <input type="text" id="productFilterSeries" placeholder="Filter by series…">
+            <select id="productFilterStock">
+              <option value="">All stock</option>
+              <option value="in">In stock (ready to ship)</option>
+              <option value="out">Made-to-order</option>
+            </select>
+            <select id="productSortOrder">
+              <option value="newest">Newest first</option>
+              <option value="oldest">Oldest first</option>
+            </select>
+            <button class="admin-btn" type="button" id="saveAllProductsBtn">Save All</button>
+            <span class="admin-status" id="saveAllProductsStatus"></span>
+          </div>
+          <div class="admin-btn-row" style="margin-bottom:10px;">
+            <button class="admin-btn danger" type="button" id="bulkDeleteBtn" disabled>Delete Selected (<span id="bulkDeleteCount">0</span>)</button>
+          </div>
+          <table class="admin-table">
+            <thead>
+              <tr><th class="admin-select-col"><input type="checkbox" id="selectAllProducts"></th><th></th><th>Name</th><th>Collection</th><th>Series</th><th>Stock</th><th></th></tr>
+            </thead>
+            <tbody id="productsBody"></tbody>
+          </table>
+          <div class="admin-pager">
+            <button class="admin-btn" id="prevPage">‹ Prev</button>
+            <span id="pageLabel">Page 1</span>
+            <button class="admin-btn" id="nextPage">Next ›</button>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
+    <!-- TAB: ADD PRODUCTS -->
+    <div class="admin-tab-panel" id="tab-addproducts" style="display:none;">
+
+      <!-- ADD PRODUCTS -->
+      <div class="admin-section">
+        <h2>Add Products</h2>
+
+        <div class="admin-field">
+          <label>Collection</label>
+          <div style="display:flex; gap:8px;">
+            <select id="uploadCollection" style="flex:1;"></select>
+            <button class="admin-btn" type="button" id="newCollectionToggle">+ New</button>
+          </div>
+        </div>
+
+        <div class="new-collection-form" id="newCollectionForm">
+          <div class="admin-field">
+            <label>Collection name</label>
+            <input type="text" id="newCollectionName" placeholder="e.g. Retro Anime">
+          </div>
+          <div class="admin-field">
+            <label>Cover image (optional — shown on the homepage tile)</label>
+            <input type="file" id="newCollectionCover" accept="image/*">
+          </div>
+          <div class="admin-btn-row">
+            <button class="admin-btn" type="button" id="createCollectionBtn">Create Collection</button>
+            <span class="admin-status" id="newCollectionStatus"></span>
+          </div>
+        </div>
+
+        <div class="admin-field">
+          <label>Series (optional)</label>
+          <input type="text" id="uploadSeries" list="seriesList" placeholder="e.g. Naruto — leave blank if none">
+          <datalist id="seriesList"></datalist>
+        </div>
+
+        <div class="admin-field">
+          <label class="stock-check-label" style="font-size:14px; color:var(--admin-text,#dfe7e9);">
+            <input type="checkbox" id="uploadInStock">
+            Stock product (Ready to Ship — already made and in hand, not made-to-order)
+          </label>
+        </div>
+
+        <div class="admin-dropzone" id="dropZone">
+          <p>Drag &amp; drop images here, or click to browse</p>
+          <input type="file" id="fileInput" accept="image/*" multiple style="display:none;">
+        </div>
+
+        <div class="upload-queue" id="uploadQueue"></div>
+      </div>
+
+    </div>
+
+    <!-- TAB: IMPORT STOCK MOUSEPAD -->
+    <div class="admin-tab-panel" id="tab-importstock" style="display:none;">
+
+      <div class="admin-section">
+        <h2>Import Stock Mousepad</h2>
+        <p style="font-size:12px; color:#8a9a9f; margin:-6px 0 14px;">
+          For already-made desk mats that are ready to ship right now. Each one gets a single fixed type, size,
+          thickness and price — not the selectable range from the Design-Your-Own flow. Collection and series
+          still apply here exactly like any other product.
+        </p>
+
+        <div class="admin-field">
+          <label>Collection</label>
+          <select id="stockUploadCollection" style="width:100%;"></select>
+        </div>
+
+        <div class="admin-field">
+          <label>Series (optional)</label>
+          <input type="text" id="stockUploadSeries" list="seriesList" placeholder="e.g. Naruto — leave blank if none">
+        </div>
+
+        <div style="display:flex; gap:12px; flex-wrap:wrap;">
+          <div class="admin-field" style="flex:1; min-width:150px;">
+            <label>Type</label>
+            <select id="stockType" style="width:100%;">
+              <option value="mousepad">Mouse Pad</option>
+              <option value="fps">FPS Mouse Pad</option>
+              <option value="glass">Glass Mouse Pad</option>
+            </select>
+          </div>
+          <div class="admin-field" style="flex:1; min-width:150px;">
+            <label>Size</label>
+            <input type="text" id="stockSize" placeholder="e.g. 900 × 400 mm">
+          </div>
+          <div class="admin-field" style="flex:1; min-width:120px;">
+            <label>Thickness</label>
+            <input type="text" id="stockThickness" placeholder="e.g. 3MM">
+          </div>
+          <div class="admin-field" style="flex:1; min-width:110px;">
+            <label>Price ($)</label>
+            <input type="number" step="0.01" min="0" id="stockPrice" placeholder="e.g. 12.00">
+          </div>
+        </div>
+
+        <div class="admin-dropzone" id="stockDropZone" style="margin-top:14px;">
+          <p>Drag &amp; drop the product photo(s) here, or click to browse</p>
+          <input type="file" id="stockFileInput" accept="image/*" multiple style="display:none;">
+        </div>
+        <p style="font-size:12px; color:#8a9a9f; margin:8px 0 0;">
+          Every photo dropped here is imported as its own stock listing using the spec and price set above.
+          If different photos need different specs or prices, import them in separate batches.
+        </p>
+
+        <div class="upload-queue" id="stockUploadQueue"></div>
+      </div>
+
+    </div>
+
+  </div>
+  </main>
+ </div>
+</div>
+
+<!-- THUMBNAIL LIGHTBOX -->
+<div class="lightbox-backdrop" id="lightboxBackdrop">
+  <button class="lightbox-close" id="lightboxCloseBtn">✕</button>
+  <img id="lightboxImg" src="" alt="">
+</div>
+
+<!-- INVOICE PREVIEW MODAL -->
+<div class="invoice-modal-backdrop" id="invoiceModalBackdrop">
+  <div class="invoice-modal">
+    <div class="invoice-modal-top">
+      <span>Invoice Preview</span>
+      <div class="admin-btn-row">
+        <button class="admin-btn" id="invoiceDownloadBtn">Download PDF</button>
+        <button class="admin-btn danger" id="invoiceCloseBtn">Close</button>
+      </div>
+    </div>
+    <iframe id="invoicePreviewFrame"></iframe>
+  </div>
+</div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+<script src="../supabase-client.js"></script>
+<script src="../shared/admin-create-order.js"></script>
+<script>
+let ADMIN_COLLECTIONS = [];
+
+async function loadCollectionsList(){
+  const { data, error } = await window.KEYCAM_SUPABASE.from('collections').select('*').order('sort_order').order('name');
+  if(error){ console.error("Failed to load collections:", error); return; }
+  ADMIN_COLLECTIONS = data.map(c => [c.id, c.name]);
+
+  const uploadSel = document.querySelector('#uploadCollection');
+  if(uploadSel){
+    const prevValue = uploadSel.value;
+    uploadSel.innerHTML = ADMIN_COLLECTIONS.map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+    if(ADMIN_COLLECTIONS.some(([id]) => id === prevValue)) uploadSel.value = prevValue;
+  }
+
+  const stockUploadSel = document.querySelector('#stockUploadCollection');
+  if(stockUploadSel){
+    const prevValue = stockUploadSel.value;
+    stockUploadSel.innerHTML = ADMIN_COLLECTIONS.map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+    if(ADMIN_COLLECTIONS.some(([id]) => id === prevValue)) stockUploadSel.value = prevValue;
+  }
+
+  const filterSel = document.querySelector('#productFilterCollection');
+  if(filterSel){
+    const prevFilter = filterSel.value;
+    filterSel.innerHTML = `<option value="">All collections</option>` +
+      ADMIN_COLLECTIONS.map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+    if(ADMIN_COLLECTIONS.some(([id]) => id === prevFilter)) filterSel.value = prevFilter;
+  }
+
+  if(typeof populateImportSeriesSelects === 'function') populateImportSeriesSelects();
+}
+
+document.querySelectorAll('.admin-tab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.admin-tab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.admin-tab-panel').forEach(p => p.style.display = 'none');
+    btn.classList.add('active');
+    document.querySelector(`#tab-${btn.dataset.tab}`).style.display = 'block';
+  });
+});
+
+document.querySelectorAll('.admin-subtab-btn').forEach(btn => {
+  btn.addEventListener('click', () => {
+    document.querySelectorAll('.admin-subtab-btn').forEach(b => b.classList.remove('active'));
+    document.querySelectorAll('.admin-subtab-panel').forEach(p => p.style.display = 'none');
+    btn.classList.add('active');
+    document.querySelector(`#editsub-${btn.dataset.subtab}`).style.display = 'block';
+  });
+});
+
+const loginView = document.querySelector('#loginView');
+const adminView = document.querySelector('#adminView');
+const loginForm = document.querySelector('#loginForm');
+const loginError = document.querySelector('#loginError');
+const loginSubmit = document.querySelector('#loginSubmit');
+
+async function showAdmin(){
+  loginView.style.display = 'none';
+  adminView.style.display = 'block';
+  await loadCollectionsList();
+  loadPricing();
+  loadProducts();
+  loadCollectionsManager();
+  loadSeriesManager();
+  loadOrders();
+  loadRevenueDashboard();
+  loadStoreSettingsIntoForm();
+  updateSeriesList();
+  populateImportSeriesSelects();
+  startIdleTimer();
+}
+function showLogin(){
+  adminView.style.display = 'none';
+  loginView.style.display = 'flex';
+  stopIdleTimer();
+}
+
+async function checkSession(){
+  const { data } = await window.KEYCAM_SUPABASE.auth.getSession();
+  if(data.session){
+    showAdmin();
+  }else{
+    showLogin();
+  }
+}
+
+loginForm.addEventListener('submit', async (e) => {
+  e.preventDefault();
+  loginError.style.display = 'none';
+  loginSubmit.disabled = true;
+  loginSubmit.textContent = 'Signing in…';
+
+  const email = document.querySelector('#loginEmail').value.trim();
+  const password = document.querySelector('#loginPassword').value;
+
+  const { error } = await window.KEYCAM_SUPABASE.auth.signInWithPassword({ email, password });
+
+  loginSubmit.disabled = false;
+  loginSubmit.textContent = 'Sign in';
+
+  if(error){
+    loginError.textContent = 'Incorrect email or password.';
+    loginError.style.display = 'block';
+    return;
+  }
+  showAdmin();
+});
+
+document.querySelector('#signOutBtn').addEventListener('click', async () => {
+  await window.KEYCAM_SUPABASE.auth.signOut();
+  showLogin();
+});
+
+/* =========================
+   SECURITY: 10-minute idle timeout + sign out on leaving the page
+========================= */
+const IDLE_LIMIT_MS = 10 * 60 * 1000; // 10 minutes
+let idleTimer = null;
+
+function startIdleTimer(){
+  clearTimeout(idleTimer);
+  idleTimer = setTimeout(async () => {
+    await window.KEYCAM_SUPABASE.auth.signOut();
+    loginError.textContent = 'Signed out after 10 minutes of inactivity.';
+    loginError.style.display = 'block';
+    showLogin();
+  }, IDLE_LIMIT_MS);
+}
+
+function stopIdleTimer(){
+  clearTimeout(idleTimer);
+}
+
+['mousemove', 'mousedown', 'keydown', 'scroll', 'touchstart'].forEach(evt =>
+  document.addEventListener(evt, () => {
+    if(adminView.style.display === 'block') startIdleTimer();
+  }, { passive: true })
+);
+
+// Leaving the page (back button, closing the tab, navigating away) clears
+// the session immediately, so returning later always requires signing in
+// again — not just relying on sessionStorage clearing when the tab closes.
+window.addEventListener('pagehide', () => {
+  sessionStorage.clear();
+});
+
+// If the browser restores this page from its back-forward cache (a frozen
+// snapshot shown when you hit Back/Forward instead of a real reload), the
+// page above never re-runs — so re-check the (now-cleared) session and
+// force back to the login screen if it's gone.
+window.addEventListener('pageshow', (event) => {
+  if(event.persisted){
+    checkSession();
+  }
+});
+
+/* =========================
+   PRICING EDITOR
+========================= */
+/* =========================
+   STORE SETTINGS
+========================= */
+async function loadStoreSettingsIntoForm(){
+  const { data, error } = await window.KEYCAM_SUPABASE
+    .from('store_settings')
+    .select('*')
+    .eq('id', 1)
+    .maybeSingle();
+
+  const modeEl = document.querySelector('#settingsMaintenanceMode');
+  const discEl = document.querySelector('#settingsMaintenanceDiscount');
+  const statusEl = document.querySelector('#settingsStatus');
+
+  if(error){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed to load: ' + error.message;
+    return;
+  }
+  modeEl.checked = data ? !!data.maintenance_mode : true;
+  discEl.value = data && data.maintenance_discount != null ? Math.round(Number(data.maintenance_discount) * 100) : 20;
+}
+
+document.querySelector('#saveSettingsBtn').addEventListener('click', async () => {
+  const btn = document.querySelector('#saveSettingsBtn');
+  const statusEl = document.querySelector('#settingsStatus');
+  const maintenance_mode = document.querySelector('#settingsMaintenanceMode').checked;
+  const pct = Number(document.querySelector('#settingsMaintenanceDiscount').value) || 0;
+  const maintenance_discount = Math.max(0, Math.min(100, pct)) / 100;
+
+  btn.disabled = true;
+  statusEl.style.color = '#8a9a9f';
+  statusEl.textContent = 'Saving…';
+
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('store_settings')
+    .update({ maintenance_mode, maintenance_discount })
+    .eq('id', 1);
+
+  btn.disabled = false;
+  if(error){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed: ' + error.message;
+  }else{
+    statusEl.style.color = '#3bd1a0';
+    statusEl.textContent = 'Saved ✓ — live on the storefront now';
+    setTimeout(() => statusEl.textContent = '', 3000);
+  }
+});
+
+async function loadPricing(){
+  const { data, error } = await window.KEYCAM_SUPABASE
+    .from('pricing')
+    .select('*')
+    .order('type')
+    .order('thickness')
+    .order('price');
+
+  const body = document.querySelector('#pricingBody');
+  if(error){
+    body.innerHTML = `<tr><td colspan="5">Failed to load pricing: ${error.message}</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = data.map((row, i) => `
+    <tr data-type="${row.type}" data-thickness="${row.thickness}" data-size="${row.size_label}">
+      <td>${row.type}</td>
+      <td>${row.thickness}</td>
+      <td>${row.size_label}</td>
+      <td><input type="number" step="0.01" value="${row.price}" id="price-${i}"></td>
+      <td>
+        <div class="admin-btn-row">
+          <button class="admin-btn" onclick="savePricingRow(${i}, this)">Save</button>
+          <span class="admin-status" id="status-${i}"></span>
+        </div>
+      </td>
+    </tr>
+  `).join('');
+
+  window._pricingRows = data;
+}
+
+async function savePricingRow(i, btn){
+  const row = window._pricingRows[i];
+  const newPrice = parseFloat(document.querySelector(`#price-${i}`).value);
+  const statusEl = document.querySelector(`#status-${i}`);
+  btn.disabled = true;
+
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('pricing')
+    .update({ price: newPrice })
+    .eq('type', row.type)
+    .eq('thickness', row.thickness)
+    .eq('size_label', row.size_label);
+
+  btn.disabled = false;
+  if(error){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed: ' + error.message;
+  }else{
+    statusEl.style.color = '#3bd1a0';
+    statusEl.textContent = 'Saved ✓';
+    setTimeout(() => statusEl.textContent = '', 2000);
+  }
+}
+
+/* =========================
+   PRODUCTS EDITOR
+========================= */
+const PAGE_SIZE = 25;
+let currentPage = 0;
+let currentSearch = '';
+let currentCollectionFilter = '';
+let currentSeriesFilter = '';
+let currentStockFilter = '';
+let currentSortOrder = 'newest';
+
+function collectionOptions(selected){
+  return ADMIN_COLLECTIONS.map(([id, name]) =>
+    `<option value="${id}" ${id === selected ? 'selected' : ''}>${name}</option>`
+  ).join('');
+}
+
+let selectedProductIds = new Set();
+
+async function loadProducts(){
+  const body = document.querySelector('#productsBody');
+  body.innerHTML = `<tr><td colspan="8">Loading…</td></tr>`;
+
+  let query = window.KEYCAM_SUPABASE
+    .from('products')
+    .select('*')
+    .order('created_at', { ascending: currentSortOrder === 'oldest' })
+    .range(currentPage * PAGE_SIZE, currentPage * PAGE_SIZE + PAGE_SIZE - 1);
+
+  if(currentSearch){
+    query = query.ilike('name', `%${currentSearch}%`);
+  }
+  if(currentCollectionFilter){
+    query = query.eq('collection', currentCollectionFilter);
+  }
+  if(currentSeriesFilter){
+    query = query.or(`series.ilike.%${currentSeriesFilter}%,series_name.ilike.%${currentSeriesFilter}%`);
+  }
+  if(currentStockFilter === 'in'){
+    query = query.eq('in_stock_ready', true);
+  }else if(currentStockFilter === 'out'){
+    query = query.or('in_stock_ready.is.null,in_stock_ready.eq.false');
+  }
+
+  const { data, error } = await query;
+
+  // Selections don't carry across a reload of a different page/filter set —
+  // clear them and reset the bulk-delete controls.
+  selectedProductIds.clear();
+  updateBulkDeleteUI();
+  const selectAllBox = document.querySelector('#selectAllProducts');
+  if(selectAllBox) selectAllBox.checked = false;
+
+  if(error){
+    body.innerHTML = `<tr><td colspan="8">Failed to load: ${error.message}</td></tr>`;
+    return;
+  }
+  if(!data.length){
+    body.innerHTML = `<tr><td colspan="8">No products found.</td></tr>`;
+  }else{
+    body.innerHTML = data.map(p => {
+      const seriesVal = p.series_name || p.series || '';
+      const inStock = !!p.in_stock_ready;
+      const thumbSrc = p.thumbnail || p.image;
+      return `
+      <tr data-id="${p.id}">
+        <td><input type="checkbox" class="row-select" data-id="${p.id}"></td>
+        <td>
+          <div class="cover-thumb-wrap expandable" onclick="openLightbox('${(p.image || p.thumbnail || '').replace(/'/g, "\\'")}')">
+            <img src="${thumbSrc}" alt="">
+          </div>
+        </td>
+        <td><input type="text" value="${p.name.replace(/"/g,'&quot;')}" id="name-${p.id}"></td>
+        <td>
+          <select id="collection-${p.id}">${collectionOptions(p.collection)}</select>
+        </td>
+        <td>
+          <input type="text" value="${escapeAttr(seriesVal)}" id="series-${p.id}" placeholder="— none —" list="seriesList">
+        </td>
+        <td>
+          <label class="stock-check-label" title="Correct this if it was set wrong when added">
+            <input type="checkbox" id="stock-${p.id}" ${inStock ? 'checked' : ''}>
+            Stock
+          </label>
+        </td>
+        <td>
+          <div class="admin-btn-row">
+            <button class="admin-btn" onclick="saveProduct('${p.id}', this)">Save</button>
+            <button class="admin-btn danger" onclick="deleteProduct('${p.id}', this)">Delete</button>
+          </div>
+        </td>
+      </tr>
+    `;
+    }).join('');
+
+    document.querySelectorAll('#productsBody .row-select').forEach(cb => {
+      cb.addEventListener('change', () => {
+        if(cb.checked) selectedProductIds.add(cb.dataset.id);
+        else selectedProductIds.delete(cb.dataset.id);
+        updateBulkDeleteUI();
+      });
+    });
+  }
+
+  document.querySelector('#pageLabel').textContent = `Page ${currentPage + 1}`;
+}
+
+function updateBulkDeleteUI(){
+  const btn = document.querySelector('#bulkDeleteBtn');
+  const countEl = document.querySelector('#bulkDeleteCount');
+  if(countEl) countEl.textContent = selectedProductIds.size;
+  if(btn) btn.disabled = selectedProductIds.size === 0;
+}
+
+document.querySelector('#selectAllProducts').addEventListener('change', (e) => {
+  const checked = e.target.checked;
+  document.querySelectorAll('#productsBody .row-select').forEach(cb => {
+    cb.checked = checked;
+    if(checked) selectedProductIds.add(cb.dataset.id);
+    else selectedProductIds.delete(cb.dataset.id);
+  });
+  updateBulkDeleteUI();
+});
+
+document.querySelector('#bulkDeleteBtn').addEventListener('click', async () => {
+  const ids = [...selectedProductIds];
+  if(!ids.length) return;
+  if(!confirm(`Delete ${ids.length} selected product${ids.length === 1 ? '' : 's'} permanently? This cannot be undone.`)) return;
+
+  const btn = document.querySelector('#bulkDeleteBtn');
+  const originalHTML = btn.innerHTML;
+  btn.disabled = true;
+  btn.textContent = 'Deleting…';
+
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('products')
+    .delete()
+    .in('id', ids);
+
+  if(error){
+    alert('Bulk delete failed: ' + error.message);
+    btn.disabled = false;
+    btn.innerHTML = originalHTML;
+    return;
+  }
+
+  btn.innerHTML = originalHTML;
+  selectedProductIds.clear();
+  loadProducts();
+});
+
+// --- Fix junk names ---------------------------------------------------
+let junkNamesCache = []; // [{id, name, collection, collectionName, series, seriesName, newName}]
+
+document.querySelector('#scanJunkNamesBtn')?.addEventListener('click', async () => {
+  const btn = document.querySelector('#scanJunkNamesBtn');
+  const statusEl = document.querySelector('#junkNamesStatus');
+  const resultsEl = document.querySelector('#junkNamesResults');
+  const body = document.querySelector('#junkNamesBody');
+
+  btn.disabled = true;
+  statusEl.style.color = '#8a9a9f';
+  statusEl.textContent = 'Scanning…';
+  resultsEl.style.display = 'none';
+
+  try{
+    // Products table can exceed Supabase's 1000-row default cap on a
+    // single request — page through everything rather than risk missing
+    // rows past the cutoff (same fix as loadSeriesManager).
+    let rows = [];
+    let from = 0;
+    const PAGE = 1000;
+    while(true){
+      const { data, error } = await window.KEYCAM_SUPABASE
+        .from('products')
+        .select('id, name, collection, series, series_name')
+        .range(from, from + PAGE - 1);
+      if(error) throw new Error(error.message);
+      rows = rows.concat(data);
+      if(data.length < PAGE) break;
+      from += PAGE;
+    }
+
+    const junk = rows.filter(r => isJunkProductName(r.name));
+
+    if(!junk.length){
+      statusEl.style.color = '#3bd1a0';
+      statusEl.textContent = 'No junk names found ✓';
+      btn.disabled = false;
+      return;
+    }
+
+    const colName = id => (ADMIN_COLLECTIONS.find(([cid]) => cid === id)?.[1]) || id;
+
+    // Number sequentially within each (collection + label) group so a
+    // batch of renamed products gets readable, distinct names.
+    const counters = new Map();
+    junkNamesCache = junk.map(r => {
+      const label = r.series_name || r.series || colName(r.collection) || 'Untitled Design';
+      const key = `${r.collection}||${label}`;
+      const n = (counters.get(key) || 0) + 1;
+      counters.set(key, n);
+      return {
+        id: r.id,
+        name: r.name,
+        collection: r.collection,
+        collectionName: colName(r.collection),
+        series: r.series,
+        seriesName: r.series_name || r.series || '—',
+        newName: `${label} ${n}`
+      };
+    });
+
+    body.innerHTML = junkNamesCache.map((r, i) => `
+      <tr data-idx="${i}">
+        <td><input type="checkbox" class="junk-select" data-idx="${i}" checked></td>
+        <td>${escapeAttr(r.name)}</td>
+        <td>${escapeAttr(r.collectionName)}</td>
+        <td>${escapeAttr(r.seriesName)}</td>
+        <td>${escapeAttr(r.newName)}</td>
+      </tr>
+    `).join('');
+
+    resultsEl.style.display = 'block';
+    statusEl.style.color = '#e0a95a';
+    statusEl.textContent = `Found ${junk.length} product${junk.length === 1 ? '' : 's'} with junk names`;
+  }catch(err){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Scan failed: ' + err.message;
+  }
+  btn.disabled = false;
+});
+
+document.querySelector('#junkNamesSelectAll')?.addEventListener('change', (e) => {
+  document.querySelectorAll('#junkNamesBody .junk-select').forEach(cb => cb.checked = e.target.checked);
+});
+
+document.querySelector('#renameJunkBtn')?.addEventListener('click', async () => {
+  const btn = document.querySelector('#renameJunkBtn');
+  const statusEl = document.querySelector('#renameJunkStatus');
+  const checked = [...document.querySelectorAll('#junkNamesBody .junk-select:checked')].map(cb => Number(cb.dataset.idx));
+
+  if(!checked.length){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Nothing selected';
+    return;
+  }
+  if(!confirm(`Rename ${checked.length} product${checked.length === 1 ? '' : 's'} now? This cannot be undone.`)) return;
+
+  btn.disabled = true;
+  let done = 0;
+  let failed = 0;
+
+  // Update in small concurrent batches rather than one request at a time.
+  const CONCURRENCY = 8;
+  for(let i = 0; i < checked.length; i += CONCURRENCY){
+    const batch = checked.slice(i, i + CONCURRENCY);
+    statusEl.style.color = '#8a9a9f';
+    statusEl.textContent = `Renaming… ${done}/${checked.length}`;
+    await Promise.all(batch.map(async idx => {
+      const r = junkNamesCache[idx];
+      const { error } = await window.KEYCAM_SUPABASE
+        .from('products')
+        .update({ name: r.newName })
+        .eq('id', r.id);
+      if(error) failed++;
+      done++;
+    }));
+  }
+
+  statusEl.style.color = failed ? '#e05a5a' : '#3bd1a0';
+  statusEl.textContent = failed
+    ? `Renamed ${done - failed}/${done}, ${failed} failed`
+    : `Renamed ${done} product${done === 1 ? '' : 's'} ✓`;
+
+  btn.disabled = false;
+  document.querySelector('#junkNamesResults').style.display = 'none';
+  loadProducts();
+});
+
+function openLightbox(src){
+  if(!src) return;
+  document.querySelector('#lightboxImg').src = src;
+  document.querySelector('#lightboxBackdrop').classList.add('open');
+}
+function closeLightbox(){
+  document.querySelector('#lightboxBackdrop').classList.remove('open');
+  document.querySelector('#lightboxImg').src = '';
+}
+document.querySelector('#lightboxCloseBtn').addEventListener('click', closeLightbox);
+document.querySelector('#lightboxBackdrop').addEventListener('click', (e) => {
+  if(e.target.id === 'lightboxBackdrop') closeLightbox();
+});
+
+async function saveProduct(id, btn){
+  const name = document.querySelector(`#name-${id}`).value.trim();
+  const collection = document.querySelector(`#collection-${id}`).value;
+  const seriesInput = document.querySelector(`#series-${id}`).value.trim();
+  const seriesSlug = seriesInput ? slugify(seriesInput) : null;
+  const seriesName = seriesInput || null;
+  const in_stock_ready = document.querySelector(`#stock-${id}`).checked;
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('products')
+    .update({ name, collection, series: seriesSlug, series_name: seriesName, in_stock_ready })
+    .eq('id', id);
+
+  btn.disabled = false;
+  btn.textContent = error ? 'Failed' : 'Saved ✓';
+  setTimeout(() => btn.textContent = 'Save', 1500);
+  if(!error){
+    loadSeriesManager();
+    updateSeriesList();
+  }
+  return !error;
+}
+
+async function saveAllProducts(){
+  const statusEl = document.querySelector('#saveAllProductsStatus');
+  const allBtn = document.querySelector('#saveAllProductsBtn');
+  const rows = [...document.querySelectorAll('#productsBody tr[data-id]')];
+
+  if(!rows.length){
+    statusEl.textContent = 'Nothing to save on this page.';
+    setTimeout(() => statusEl.textContent = '', 2000);
+    return;
+  }
+
+  allBtn.disabled = true;
+  let okCount = 0;
+  let failCount = 0;
+
+  for(let i = 0; i < rows.length; i++){
+    const row = rows[i];
+    const id = row.dataset.id;
+    const rowSaveBtn = row.querySelector('.admin-btn-row .admin-btn:not(.danger)');
+    statusEl.textContent = `Saving ${i + 1} of ${rows.length}…`;
+
+    const ok = await saveProduct(id, rowSaveBtn);
+    if(ok) okCount++; else failCount++;
+  }
+
+  allBtn.disabled = false;
+  statusEl.textContent = failCount
+    ? `Saved ${okCount}, ${failCount} failed`
+    : `Saved all ${okCount} ✓`;
+  setTimeout(() => statusEl.textContent = '', 2500);
+}
+
+document.querySelector('#saveAllProductsBtn').addEventListener('click', saveAllProducts);
+
+async function deleteProduct(id, btn){
+  if(!confirm('Delete this product permanently? This cannot be undone.')) return;
+  btn.disabled = true;
+
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('products')
+    .delete()
+    .eq('id', id);
+
+  if(error){
+    alert('Delete failed: ' + error.message);
+    btn.disabled = false;
+    return;
+  }
+  document.querySelector(`tr[data-id="${id}"]`).remove();
+}
+
+document.querySelector('#productSearch').addEventListener('input', (e) => {
+  clearTimeout(window._searchDebounce);
+  window._searchDebounce = setTimeout(() => {
+    currentSearch = e.target.value.trim();
+    currentPage = 0;
+    loadProducts();
+  }, 400);
+});
+
+document.querySelector('#productFilterCollection').addEventListener('change', (e) => {
+  currentCollectionFilter = e.target.value;
+  currentPage = 0;
+  loadProducts();
+});
+
+document.querySelector('#productFilterSeries').addEventListener('input', (e) => {
+  clearTimeout(window._seriesFilterDebounce);
+  window._seriesFilterDebounce = setTimeout(() => {
+    currentSeriesFilter = e.target.value.trim();
+    currentPage = 0;
+    loadProducts();
+  }, 400);
+});
+
+document.querySelector('#productSortOrder').addEventListener('change', (e) => {
+  currentSortOrder = e.target.value;
+  currentPage = 0;
+  loadProducts();
+});
+
+document.querySelector('#productFilterStock').addEventListener('change', (e) => {
+  currentStockFilter = e.target.value;
+  currentPage = 0;
+  loadProducts();
+});
+
+document.querySelector('#prevPage').addEventListener('click', () => {
+  if(currentPage > 0){ currentPage--; loadProducts(); }
+});
+document.querySelector('#nextPage').addEventListener('click', () => {
+  currentPage++; loadProducts();
+});
+
+/* =========================
+   COLLECTION MANAGER
+========================= */
+const pendingCovers = {}; // collection id -> File chosen but not yet uploaded
+
+function escapeAttr(s){
+  return (s || '').toString().replace(/[&<>"']/g, c => ({ "&":"&amp;", "<":"&lt;", ">":"&gt;", '"':"&quot;", "'":"&#39;" }[c]));
+}
+
+function collectionRowHTML(c){
+  const name = escapeAttr(c.name);
+  const thumb = c.thumbnail || '';
+  return `
+    <tr data-cid="${c.id}" class="${c.archived ? 'archived' : ''}">
+      <td>
+        <div class="cover-thumb-wrap">
+          <img id="cthumb-${c.id}" src="${thumb}" alt="" onerror="this.style.visibility='hidden'">
+        </div>
+      </td>
+      <td><input type="number" class="order-input" value="${c.sort_order ?? 0}" id="corder-${c.id}"></td>
+      <td><input type="text" value="${name}" id="cname-${c.id}"></td>
+      <td style="text-align:center;">
+        <input type="checkbox" id="chidden-${c.id}" ${c.hidden_from_home ? 'checked' : ''} title="Hidden from the home page, but still visible on the collection's own page">
+      </td>
+      <td id="ccount-${c.id}">…</td>
+      <td>
+        <div class="admin-btn-row" style="flex-wrap:wrap;">
+          <label class="admin-btn cover-upload-label">
+            Cover
+            <input type="file" accept="image/*" onchange="onCoverChosen('${c.id}', this)">
+          </label>
+          <button class="admin-btn" onclick="saveCollection('${c.id}', this)">Save</button>
+          <button class="admin-btn" onclick="toggleArchiveCollection('${c.id}', ${!!c.archived}, this)">${c.archived ? 'Unarchive' : 'Archive'}</button>
+          <button class="admin-btn danger" onclick="deleteCollection('${c.id}', this)">Delete</button>
+        </div>
+        <span class="admin-status" id="cstatus-${c.id}"></span>
+      </td>
+    </tr>
+  `;
+}
+
+async function loadCollectionsManager(){
+  const body = document.querySelector('#collectionsBody');
+  const showArchived = document.querySelector('#showArchivedCollections')?.checked;
+  body.innerHTML = `<tr><td colspan="6">Loading…</td></tr>`;
+
+  const { data, error } = await window.KEYCAM_SUPABASE
+    .from('collections')
+    .select('*')
+    .order('sort_order')
+    .order('name');
+
+  if(error){
+    body.innerHTML = `<tr><td colspan="6">Failed to load collections: ${error.message}</td></tr>`;
+    return;
+  }
+
+  const rows = showArchived ? data : data.filter(c => !c.archived);
+  if(!rows.length){
+    body.innerHTML = `<tr><td colspan="6">No collections found.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = rows.map(collectionRowHTML).join('');
+
+  // Fetch product counts per collection (used both to show the count and to
+  // decide whether Delete should be blocked).
+  await Promise.all(rows.map(async c => {
+    const { count, error: countErr } = await window.KEYCAM_SUPABASE
+      .from('products')
+      .select('*', { count: 'exact', head: true })
+      .eq('collection', c.id);
+    const cell = document.querySelector(`#ccount-${c.id}`);
+    if(cell) cell.textContent = countErr ? '?' : `${count ?? 0}`;
+  }));
+}
+
+function onCoverChosen(id, input){
+  const file = input.files[0];
+  if(file) pendingCovers[id] = file;
+}
+
+async function saveCollection(id, btn){
+  const nameInput = document.querySelector(`#cname-${id}`);
+  const orderInput = document.querySelector(`#corder-${id}`);
+  const hiddenInput = document.querySelector(`#chidden-${id}`);
+  const statusEl = document.querySelector(`#cstatus-${id}`);
+  const name = nameInput.value.trim();
+  const sortOrder = parseInt(orderInput.value, 10) || 0;
+  const hiddenFromHome = !!hiddenInput?.checked;
+
+  if(!name){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Name required';
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+  statusEl.style.color = '#8a9a9f';
+  statusEl.textContent = '';
+
+  try{
+    const update = { name, sort_order: sortOrder, hidden_from_home: hiddenFromHome };
+
+    const file = pendingCovers[id];
+    if(file){
+      statusEl.textContent = 'Uploading cover…';
+      const coverBlob = await prepareCover(file);
+      const coverExt = coverBlob === file ? (file.name.split('.').pop() || 'jpg') : 'webp';
+      const path = `collection-covers/${id}-${Date.now()}.${coverExt}`;
+      const { error: upErr } = await window.KEYCAM_SUPABASE.storage
+        .from('keycam-images')
+        .upload(path, coverBlob, { contentType: coverBlob.type || file.type, upsert: true });
+      if(upErr) throw new Error(upErr.message);
+      update.thumbnail = window.KEYCAM_SUPABASE.storage.from('keycam-images').getPublicUrl(path).data.publicUrl;
+    }
+
+    const { error } = await window.KEYCAM_SUPABASE.from('collections').update(update).eq('id', id);
+    if(error) throw new Error(error.message);
+
+    delete pendingCovers[id];
+    if(update.thumbnail){
+      const img = document.querySelector(`#cthumb-${id}`);
+      if(img){ img.style.visibility = 'visible'; img.src = update.thumbnail; }
+    }
+    statusEl.textContent = '';
+    btn.textContent = 'Saved ✓';
+    await loadCollectionsList();
+  }catch(err){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed: ' + err.message;
+    btn.textContent = 'Save';
+    btn.disabled = false;
+    return;
+  }
+
+  btn.disabled = false;
+  setTimeout(() => btn.textContent = 'Save', 1500);
+}
+
+async function toggleArchiveCollection(id, isArchived, btn){
+  const next = !isArchived;
+  if(next && !confirm('Archive this collection? It will disappear from the live site, but its products and data stay intact and it can be unarchived any time.')) return;
+
+  btn.disabled = true;
+  const { error } = await window.KEYCAM_SUPABASE.from('collections').update({ archived: next }).eq('id', id);
+  btn.disabled = false;
+
+  if(error){ alert('Failed: ' + error.message); return; }
+  loadCollectionsManager();
+  loadCollectionsList();
+}
+
+async function deleteCollection(id, btn){
+  btn.disabled = true;
+
+  const { count, error: countErr } = await window.KEYCAM_SUPABASE
+    .from('products')
+    .select('*', { count: 'exact', head: true })
+    .eq('collection', id);
+
+  if(countErr){
+    alert('Could not check products for this collection: ' + countErr.message);
+    btn.disabled = false;
+    return;
+  }
+  if(count > 0){
+    alert(`Can't delete — ${count} product${count === 1 ? '' : 's'} still ${count === 1 ? 'uses' : 'use'} this collection. Move or delete ${count === 1 ? 'it' : 'them'} first, or archive the collection instead.`);
+    btn.disabled = false;
+    return;
+  }
+  if(!confirm('Delete this collection permanently? This cannot be undone.')){
+    btn.disabled = false;
+    return;
+  }
+
+  const { error } = await window.KEYCAM_SUPABASE.from('collections').delete().eq('id', id);
+  if(error){
+    alert('Delete failed: ' + error.message);
+    btn.disabled = false;
+    return;
+  }
+  document.querySelector(`tr[data-cid="${id}"]`)?.remove();
+  loadCollectionsList();
+}
+
+document.querySelector('#showArchivedCollections').addEventListener('change', loadCollectionsManager);
+
+/* =========================
+   SERIES MANAGER
+========================= */
+function slugify(text){
+  return (text || '').toString().toLowerCase().trim()
+    .replace(/[^a-z0-9]+/g, '-')
+    .replace(/^-+|-+$/g, '') || 'item';
+}
+
+let seriesCache = []; // { series, series_name, collection, count }
+
+async function loadSeriesManager(){
+  const body = document.querySelector('#seriesBody');
+  if(!body) return;
+  body.innerHTML = `<tr><td colspan="5">Loading…</td></tr>`;
+
+  const filterCol = document.querySelector('#seriesCollectionFilter')?.value || '';
+  const search = (document.querySelector('#seriesSearch')?.value || '').trim().toLowerCase();
+
+  const filterSel = document.querySelector('#seriesCollectionFilter');
+  if(filterSel){
+    const prev = filterSel.value;
+    filterSel.innerHTML = `<option value="">All collections</option>` +
+      ADMIN_COLLECTIONS.map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+    if(ADMIN_COLLECTIONS.some(([id]) => id === prev)) filterSel.value = prev;
+  }
+
+  const { data, error } = await (async () => {
+    // Supabase/PostgREST caps a single request at 1000 rows by default.
+    // This query has no collection filter — it scans every product with a
+    // series across the whole catalog — so once the catalog passes 1000
+    // rows, an unpaginated fetch silently drops the rest and series past
+    // the cutoff disappear from this list. Page through everything instead.
+    let rows = [];
+    let from = 0;
+    const PAGE = 1000;
+    while(true){
+      const { data: page, error: pageErr } = await window.KEYCAM_SUPABASE
+        .from('products')
+        .select('series, series_name, collection')
+        .not('series', 'is', null)
+        .range(from, from + PAGE - 1);
+      if(pageErr) return { data: null, error: pageErr };
+      rows = rows.concat(page);
+      if(page.length < PAGE) break;
+      from += PAGE;
+    }
+    return { data: rows, error: null };
+  })();
+
+  if(error){
+    body.innerHTML = `<tr><td colspan="5">Failed to load series: ${error.message}</td></tr>`;
+    return;
+  }
+
+  // Links are optional (only exist once tools/migration-series-links.sql has
+  // been run), so a missing table just means "no series are synced yet"
+  // rather than a hard failure of the whole series list.
+  let linkRows = [];
+  try{
+    const { data: links, error: linkErr } = await window.KEYCAM_SUPABASE
+      .from('series_links')
+      .select('source_collection, series, target_collection');
+    if(linkErr) throw linkErr;
+    linkRows = links || [];
+  }catch(e){
+    linkRows = [];
+  }
+  const linksByKey = new Map(); // "series||collection" -> [target_collection, ...]
+  linkRows.forEach(r => {
+    const key = `${r.series}||${r.source_collection}`;
+    if(!linksByKey.has(key)) linksByKey.set(key, []);
+    linksByKey.get(key).push(r.target_collection);
+  });
+
+  const map = new Map();
+  (data || []).forEach(r => {
+    if(!r.series) return;
+    const key = `${r.series}||${r.collection}`;
+    if(!map.has(key)){
+      map.set(key, {
+        series: r.series,
+        series_name: r.series_name || r.series,
+        collection: r.collection,
+        count: 0
+      });
+    }
+    map.get(key).count++;
+  });
+
+  seriesCache = [...map.values()].sort((a, b) => {
+    const na = (a.series_name || a.series).toLowerCase();
+    const nb = (b.series_name || b.series).toLowerCase();
+    if(na !== nb) return na.localeCompare(nb);
+    return (a.collection || '').localeCompare(b.collection || '');
+  });
+
+  let rows = seriesCache;
+  if(filterCol) rows = rows.filter(r => r.collection === filterCol);
+  if(search) rows = rows.filter(r => (r.series_name || r.series).toLowerCase().includes(search));
+
+  if(!rows.length){
+    body.innerHTML = `<tr><td colspan="5">No series found.</td></tr>`;
+    return;
+  }
+
+  const colName = id => {
+    const found = ADMIN_COLLECTIONS.find(([cid]) => cid === id);
+    return found ? found[1] : id;
+  };
+
+  body.innerHTML = rows.map(r => {
+    const targets = linksByKey.get(`${r.series}||${r.collection}`) || [];
+    const syncedHTML = targets.length
+      ? targets.map(t => `
+          <span style="display:inline-flex; align-items:center; gap:4px; border:1px solid var(--line); border-radius:999px; padding:2px 4px 2px 8px; margin:2px 4px 2px 0; font-size:11px;">
+            ${escapeAttr(colName(t))}
+            <button type="button" title="Stop showing in ${escapeAttr(colName(t))}" onclick="unlinkSeries('${escapeAttr(r.series)}', '${escapeAttr(r.collection)}', '${escapeAttr(t)}', this)" style="background:none; border:none; color:#8a9a9f; cursor:pointer; font-size:13px; line-height:1; padding:0 2px;">×</button>
+          </span>
+        `).join('')
+      : '<span style="color:#5a666b;">—</span>';
+    return `
+    <tr data-series="${escapeAttr(r.series)}" data-collection="${escapeAttr(r.collection)}">
+      <td>
+        <input type="text" value="${escapeAttr(r.series_name)}" id="sname-${escapeAttr(r.series)}-${escapeAttr(r.collection)}" style="min-width:140px;">
+        <div style="font-size:11px;color:#8a9a9f;margin-top:2px;">slug: ${escapeAttr(r.series)}</div>
+      </td>
+      <td>${escapeAttr(colName(r.collection))}</td>
+      <td>${r.count}</td>
+      <td>${syncedHTML}</td>
+      <td>
+        <div class="admin-btn-row" style="flex-wrap:wrap;">
+          <button class="admin-btn" onclick="renameSeries('${escapeAttr(r.series)}', '${escapeAttr(r.collection)}', this)">Rename</button>
+          <button class="admin-btn danger" onclick="clearSeries('${escapeAttr(r.series)}', '${escapeAttr(r.collection)}', this)">Clear</button>
+        </div>
+        <span class="admin-status" id="sstatus-${escapeAttr(r.series)}-${escapeAttr(r.collection)}"></span>
+      </td>
+    </tr>
+  `;
+  }).join('');
+}
+
+async function unlinkSeries(series, sourceCollection, targetCollection, btn){
+  if(!confirm(`Stop showing this series in ${targetCollection}? It will disappear from that collection immediately — nothing is deleted, the products still live in their home collection.`)) return;
+  btn.disabled = true;
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('series_links')
+    .delete()
+    .eq('series', series)
+    .eq('source_collection', sourceCollection)
+    .eq('target_collection', targetCollection);
+  if(error){
+    alert('Failed: ' + error.message);
+    btn.disabled = false;
+    return;
+  }
+  loadSeriesManager();
+}
+
+async function renameSeries(oldSlug, collectionId, btn){
+  const input = document.querySelector(`#sname-${oldSlug}-${collectionId}`);
+  const statusEl = document.querySelector(`#sstatus-${oldSlug}-${collectionId}`);
+  const newName = (input?.value || '').trim();
+  if(!newName){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Name required';
+    return;
+  }
+  const newSlug = slugify(newName);
+  btn.disabled = true;
+  statusEl.style.color = '#8a9a9f';
+  statusEl.textContent = 'Renaming…';
+
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('products')
+    .update({ series: newSlug, series_name: newName })
+    .eq('series', oldSlug)
+    .eq('collection', collectionId);
+
+  btn.disabled = false;
+  if(error){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed: ' + error.message;
+  }else{
+    statusEl.style.color = '#3bd1a0';
+    statusEl.textContent = 'Renamed ✓';
+    setTimeout(() => statusEl.textContent = '', 2000);
+    loadSeriesManager();
+    updateSeriesList();
+    populateImportSeriesSelects();
+  }
+}
+
+async function clearSeries(slug, collectionId, btn){
+  if(!confirm('Remove this series from all products in this collection? Products stay; only the series tag is cleared.')) return;
+  btn.disabled = true;
+  const statusEl = document.querySelector(`#sstatus-${slug}-${collectionId}`);
+  if(statusEl){ statusEl.style.color = '#8a9a9f'; statusEl.textContent = 'Clearing…'; }
+
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('products')
+    .update({ series: null, series_name: null })
+    .eq('series', slug)
+    .eq('collection', collectionId);
+
+  btn.disabled = false;
+  if(error){
+    alert('Failed: ' + error.message);
+    if(statusEl) statusEl.textContent = '';
+    return;
+  }
+  loadSeriesManager();
+  updateSeriesList();
+  populateImportSeriesSelects();
+}
+
+function populateImportSeriesSelects(){
+  const srcSel = document.querySelector('#importSrcCollection');
+  const tgtSel = document.querySelector('#importTargetCollection');
+  if(!srcSel || !tgtSel) return;
+
+  const opts = ADMIN_COLLECTIONS.map(([id, name]) => `<option value="${id}">${name}</option>`).join('');
+  const prevSrc = srcSel.value;
+  const prevTgt = tgtSel.value;
+  srcSel.innerHTML = opts;
+  tgtSel.innerHTML = opts;
+  if(ADMIN_COLLECTIONS.some(([id]) => id === prevSrc)) srcSel.value = prevSrc;
+  if(ADMIN_COLLECTIONS.some(([id]) => id === prevTgt)) tgtSel.value = prevTgt;
+
+  refreshImportSeriesOptions();
+}
+
+async function refreshImportSeriesOptions(){
+  const srcCol = document.querySelector('#importSrcCollection')?.value;
+  const seriesSel = document.querySelector('#importSeries');
+  if(!seriesSel) return;
+  seriesSel.innerHTML = '<option value="">Loading…</option>';
+
+  if(!srcCol){
+    seriesSel.innerHTML = '<option value="">Pick a source collection first</option>';
+    return;
+  }
+
+  const { data, error } = await window.KEYCAM_SUPABASE
+    .from('products')
+    .select('series, series_name')
+    .eq('collection', srcCol)
+    .not('series', 'is', null);
+
+  if(error){
+    seriesSel.innerHTML = '<option value="">Failed to load</option>';
+    return;
+  }
+
+  const seen = new Map();
+  (data || []).forEach(r => {
+    if(r.series && !seen.has(r.series)) seen.set(r.series, r.series_name || r.series);
+  });
+
+  if(!seen.size){
+    seriesSel.innerHTML = '<option value="">No series in this collection</option>';
+    return;
+  }
+
+  seriesSel.innerHTML = [...seen.entries()]
+    .sort((a, b) => a[1].localeCompare(b[1]))
+    .map(([slug, name]) => `<option value="${slug}">${name}</option>`)
+    .join('');
+}
+
+document.querySelector('#importSrcCollection')?.addEventListener('change', refreshImportSeriesOptions);
+
+// Copies one product into another collection, skipping it if a product
+// with the same name already exists there for that series. Used both by
+// the Import button (looping over a whole series) and by the upload-time
+// auto-sync for series that are linked (see uploadNewProduct).
+document.querySelector('#importSeriesBtn')?.addEventListener('click', async () => {
+  const srcCol = document.querySelector('#importSrcCollection')?.value;
+  const seriesSlug = document.querySelector('#importSeries')?.value;
+  const tgtCol = document.querySelector('#importTargetCollection')?.value;
+  const statusEl = document.querySelector('#importSeriesStatus');
+  const btn = document.querySelector('#importSeriesBtn');
+
+  if(!srcCol || !seriesSlug || !tgtCol){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Pick source collection, series, and target collection';
+    return;
+  }
+  if(srcCol === tgtCol){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Source and target must be different collections';
+    return;
+  }
+
+  btn.disabled = true;
+  statusEl.style.color = '#8a9a9f';
+  statusEl.textContent = 'Linking…';
+
+  try{
+    const { count, error: countErr } = await window.KEYCAM_SUPABASE
+      .from('products')
+      .select('id', { count: 'exact', head: true })
+      .eq('collection', srcCol)
+      .eq('series', seriesSlug);
+    if(countErr) throw new Error(countErr.message);
+    if(!count){
+      statusEl.style.color = '#e05a5a';
+      statusEl.textContent = 'No products found for that series';
+      btn.disabled = false;
+      return;
+    }
+
+    // No copying — this just records the link. The storefront pulls the
+    // series' products into the target collection live (see app.js), so
+    // both existing and future images in this series show up there with
+    // zero duplicate rows to keep in sync.
+    const { error: linkErr } = await window.KEYCAM_SUPABASE
+      .from('series_links')
+      .upsert(
+        { source_collection: srcCol, series: seriesSlug, target_collection: tgtCol },
+        { onConflict: 'source_collection,series,target_collection', ignoreDuplicates: true }
+      );
+    if(linkErr) throw new Error(linkErr.message);
+
+    statusEl.style.color = '#3bd1a0';
+    statusEl.textContent = `Linked — ${count} product${count === 1 ? '' : 's'} now show${count === 1 ? 's' : ''} in the target collection too ✓`;
+    setTimeout(() => { if(statusEl.textContent.startsWith('Linked')) statusEl.textContent = ''; }, 7000);
+    loadSeriesManager();
+  }catch(err){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed: ' + err.message;
+  }
+  btn.disabled = false;
+});
+
+document.querySelector('#seriesCollectionFilter')?.addEventListener('change', loadSeriesManager);
+document.querySelector('#seriesSearch')?.addEventListener('input', () => {
+  clearTimeout(window._seriesSearchDebounce);
+  window._seriesSearchDebounce = setTimeout(loadSeriesManager, 350);
+});
+
+/* =========================
+   ADD PRODUCTS — collections, series, drag-and-drop upload
+========================= */
+// Detects a filename/product name that's just a random hash or numeric ID
+// (common for Telegram/Facebook-downloaded images) rather than anything
+// readable — used both at upload time and by the "Fix junk names" tool.
+function isJunkProductName(name){
+  const compact = (name || '').replace(/\s+/g, '');
+  return !compact ||
+    /^\d{6,}$/.test(compact) ||
+    (compact.length >= 16 && /^[0-9a-f]+$/i.test(compact));
+}
+
+function cleanProductName(filename, fallbackLabel){
+  let name = filename.replace(/\.[^/.]+$/, '');
+  name = name.replace(/[_-]+/g, ' ');
+  name = name.replace(/\b\d{3,4}\s*[x×]\s*\d{3,4}\b/gi, '');
+  name = name.replace(/\b(hd|4k|2k|wallpaper|wallpapers|desktop)\b/gi, '');
+  name = name.replace(/\s+/g, ' ').trim();
+
+  // Some source files have meaningless filenames — a bare number (common
+  // for Telegram/Facebook-downloaded images) or a long hex-looking hash —
+  // which would otherwise become the product's actual displayed title.
+  // Fall back to a readable placeholder instead of showing that as-is.
+  if(isJunkProductName(name)){
+    const tag = Math.random().toString(16).slice(2, 6).toUpperCase();
+    return `${fallbackLabel || 'Untitled Design'} ${tag}`;
+  }
+  if(!name) name = 'Untitled Design';
+  return name.replace(/\w\S*/g, w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase());
+}
+
+// Longest side, in px, for images stored in Supabase. Originals are resized
+// (and re-encoded as WebP) in the browser before upload so full-resolution
+// files never use up storage. Change this one number to go bigger/smaller.
+const MAX_UPLOAD_DIM = 1600;
+
+// Collection covers are shown small, so they get a smaller cap. Falls back to
+// the original file if the browser can't read/resize it.
+async function prepareCover(file){
+  try{ return await generateThumbnail(file, 1200, 0.82); }
+  catch(e){ console.warn('Cover resize skipped:', e); return file; }
+}
+
+function generateThumbnail(file, maxDim = 600, quality = 0.82){
+  return new Promise((resolve, reject) => {
+    const img = new Image();
+    const url = URL.createObjectURL(file);
+    img.onload = () => {
+      let { width, height } = img;
+      if(width > height){
+        if(width > maxDim){ height = Math.round(height * maxDim / width); width = maxDim; }
+      }else{
+        if(height > maxDim){ width = Math.round(width * maxDim / height); height = maxDim; }
+      }
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      canvas.getContext('2d').drawImage(img, 0, 0, width, height);
+      canvas.toBlob(blob => {
+        URL.revokeObjectURL(url);
+        if(blob) resolve(blob); else reject(new Error('Thumbnail generation failed'));
+      }, 'image/webp', quality);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read image')); };
+    img.src = url;
+  });
+}
+
+async function createCollection(name, coverFile){
+  const id = slugify(name);
+  let thumbnail = null;
+
+  if(coverFile){
+    const coverBlob = await prepareCover(coverFile);
+    const coverExt = coverBlob === coverFile ? (coverFile.name.split('.').pop() || 'jpg') : 'webp';
+    const path = `collection-covers/${id}-${Date.now()}.${coverExt}`;
+    const { error: upErr } = await window.KEYCAM_SUPABASE.storage
+      .from('keycam-images')
+      .upload(path, coverBlob, { contentType: coverBlob.type || coverFile.type, upsert: true });
+    if(!upErr){
+      thumbnail = window.KEYCAM_SUPABASE.storage.from('keycam-images').getPublicUrl(path).data.publicUrl;
+    }
+  }
+
+  // New collections go at the end of the order, not the front.
+  const { data: maxRows } = await window.KEYCAM_SUPABASE
+    .from('collections')
+    .select('sort_order')
+    .order('sort_order', { ascending: false })
+    .limit(1);
+  const sortOrder = (maxRows && maxRows[0] ? maxRows[0].sort_order : 0) + 1;
+
+  const { error: dbErr } = await window.KEYCAM_SUPABASE.from('collections').insert({ id, name, thumbnail, sort_order: sortOrder });
+  if(dbErr) throw new Error(dbErr.message);
+  return { id, name, thumbnail };
+}
+
+async function updateSeriesList(collectionIdArg){
+  const collectionId = collectionIdArg || document.querySelector('#uploadCollection')?.value;
+  const datalist = document.querySelector('#seriesList');
+  if(!collectionId || !datalist) return;
+
+  const { data, error } = await window.KEYCAM_SUPABASE
+    .from('products')
+    .select('series, series_name')
+    .eq('collection', collectionId)
+    .not('series', 'is', null);
+
+  if(error){ console.error(error); return; }
+
+  const seen = new Map();
+  (data || []).forEach(r => {
+    if(r.series && !seen.has(r.series)) seen.set(r.series, r.series_name || r.series);
+  });
+  datalist.innerHTML = [...seen.entries()].map(([slug, name]) => `<option value="${slug}">${name}</option>`).join('');
+}
+
+async function uploadNewProduct(file, collectionId, seriesSlug, seriesName, inStockReady, onStatus, stockSpec){
+  const fallbackLabel = seriesName || (ADMIN_COLLECTIONS.find(([cid]) => cid === collectionId)?.[1]) || 'Untitled Design';
+  const cleanedName = cleanProductName(file.name, fallbackLabel);
+  const baseSlug = slugify(file.name.replace(/\.[^/.]+$/, ''));
+
+  // Block duplicates: same cleaned product name already in this collection,
+  // or an image path that was built from the same filename base.
+  onStatus('Checking for duplicates…');
+  const { data: existingByName, error: dupErr } = await window.KEYCAM_SUPABASE
+    .from('products')
+    .select('id, name')
+    .eq('collection', collectionId)
+    .ilike('name', cleanedName)
+    .limit(1);
+
+  if(dupErr) throw new Error('Duplicate check failed: ' + dupErr.message);
+  if(existingByName && existingByName.length){
+    throw new Error(`Duplicate image — “${cleanedName}” already exists in this collection. Not imported.`);
+  }
+
+  // Path pattern: product/{collection}/{series}/{baseSlug}-{rand}.ext
+  if(baseSlug && baseSlug !== 'item'){
+    const { data: byPath } = await window.KEYCAM_SUPABASE
+      .from('products')
+      .select('id')
+      .eq('collection', collectionId)
+      .ilike('image', `%/${baseSlug}-%`)
+      .limit(1);
+    if(byPath && byPath.length){
+      throw new Error(`Duplicate image — a file matching “${file.name}” was already imported into this collection. Not imported.`);
+    }
+  }
+
+  const rand = Math.random().toString(16).slice(2, 8);
+  const id = `admin-${collectionId}-${baseSlug}-${rand}`;
+  const seriesPath = seriesSlug || 'general';
+
+  onStatus('Generating thumbnail…');
+  const thumbBlob = await generateThumbnail(file);
+  const thumbExt = thumbBlob.type === 'image/webp' ? 'webp' : 'jpg';
+
+  onStatus('Resizing image…');
+  const imageBlob = await generateThumbnail(file, MAX_UPLOAD_DIM, 0.85);
+  const imagePath = `product/${collectionId}/${seriesPath}/${baseSlug}-${rand}.webp`;
+  const thumbPath = `thumbnail/${collectionId}/${seriesPath}/${baseSlug}-${rand}.${thumbExt}`;
+
+  onStatus('Uploading image…');
+  const { error: imgErr } = await window.KEYCAM_SUPABASE.storage
+    .from('keycam-images')
+    .upload(imagePath, imageBlob, { contentType: 'image/webp', upsert: true });
+  if(imgErr) throw new Error('Image upload failed: ' + imgErr.message);
+
+  onStatus('Uploading thumbnail…');
+  const { error: thumbErr } = await window.KEYCAM_SUPABASE.storage
+    .from('keycam-images')
+    .upload(thumbPath, thumbBlob, { contentType: thumbBlob.type, upsert: true });
+  if(thumbErr) throw new Error('Thumbnail upload failed: ' + thumbErr.message);
+
+  const imageUrl = window.KEYCAM_SUPABASE.storage.from('keycam-images').getPublicUrl(imagePath).data.publicUrl;
+  const thumbUrl = window.KEYCAM_SUPABASE.storage.from('keycam-images').getPublicUrl(thumbPath).data.publicUrl;
+
+  onStatus('Saving product…');
+  const insertRow = {
+    id,
+    name: cleanedName,
+    image: imageUrl,
+    thumbnail: thumbUrl,
+    collection: collectionId,
+    folder: collectionId,
+    series: seriesSlug || null,
+    series_name: seriesSlug ? (seriesName || seriesSlug) : null,
+    in_stock_ready: !!inStockReady
+  };
+  if(stockSpec){
+    insertRow.stock_type = stockSpec.type;
+    insertRow.stock_thickness = stockSpec.thickness;
+    insertRow.stock_size_label = stockSpec.sizeLabel;
+    insertRow.stock_price = stockSpec.price;
+  }
+  const { error: dbErr } = await window.KEYCAM_SUPABASE.from('products').insert(insertRow);
+  if(dbErr) throw new Error('Save failed: ' + dbErr.message);
+
+  // Nothing to copy: if this series is linked to other collections (Series
+  // manager -> Link series), the storefront pulls it into those collections
+  // live from series_links — this one row is the only copy that ever exists.
+}
+
+document.querySelector('#newCollectionToggle').addEventListener('click', () => {
+  const form = document.querySelector('#newCollectionForm');
+  form.style.display = form.style.display === 'block' ? 'none' : 'block';
+});
+
+document.querySelector('#createCollectionBtn').addEventListener('click', async () => {
+  const name = document.querySelector('#newCollectionName').value.trim();
+  const coverFile = document.querySelector('#newCollectionCover').files[0];
+  const statusEl = document.querySelector('#newCollectionStatus');
+
+  if(!name){
+    statusEl.textContent = 'Name required';
+    statusEl.style.color = '#e05a5a';
+    return;
+  }
+  statusEl.textContent = 'Creating…';
+  statusEl.style.color = '#8a9a9f';
+
+  try{
+    const created = await createCollection(name, coverFile);
+    await loadCollectionsList();
+    document.querySelector('#uploadCollection').value = created.id;
+    document.querySelector('#newCollectionName').value = '';
+    document.querySelector('#newCollectionCover').value = '';
+    document.querySelector('#newCollectionForm').style.display = 'none';
+    statusEl.textContent = '';
+    updateSeriesList();
+    loadCollectionsManager();
+  }catch(err){
+    statusEl.textContent = 'Failed: ' + err.message;
+    statusEl.style.color = '#e05a5a';
+  }
+});
+
+document.querySelector('#uploadCollection').addEventListener('change', () => updateSeriesList());
+document.querySelector('#stockUploadCollection').addEventListener('change', e => updateSeriesList(e.target.value));
+
+const dropZone = document.querySelector('#dropZone');
+const fileInput = document.querySelector('#fileInput');
+
+dropZone.addEventListener('click', () => fileInput.click());
+dropZone.addEventListener('dragover', e => { e.preventDefault(); dropZone.classList.add('dragover'); });
+dropZone.addEventListener('dragleave', () => dropZone.classList.remove('dragover'));
+dropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  dropZone.classList.remove('dragover');
+  handleFiles(e.dataTransfer.files);
+});
+fileInput.addEventListener('change', e => {
+  handleFiles(e.target.files);
+  fileInput.value = '';
+});
+
+async function handleFiles(fileList){
+  const files = [...fileList].filter(f => f.type.startsWith('image/'));
+  if(!files.length) return;
+
+  const collectionId = document.querySelector('#uploadCollection').value;
+  if(!collectionId){
+    alert('Pick or create a collection first.');
+    return;
+  }
+
+  const seriesInput = document.querySelector('#uploadSeries').value.trim();
+  const seriesSlug = seriesInput ? slugify(seriesInput) : null;
+  const seriesName = seriesInput || null;
+  const inStockReady = document.querySelector('#uploadInStock').checked;
+
+  const queue = document.querySelector('#uploadQueue');
+
+  for(const file of files){
+    const row = document.createElement('div');
+    row.className = 'upload-item';
+    row.innerHTML = `<span class="up-name">${file.name}</span><span class="up-status">Queued…</span>`;
+    queue.prepend(row);
+    const statusEl = row.querySelector('.up-status');
+
+    try{
+      await uploadNewProduct(file, collectionId, seriesSlug, seriesName, inStockReady, msg => statusEl.textContent = msg);
+      statusEl.textContent = 'Done ✓';
+      statusEl.classList.add('done');
+    }catch(err){
+      statusEl.textContent = err.message;
+      statusEl.classList.add('error');
+    }
+  }
+
+  updateSeriesList();
+  if(typeof loadSeriesManager === 'function') loadSeriesManager();
+  currentPage = 0;
+  currentSearch = '';
+  const searchInput = document.querySelector('#productSearch');
+  if(searchInput) searchInput.value = '';
+  loadProducts();
+}
+
+/* =========================
+   IMPORT STOCK MOUSEPAD
+========================= */
+
+const stockDropZone = document.querySelector('#stockDropZone');
+const stockFileInput = document.querySelector('#stockFileInput');
+
+stockDropZone.addEventListener('click', () => stockFileInput.click());
+stockDropZone.addEventListener('dragover', e => { e.preventDefault(); stockDropZone.classList.add('dragover'); });
+stockDropZone.addEventListener('dragleave', () => stockDropZone.classList.remove('dragover'));
+stockDropZone.addEventListener('drop', e => {
+  e.preventDefault();
+  stockDropZone.classList.remove('dragover');
+  handleStockFiles(e.dataTransfer.files);
+});
+stockFileInput.addEventListener('change', e => {
+  handleStockFiles(e.target.files);
+  stockFileInput.value = '';
+});
+
+async function handleStockFiles(fileList){
+  const files = [...fileList].filter(f => f.type.startsWith('image/'));
+  if(!files.length) return;
+
+  const collectionId = document.querySelector('#stockUploadCollection').value;
+  if(!collectionId){
+    alert('Pick a collection first.');
+    return;
+  }
+
+  const type = document.querySelector('#stockType').value;
+  const sizeLabel = document.querySelector('#stockSize').value.trim();
+  const thickness = document.querySelector('#stockThickness').value.trim();
+  const priceRaw = document.querySelector('#stockPrice').value;
+  const price = parseFloat(priceRaw);
+
+  if(!sizeLabel){
+    alert('Enter a size for this stock mousepad (e.g. 900 × 400 mm).');
+    return;
+  }
+  if(!thickness){
+    alert('Enter a thickness for this stock mousepad (e.g. 3MM).');
+    return;
+  }
+  if(!priceRaw || isNaN(price) || price < 0){
+    alert('Enter a valid price for this stock mousepad.');
+    return;
+  }
+
+  const seriesInput = document.querySelector('#stockUploadSeries').value.trim();
+  const seriesSlug = seriesInput ? slugify(seriesInput) : null;
+  const seriesName = seriesInput || null;
+  const stockSpec = { type, thickness, sizeLabel, price };
+
+  const queue = document.querySelector('#stockUploadQueue');
+
+  for(const file of files){
+    const row = document.createElement('div');
+    row.className = 'upload-item';
+    row.innerHTML = `<span class="up-name">${file.name}</span><span class="up-status">Queued…</span>`;
+    queue.prepend(row);
+    const statusEl = row.querySelector('.up-status');
+
+    try{
+      await uploadNewProduct(file, collectionId, seriesSlug, seriesName, true, msg => statusEl.textContent = msg, stockSpec);
+      statusEl.textContent = 'Done ✓';
+      statusEl.classList.add('done');
+    }catch(err){
+      statusEl.textContent = err.message;
+      statusEl.classList.add('error');
+    }
+  }
+
+  updateSeriesList(collectionId);
+  if(typeof loadSeriesManager === 'function') loadSeriesManager();
+  currentPage = 0;
+  currentSearch = '';
+  const searchInput = document.querySelector('#productSearch');
+  if(searchInput) searchInput.value = '';
+  loadProducts();
+}
+
+/* =========================
+   ORDERS
+========================= */
+const ORDERS_PAGE_SIZE = 20;
+let ordersPage = 0;
+let ordersSearch = '';
+let ordersStatusFilter = '';
+let ordersCache = {}; // id -> order row, populated on each loadOrders() so Invoice buttons can read full item data
+
+function formatOrderDate(iso){
+  const d = new Date(iso);
+  return d.toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' }) +
+    ' ' + d.toLocaleTimeString(undefined, { hour: 'numeric', minute: '2-digit' });
+}
+
+function summarizeItems(items){
+  if(!Array.isArray(items) || !items.length) return '—';
+  // Items can come from Deskmat (type/size/thickness) or from the
+  // catalog checkout (variantSummary) — the `orders` table is shared
+  // between both, so this needs to render either shape.
+  const detail = i => i.variantSummary || [i.type, i.size, i.thickness].filter(Boolean).join(', ');
+  const full = items.map(i => { const d = detail(i); return `${i.name}${d ? ` (${d})` : ''} ×${i.qty}`; }).join('\n');
+  const short = items.map(i => `${i.name} ×${i.qty}`).join(', ');
+  const display = short.length > 60 ? short.slice(0, 57) + '…' : short;
+  return `<span class="order-items-summary" title="${escapeAttr(full)}">${escapeAttr(display)}</span>`;
+}
+
+function orderRowHTML(o){
+  return `
+      <tr data-order-id="${o.id}">
+        <td>${formatOrderDate(o.created_at)}</td>
+        <td>${escapeAttr(o.customer_name || '—')}<br><span style="color:#8a9a9f;">${escapeAttr(o.customer_phone || '')}</span></td>
+        <td>${summarizeItems(o.items)}</td>
+        <td><input type="number" class="order-input" id="odelivery-${o.id}" step="0.01" min="0" value="${Number(o.delivery_fee || 0).toFixed(2)}" oninput="onDeliveryInput('${o.id}')" aria-label="Delivery fee"></td>
+        <td><span id="ototal-${o.id}">$${Number(o.total).toFixed(2)}</span>${Number(o.order_discount_amount) > 0 ? `<br><span style="color:#8a9a9f; font-size:11px;">incl. -$${Number(o.order_discount_amount).toFixed(2)} discount</span>` : ''}</td>
+        <td>
+          <div class="paid-cell">
+            <select class="paid-mode-select" id="opaidmode-${o.id}" onchange="updatePaidMode('${o.id}')">
+              <option value="paid" ${o.paid_amount != null && Number(o.paid_amount) === Number(o.total) ? 'selected' : ''}>Paid</option>
+              <option value="amount" ${o.paid_amount != null && Number(o.paid_amount) === Number(o.total) ? '' : 'selected'}>Enter Amount</option>
+            </select>
+            <input type="number" class="order-input" id="opaid-${o.id}" oninput="onPaidAmountInput('${o.id}')" step="0.01" min="0" value="${o.paid_amount != null ? Number(o.paid_amount).toFixed(2) : '0.00'}" ${o.paid_amount != null && Number(o.paid_amount) === Number(o.total) ? 'disabled' : ''}>
+          </div>
+        </td>
+        <td>
+          <select class="status-select ${o.status}" id="ostatus-${o.id}" onchange="this.className='status-select ' + this.value">
+            <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
+            <option value="confirmed" ${o.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
+            <option value="shipped" ${o.status === 'shipped' ? 'selected' : ''}>Shipped</option>
+            <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
+          </select>
+        </td>
+        <td>
+          <div class="admin-btn-row">
+            <button class="admin-btn" onclick="saveOrderStatus('${o.id}', this)">Save</button>
+            <button class="admin-btn" onclick="openInvoicePreview('${o.id}')">Invoice</button>
+            <span class="admin-status" id="ostatus-msg-${o.id}"></span>
+          </div>
+        </td>
+      </tr>
+    `;
+}
+
+async function loadOrders(){
+  const body = document.querySelector('#ordersBody');
+  const pendingBox = document.querySelector('#pendingOrdersBox');
+  const pendingBody = document.querySelector('#pendingOrdersBody');
+  const otherTitle = document.querySelector('#otherOrdersTitle');
+  body.innerHTML = `<tr><td colspan="8">Loading…</td></tr>`;
+
+  // With "All statuses" selected, pending orders are pulled out into their own
+  // container on top and the list below shows everything else. Picking a
+  // specific status filter just shows the normal single list.
+  const groupPending = !ordersStatusFilter;
+
+  const applySearch = q => {
+    if(!ordersSearch) return q;
+    // Strip characters that have special meaning inside a PostgREST
+    // .or() filter string (comma separates conditions, %/_ are ILIKE
+    // wildcards, parens are grouping) so a search term containing them
+    // can't break the query or add unintended conditions.
+    const safeSearch = ordersSearch.replace(/[,%_()]/g, '');
+    return q.or(`customer_name.ilike.%${safeSearch}%,customer_phone.ilike.%${safeSearch}%`);
+  };
+
+  let query = window.KEYCAM_SUPABASE
+    .from('orders')
+    .select('*')
+    .order('created_at', { ascending: false })
+    .range(ordersPage * ORDERS_PAGE_SIZE, ordersPage * ORDERS_PAGE_SIZE + ORDERS_PAGE_SIZE - 1);
+
+  if(ordersStatusFilter) query = query.eq('status', ordersStatusFilter);
+  else query = query.or('status.is.null,status.neq.pending');
+  query = applySearch(query);
+
+  let pendingRows = [];
+  if(groupPending){
+    const pres = await applySearch(
+      window.KEYCAM_SUPABASE
+        .from('orders')
+        .select('*')
+        .eq('status', 'pending')
+        .order('created_at', { ascending: false })
+        .limit(200)
+    );
+    if(pres.error) console.error('Failed to load pending orders:', pres.error);
+    else pendingRows = pres.data || [];
+  }
+
+  const { data, error } = await query;
+
+  if(error){
+    body.innerHTML = `<tr><td colspan="8">Failed to load orders: ${error.message}</td></tr>`;
+    return;
+  }
+  ordersCache = {};
+  pendingRows.forEach(o => ordersCache[o.id] = o);
+  (data || []).forEach(o => ordersCache[o.id] = o);
+
+  const showPending = groupPending && pendingRows.length > 0;
+  pendingBox.style.display = showPending ? '' : 'none';
+  otherTitle.style.display = showPending ? '' : 'none';
+  document.querySelector('#pendingOrdersCount').textContent = String(pendingRows.length);
+  pendingBody.innerHTML = showPending ? pendingRows.map(orderRowHTML).join('') : '';
+
+  if(!data.length){
+    body.innerHTML = `<tr><td colspan="8">${showPending ? 'No other orders.' : 'No orders found.'}</td></tr>`;
+  }else{
+    body.innerHTML = data.map(orderRowHTML).join('');
+  }
+
+  document.querySelector('#ordersPageLabel').textContent = `Page ${ordersPage + 1}`;
+}
+
+function round2(n){ return Math.round((Number(n) + Number.EPSILON) * 100) / 100; }
+
+// Changing the delivery fee moves the order total by the difference, so any
+// discounts already on the order stay exactly as they were.
+function orderTotalWithDelivery(order, deliveryFee){
+  return round2((Number(order.total) || 0) - (Number(order.delivery_fee) || 0) + (Number(deliveryFee) || 0));
+}
+
+function rowDeliveryFee(id){
+  const el = document.querySelector(`#odelivery-${id}`);
+  return el ? Math.max(0, Number(el.value) || 0) : 0;
+}
+
+function rowTotal(id){
+  const order = ordersCache[id];
+  return order ? orderTotalWithDelivery(order, rowDeliveryFee(id)) : 0;
+}
+
+function onDeliveryInput(id){
+  const totalEl = document.querySelector(`#ototal-${id}`);
+  if(totalEl) totalEl.textContent = '$' + rowTotal(id).toFixed(2);
+  // A fully-paid order stays fully paid when the delivery fee changes.
+  if(document.querySelector(`#opaidmode-${id}`).value === 'paid'){
+    document.querySelector(`#opaid-${id}`).value = rowTotal(id).toFixed(2);
+  }
+}
+
+// Recording a payment on a Pending order moves it to Confirmed automatically
+// (choosing "Paid", or typing an amount above 0). Shipped / Cancelled orders
+// are left alone. The change is applied to the row; press Save to store it.
+function autoConfirmIfPaid(id){
+  const statusEl = document.querySelector(`#ostatus-${id}`);
+  if(!statusEl || statusEl.value !== 'pending') return;
+  const mode = document.querySelector(`#opaidmode-${id}`).value;
+  const input = document.querySelector(`#opaid-${id}`);
+  const paid = mode === 'paid' ? rowTotal(id) : (Number(input && input.value) || 0);
+  if(paid > 0){
+    statusEl.value = 'confirmed';
+    statusEl.className = 'status-select confirmed';
+  }
+}
+
+function onPaidAmountInput(id){
+  autoConfirmIfPaid(id);
+}
+
+function updatePaidMode(id){
+  const mode = document.querySelector(`#opaidmode-${id}`).value;
+  const input = document.querySelector(`#opaid-${id}`);
+  if(mode === 'paid'){
+    input.value = rowTotal(id).toFixed(2);
+    input.disabled = true;
+  }else{
+    input.disabled = false;
+    input.focus();
+  }
+  autoConfirmIfPaid(id);
+}
+
+async function saveOrderStatus(id, btn){
+  const status = document.querySelector(`#ostatus-${id}`).value;
+  const paidMode = document.querySelector(`#opaidmode-${id}`).value;
+  const paidInput = document.querySelector(`#opaid-${id}`);
+  const order = ordersCache[id];
+  const deliveryFee = rowDeliveryFee(id);
+  const deliveryChanged = !!order && round2(deliveryFee) !== round2(Number(order.delivery_fee) || 0);
+  const newTotal = order ? (deliveryChanged ? orderTotalWithDelivery(order, deliveryFee) : Number(order.total)) : 0;
+  const paid_amount = paidMode === 'paid'
+    ? (order ? newTotal : (paidInput ? Number(paidInput.value) || 0 : 0))
+    : (paidInput ? Number(paidInput.value) || 0 : 0);
+  const statusEl = document.querySelector(`#ostatus-msg-${id}`);
+  btn.disabled = true;
+
+  // delivery_fee/total are only sent when the fee actually changed, so status
+  // and payment saves keep working even before the migration has been run.
+  const changes = { status, paid_amount };
+  if(deliveryChanged){
+    changes.delivery_fee = round2(deliveryFee);
+    changes.total = newTotal;
+  }
+
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('orders')
+    .update(changes)
+    .eq('id', id);
+
+  btn.disabled = false;
+  if(error){
+    statusEl.style.color = '#e05a5a';
+    statusEl.textContent = 'Failed: ' + error.message + (/delivery_fee/i.test(error.message) ? ' (run tools/migration-orders-delivery-discount.sql first)' : '');
+  }else{
+    const wasPending = !!order && order.status === 'pending';
+    if(order) Object.assign(order, changes);
+    statusEl.style.color = '#3bd1a0';
+    statusEl.textContent = 'Saved ✓';
+    setTimeout(() => statusEl.textContent = '', 2000);
+    loadRevenueDashboard();
+    // Move the row between the Pending box and the list below when its
+    // status just crossed that line.
+    if(!ordersStatusFilter && order && wasPending !== (status === 'pending')){
+      setTimeout(loadOrders, 700);
+    }
+  }
+}
+
+/* =========================
+   INVOICE (PDF export)
+========================= */
+const KEYCAM_BUSINESS = {
+  name: 'Keycam',
+  address: 'Toulkork Phnom Penh Cambodia',
+  phone: '0886449944',
+  telegram: 'https://t.me/Keycamm',
+  payableTo: 'Khouch Jing',
+  accountNo: '001 192 298',
+  paymentMethod: 'ABA'
+};
+
+function invoiceTypeName(t){
+  return t === 'mousepad' ? 'Mouse Pad' : t === 'fps' ? 'FPS Mouse Pad' : t === 'glass' ? 'Glass Mouse Pad' : (t || '');
+}
+
+function invoiceNumberFor(order){
+  const d = new Date(order.created_at);
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  const shortId = (order.id || '').replace(/-/g, '').slice(0, 6).toUpperCase();
+  return `INV-${y}${m}${day}-${shortId}`;
+}
+
+const KEYCAM_QR_PATH = 'assets/ABA_QR.jpg'; // place your ABA KHQR image at this path (relative to admin.html)
+const DEFAULT_MAINTENANCE_DISCOUNT = 0.20; // fallback for orders placed before maintenance_discount was captured
+
+function loadImageAsDataURL(url){
+  return new Promise((resolve) => {
+    const img = new Image();
+    img.onload = () => {
+      try{
+        const canvas = document.createElement('canvas');
+        canvas.width = img.naturalWidth;
+        canvas.height = img.naturalHeight;
+        canvas.getContext('2d').drawImage(img, 0, 0);
+        resolve({ dataUrl: canvas.toDataURL('image/jpeg'), w: img.naturalWidth, h: img.naturalHeight });
+      }catch(e){
+        resolve(null); // e.g. blocked by CORS/tainted canvas — invoice still works, just without the QR
+      }
+    };
+    img.onerror = () => resolve(null); // file not found — fine, invoice falls back to text-only payment details
+    img.src = url;
+  });
+}
+
+async function buildInvoiceDoc(order){
+  if(!window.jspdf || !window.jspdf.jsPDF) return null;
+
+  const qr = await loadImageAsDataURL(KEYCAM_QR_PATH);
+
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  const pageW = doc.internal.pageSize.getWidth();
+  const margin = 40;
+  const rightX = pageW - margin;
+  let y = 50;
+
+  // --- Header: business info (left) / INVOICE title (right) ---
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
+  doc.text(KEYCAM_BUSINESS.name, margin, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
+  doc.text(KEYCAM_BUSINESS.address, margin, y + 16);
+  doc.text(KEYCAM_BUSINESS.phone, margin, y + 28);
+  doc.text(KEYCAM_BUSINESS.telegram, margin, y + 40);
+
+  doc.setTextColor(0);
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(22);
+  doc.text('INVOICE', rightX, y, { align: 'right' });
+
+  const invoiceNo = invoiceNumberFor(order);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
+  doc.text('Invoice No.:', rightX - 90, y + 20, { align: 'right' });
+  doc.setTextColor(0);
+  doc.text(invoiceNo, rightX, y + 20, { align: 'right' });
+  doc.setTextColor(90);
+  doc.text('Date:', rightX - 90, y + 33, { align: 'right' });
+  doc.setTextColor(0);
+  doc.text(formatOrderDate(order.created_at), rightX, y + 33, { align: 'right' });
+
+  y += 60;
+  doc.setDrawColor(0); doc.setLineWidth(2);
+  doc.line(margin, y, rightX, y);
+  y += 26;
+
+  // --- Bill To ---
+  doc.setTextColor(0); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+  doc.text('Bill To', margin, y);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
+  doc.text(order.customer_name || '—', margin, y + 16);
+  if(order.customer_phone){
+    doc.setFontSize(9); doc.setTextColor(90);
+    doc.text(order.customer_phone, margin, y + 30);
+    doc.setTextColor(0);
+  }
+
+  y += 50;
+
+  // --- Items table ---
+  const items = Array.isArray(order.items) ? order.items : [];
+  const col = { no: margin, product: margin + 30, qty: rightX - 210, rate: rightX - 150, disc: rightX - 85, amt: rightX };
+  const rowH = 30;
+
+  function tableHeader(yy){
+    doc.setFillColor(0, 0, 0);
+    doc.rect(margin, yy, rightX - margin, 22, 'F');
+    doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
+    doc.text('No.', col.no + 4, yy + 15);
+    doc.text('Product', col.product, yy + 15);
+    doc.text('Qty', col.qty, yy + 15, { align: 'right' });
+    doc.text('Rate', col.rate, yy + 15, { align: 'right' });
+    doc.text('Discount', col.disc, yy + 15, { align: 'right' });
+    doc.text('Amount', col.amt, yy + 15, { align: 'right' });
+    doc.setTextColor(0);
+    return yy + 22;
+  }
+
+  function reconstructLinePricing(order, it){
+  const qty = Number(it.qty) || 0;
+  const finalPrice = Number(it.price) || 0; // what's actually stored — already discounted, if a discount applied
+
+  // Orders made with "Create order" store the exact per-item discount in
+  // dollars, so the invoice shows precisely what was entered.
+  if(it.lineDiscount != null && it.originalPrice != null){
+    const originalPrice = Number(it.originalPrice);
+    const discountTotal = Number(it.lineDiscount) || 0;
+    const amount = Math.round((originalPrice * qty - discountTotal) * 100) / 100;
+    return { rate: originalPrice, discountTotal, amount };
+  }
+
+  // Catalog checkout captures the pre-discount price directly on the item
+  // (shared/catalog-cart.js mapItemsForSupabase) whenever a Pchum Ben
+  // festival/product discount applied at the moment it was added to the
+  // order — that's the real source of truth, no reconstruction needed.
+  if(it.originalPrice != null && Number(it.originalPrice) > finalPrice){
+    const originalPrice = Number(it.originalPrice);
+    const amount = finalPrice * qty;
+    const discountTotal = Math.round((originalPrice * qty - amount) * 100) / 100;
+    return { rate: originalPrice, discountTotal, amount };
+  }
+
+  // Fallback: older Deskmat-style sitewide maintenance-mode discount
+  // (mousepad/fps items don't carry a per-item originalPrice).
+  const discountEligible = order.maintenance_mode && (it.type === 'mousepad' || it.type === 'fps');
+
+  if(!discountEligible){
+    return { rate: finalPrice, discountTotal: 0, amount: finalPrice * qty };
+  }
+
+  const rate = order.maintenance_discount != null
+    ? Number(order.maintenance_discount)
+    : DEFAULT_MAINTENANCE_DISCOUNT;
+  const originalPrice = rate < 1 ? finalPrice / (1 - rate) : finalPrice;
+  const roundedOriginal = Math.round(originalPrice * 100) / 100;
+  const amount = finalPrice * qty; // what the customer actually paid for this line — unchanged
+  const discountTotal = Math.round((roundedOriginal * qty - amount) * 100) / 100;
+
+  return { rate: roundedOriginal, discountTotal, amount };
+}
+
+  y = tableHeader(y);
+
+  let subtotal = 0;
+  let lineDiscountTotal = 0;
+  items.forEach((it, i) => {
+    const qty = Number(it.qty) || 0;
+    const { rate, discountTotal: discount, amount } = reconstructLinePricing(order, it);
+    subtotal += amount;
+    lineDiscountTotal += Number(discount) || 0;
+
+    if(y + rowH > doc.internal.pageSize.getHeight() - 140){
+      doc.addPage();
+      y = 50;
+      y = tableHeader(y);
+    }
+
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+    doc.text(String(i + 1), col.no + 4, y + 13);
+    doc.text(String(it.name || ''), col.product, y + 13);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(90);
+    // Catalog-checkout items carry a variantSummary instead of type/size/thickness.
+    const subtitle = it.variantSummary || [invoiceTypeName(it.type), it.size, it.thickness].filter(Boolean).join(', ');
+    if(subtitle) doc.text(subtitle, col.product, y + 25);
+    doc.setTextColor(0); doc.setFontSize(10);
+    doc.text(String(qty), col.qty, y + 13, { align: 'right' });
+    doc.text(rate.toFixed(2), col.rate, y + 13, { align: 'right' });
+    doc.text(discount.toFixed(2), col.disc, y + 13, { align: 'right' });
+    doc.text(amount.toFixed(2), col.amt, y + 13, { align: 'right' });
+
+    doc.setDrawColor(220);
+    doc.line(margin, y + rowH, rightX, y + rowH);
+    y += rowH;
+  });
+
+  y += 26;
+
+  // --- Payment Detail (left) + Totals (right) ---
+  const payY = y;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
+  doc.text('Payment Detail', margin, payY);
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
+  doc.text('Payable To', margin, payY + 16);
+  doc.text('Account No', margin, payY + 30);
+  doc.text('Other Details', margin, payY + 44);
+  doc.setTextColor(0);
+  doc.text(KEYCAM_BUSINESS.payableTo, margin + 80, payY + 16);
+  doc.text(KEYCAM_BUSINESS.accountNo, margin + 80, payY + 30);
+  doc.text(KEYCAM_BUSINESS.paymentMethod, margin + 80, payY + 44);
+
+  if(qr && qr.dataUrl){
+    const qrSize = 74;
+    const qrX = margin + 220;
+    try{
+      doc.addImage(qr.dataUrl, 'JPEG', qrX, payY - 8, qrSize, qrSize);
+      doc.setFontSize(7.5); doc.setTextColor(120);
+      doc.text('Scan to pay', qrX + qrSize / 2, payY - 8 + qrSize + 10, { align: 'center' });
+      doc.setTextColor(0);
+    }catch(e){ /* image failed to embed — invoice still renders fine without it */ }
+  }
+
+  const orderDiscount = Number(order.order_discount_amount) || 0;
+  const deliveryFee = Number(order.delivery_fee) || 0;
+  const tax = 0;
+  let total = subtotal - orderDiscount + deliveryFee + tax;
+  // Safety net: the total stored on the order is what the customer was really
+  // charged. If the itemised lines don't add up to it (e.g. an older order that
+  // never saved each item's original price), show the gap as its own row instead
+  // of silently dropping it, so the invoice total always matches the order.
+  let adjustment = 0;
+  if(order.total !== null && order.total !== undefined && isFinite(Number(order.total)) &&
+     Math.abs(Number(order.total) - total) > 0.005){
+    adjustment = total - Number(order.total); // > 0 = a discount that wasn't itemised
+    total = Number(order.total);
+  }
+  // Paid comes from the order's tracked paid_amount (deposits, partial payments).
+  // Falls back to the old status-based full/zero rule for orders saved before that column existed.
+  const paid = (order.paid_amount !== null && order.paid_amount !== undefined)
+    ? Number(order.paid_amount)
+    : ((order.status === 'confirmed' || order.status === 'shipped') ? total : 0);
+  const balance = total - paid;
+
+  const totW = 200, totX = rightX - totW;
+  let ty = payY;
+  doc.setFontSize(9); doc.setTextColor(90);
+  const totalsRow = (label, value) => {
+    doc.setTextColor(90); doc.text(label, totX, ty);
+    doc.setTextColor(0); doc.text(value, rightX, ty, { align: 'right' });
+    ty += 18;
+  };
+  const hasLineDisc = lineDiscountTotal > 0.004;
+  const hasAdjust = Math.abs(adjustment) > 0.004;
+  // Subtotal is the price before any discount, so the rows below add up to the Total.
+  if(hasLineDisc || orderDiscount > 0 || deliveryFee > 0 || hasAdjust) totalsRow('Subtotal', `$${(subtotal + lineDiscountTotal).toFixed(2)}`);
+  if(hasLineDisc) totalsRow('Item discount', `-$${lineDiscountTotal.toFixed(2)}`);
+  if(orderDiscount > 0){
+    const pct = order.order_discount_type === 'percent' ? ` (${Number(order.order_discount_value)}%)` : '';
+    totalsRow((hasLineDisc ? 'Order discount' : 'Discount') + pct, `-$${orderDiscount.toFixed(2)}`);
+  }
+  if(adjustment > 0.004) totalsRow((hasLineDisc || orderDiscount > 0) ? 'Other discount' : 'Discount', `-$${adjustment.toFixed(2)}`);
+  if(adjustment < -0.004) totalsRow('Adjustment', `+$${Math.abs(adjustment).toFixed(2)}`);
+  if(deliveryFee > 0) totalsRow('Delivery fee', `$${deliveryFee.toFixed(2)}`);
+  doc.setTextColor(90);
+  doc.text('Tax (0.0%)', totX, ty); doc.setTextColor(0); doc.text(`$${tax.toFixed(2)}`, rightX, ty, { align: 'right' });
+  ty += 18;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
+  doc.text('Total', totX, ty); doc.text(`$${total.toFixed(2)}`, rightX, ty, { align: 'right' });
+  ty += 18;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
+  doc.text('Paid', totX, ty); doc.setTextColor(0); doc.text(`$${paid.toFixed(2)}`, rightX, ty, { align: 'right' });
+  ty += 10;
+  doc.setDrawColor(0); doc.line(totX, ty, rightX, ty);
+  ty += 16;
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
+  doc.text('Balance', totX, ty); doc.text(`$${balance.toFixed(2)}`, rightX, ty, { align: 'right' });
+
+  y = Math.max(payY + 60, ty + 40);
+
+  // --- Terms & Conditions ---
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(0);
+  doc.text('Terms & Condition', margin, y);
+  y += 16;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(90);
+  const terms = [
+    'No returnable to cash after purchase.',
+    '1 year warranty on a new product.',
+    'If there are any technical issues within 7 days, you can exchange for the new one.',
+    'Warranty void on electric shock, seal broken, misuse, or modification.'
+  ];
+  terms.forEach(line => {
+    const wrapped = doc.splitTextToSize('• ' + line, 280);
+    doc.text(wrapped, margin, y);
+    y += wrapped.length * 12;
+  });
+
+  // --- Signature ---
+  doc.setTextColor(0); doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
+  doc.text(KEYCAM_BUSINESS.name, rightX, y - 10, { align: 'right' });
+  doc.text('Signature', rightX, y + 4, { align: 'right' });
+
+  return { doc, invoiceNo };
+}
+
+async function openInvoicePreview(orderId){
+  const order = ordersCache[orderId];
+  if(!order){ alert('Order not found — try reloading the orders list.'); return; }
+
+  document.querySelector('#invoicePreviewFrame').srcdoc = '<body style="font-family:sans-serif;color:#8a9a9f;padding:24px;">Building invoice&hellip;';
+  document.querySelector('#invoiceModalBackdrop').classList.add('open');
+
+  const built = await buildInvoiceDoc(order);
+  if(!built){ alert('PDF library did not load. Check your internet connection and try again.'); return; }
+
+  const { doc, invoiceNo } = built;
+  const blobUrl = doc.output('bloburl');
+
+  document.querySelector('#invoicePreviewFrame').removeAttribute('srcdoc');
+  document.querySelector('#invoicePreviewFrame').src = blobUrl;
+  document.querySelector('#invoiceDownloadBtn').onclick = () => doc.save(`${invoiceNo}.pdf`);
+}
+
+document.querySelector('#invoiceCloseBtn').addEventListener('click', () => {
+  document.querySelector('#invoiceModalBackdrop').classList.remove('open');
+  document.querySelector('#invoicePreviewFrame').src = 'about:blank';
+});
+document.querySelector('#invoiceModalBackdrop').addEventListener('click', (e) => {
+  if(e.target.id === 'invoiceModalBackdrop'){
+    document.querySelector('#invoiceModalBackdrop').classList.remove('open');
+    document.querySelector('#invoicePreviewFrame').src = 'about:blank';
+  }
+});
+
+/* =========================
+   REVENUE DASHBOARD
+========================= */
+async function loadRevenueDashboard(){
+  const { data, error } = await window.KEYCAM_SUPABASE
+    .from('orders')
+    .select('total, created_at')
+    .in('status', ['confirmed', 'shipped']);
+
+  if(error){ console.error("Failed to load revenue:", error); return; }
+
+  const now = new Date();
+  const startOfToday = new Date(now.getFullYear(), now.getMonth(), now.getDate());
+  const startOfWeek = new Date(startOfToday);
+  startOfWeek.setDate(startOfWeek.getDate() - startOfWeek.getDay());
+  const startOfMonth = new Date(now.getFullYear(), now.getMonth(), 1);
+
+  const today = { rev: 0, count: 0 };
+  const week = { rev: 0, count: 0 };
+  const month = { rev: 0, count: 0 };
+  const all = { rev: 0, count: 0 };
+
+  (data || []).forEach(o => {
+    const d = new Date(o.created_at);
+    const total = Number(o.total) || 0;
+    all.rev += total; all.count++;
+    if(d >= startOfMonth){ month.rev += total; month.count++; }
+    if(d >= startOfWeek){ week.rev += total; week.count++; }
+    if(d >= startOfToday){ today.rev += total; today.count++; }
+  });
+
+  setRevenueCard('today', today);
+  setRevenueCard('week', week);
+  setRevenueCard('month', month);
+  setRevenueCard('all', all);
+}
+
+function setRevenueCard(key, { rev, count }){
+  const revEl = document.querySelector(`#rev-${key}`);
+  const countEl = document.querySelector(`#rev-${key}-count`);
+  if(revEl) revEl.textContent = '$' + rev.toFixed(2);
+  if(countEl) countEl.textContent = `${count} order${count === 1 ? '' : 's'}`;
+}
+
+document.querySelector('#orderSearch').addEventListener('input', (e) => {
+  clearTimeout(window._orderSearchDebounce);
+  window._orderSearchDebounce = setTimeout(() => {
+    ordersSearch = e.target.value.trim();
+    ordersPage = 0;
+    loadOrders();
+  }, 400);
+});
+
+document.querySelector('#orderStatusFilter').addEventListener('change', (e) => {
+  ordersStatusFilter = e.target.value;
+  ordersPage = 0;
+  loadOrders();
+});
+
+document.querySelector('#ordersPrevPage').addEventListener('click', () => {
+  if(ordersPage > 0){ ordersPage--; loadOrders(); }
+});
+document.querySelector('#ordersNextPage').addEventListener('click', () => {
+  ordersPage++; loadOrders();
+});
+
+document.querySelector('#createOrderBtn').addEventListener('click', () => {
+  if(!window.KeycamCreateOrder){
+    alert('The Create order script did not load. Make sure shared/admin-create-order.js is uploaded with the site files.');
+    return;
+  }
+  window.KeycamCreateOrder.open({
+    onSaved: async (row, openInvoice) => {
+      // Show the new order at the top of an unfiltered list.
+      ordersPage = 0; ordersSearch = ''; ordersStatusFilter = '';
+      document.querySelector('#orderSearch').value = '';
+      document.querySelector('#orderStatusFilter').value = '';
+      await loadOrders();
+      loadRevenueDashboard();
+      if(openInvoice){
+        ordersCache[row.id] = row;
+        openInvoicePreview(row.id);
+      }
+    }
+  });
+});
+
+checkSession();
+</script>
+</body>
+</html>

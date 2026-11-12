@@ -1,0 +1,1390 @@
+supabase_structure
+"{
+    ""enums"": [
+    ],
+    ""views"": [
+        {
+            ""name"": ""catalog_products_public"",
+            ""definition"": "" SELECT id,\n    category,\n    subtype,\n    name,\n    image,\n    thumbnail,\n    collection,\n    base_price,\n    discount_percent,\n    specs,\n    description,\n    sort_order,\n    archived,\n    created_at,\n    theme,\n    profile,\n    shipping_info,\n    payment_info\n   FROM catalog_products;""
+        },
+        {
+            ""name"": ""catalog_variants_public"",
+            ""definition"": "" SELECT id,\n    product_id,\n    group_name,\n    option_label,\n    price,\n    sort_order,\n    in_stock,\n    image\n   FROM catalog_variants;""
+        }
+    ],
+    ""grants"": [
+        {
+            ""role"": ""anon"",
+            ""table"": ""catalog_product_components"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""table"": ""catalog_product_components"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""anon"",
+            ""table"": ""catalog_product_images"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""table"": ""catalog_product_images"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""anon"",
+            ""table"": ""catalog_products"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""table"": ""catalog_products"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""anon"",
+            ""table"": ""catalog_products_public"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""table"": ""catalog_products_public"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""anon"",
+            ""table"": ""catalog_variants"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""table"": ""catalog_variants"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""anon"",
+            ""table"": ""catalog_variants_public"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""table"": ""catalog_variants_public"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""anon"",
+            ""table"": ""collections"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""table"": ""collections"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""anon"",
+            ""table"": ""orders"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""table"": ""orders"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""anon"",
+            ""table"": ""pricing"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""table"": ""pricing"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""anon"",
+            ""table"": ""products"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""table"": ""products"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""anon"",
+            ""table"": ""series_links"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""table"": ""series_links"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""anon"",
+            ""table"": ""store_settings"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        },
+        {
+            ""role"": ""authenticated"",
+            ""table"": ""store_settings"",
+            ""privileges"": ""DELETE, INSERT, REFERENCES, SELECT, TRIGGER, TRUNCATE, UPDATE""
+        }
+    ],
+    ""tables"": [
+        {
+            ""table"": ""catalog_product_components"",
+            ""columns"": [
+                {
+                    ""type"": ""bigint"",
+                    ""column"": ""id"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""uuid"",
+                    ""column"": ""product_id"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""uuid"",
+                    ""column"": ""component_product_id"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""role_label"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""integer"",
+                    ""column"": ""sort_order"",
+                    ""default"": ""0"",
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""timestamp with time zone"",
+                    ""column"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": true
+                }
+            ],
+            ""indexes"": [
+                ""CREATE UNIQUE INDEX catalog_product_components_pkey ON public.catalog_product_components USING btree (id)""
+            ],
+            ""approx_rows"": -1,
+            ""constraints"": [
+                {
+                    ""name"": ""catalog_product_components_component_product_id_fkey"",
+                    ""definition"": ""FOREIGN KEY (component_product_id) REFERENCES catalog_products(id) ON DELETE CASCADE""
+                },
+                {
+                    ""name"": ""catalog_product_components_pkey"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                },
+                {
+                    ""name"": ""catalog_product_components_product_id_fkey"",
+                    ""definition"": ""FOREIGN KEY (product_id) REFERENCES catalog_products(id) ON DELETE CASCADE""
+                }
+            ],
+            ""rls_enabled"": true
+        },
+        {
+            ""table"": ""catalog_product_images"",
+            ""columns"": [
+                {
+                    ""type"": ""uuid"",
+                    ""column"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""uuid"",
+                    ""column"": ""product_id"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""url"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""integer"",
+                    ""column"": ""sort_order"",
+                    ""default"": ""0"",
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""timestamp with time zone"",
+                    ""column"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""thumb_url"",
+                    ""default"": null,
+                    ""nullable"": true
+                }
+            ],
+            ""indexes"": [
+                ""CREATE UNIQUE INDEX catalog_product_images_pkey ON public.catalog_product_images USING btree (id)""
+            ],
+            ""approx_rows"": 1026,
+            ""constraints"": [
+                {
+                    ""name"": ""catalog_product_images_pkey"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                },
+                {
+                    ""name"": ""catalog_product_images_product_id_fkey"",
+                    ""definition"": ""FOREIGN KEY (product_id) REFERENCES catalog_products(id) ON DELETE CASCADE""
+                }
+            ],
+            ""rls_enabled"": true
+        },
+        {
+            ""table"": ""catalog_products"",
+            ""columns"": [
+                {
+                    ""type"": ""uuid"",
+                    ""column"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""category"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""subtype"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""name"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""image"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""thumbnail"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""collection"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""base_price"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""specs"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""description"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""integer"",
+                    ""column"": ""sort_order"",
+                    ""default"": ""0"",
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""boolean"",
+                    ""column"": ""archived"",
+                    ""default"": ""false"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""timestamp with time zone"",
+                    ""column"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""shipping_info"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""payment_info"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""theme"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""profile"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""discount_percent"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""integer"",
+                    ""column"": ""stock_qty"",
+                    ""default"": null,
+                    ""nullable"": true
+                }
+            ],
+            ""indexes"": [
+                ""CREATE UNIQUE INDEX catalog_products_pkey ON public.catalog_products USING btree (id)""
+            ],
+            ""approx_rows"": 176,
+            ""constraints"": [
+                {
+                    ""name"": ""catalog_products_category_check"",
+                    ""definition"": ""CHECK ((category = ANY (ARRAY['keyboard'::text, 'accessories'::text, 'mouse'::text])))""
+                },
+                {
+                    ""name"": ""catalog_products_pkey"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ],
+            ""rls_enabled"": true
+        },
+        {
+            ""table"": ""catalog_variants"",
+            ""columns"": [
+                {
+                    ""type"": ""uuid"",
+                    ""column"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""uuid"",
+                    ""column"": ""product_id"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""group_name"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""option_label"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""price"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""integer"",
+                    ""column"": ""sort_order"",
+                    ""default"": ""0"",
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""image"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""boolean"",
+                    ""column"": ""in_stock"",
+                    ""default"": ""true"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""integer"",
+                    ""column"": ""stock_qty"",
+                    ""default"": null,
+                    ""nullable"": true
+                }
+            ],
+            ""indexes"": [
+                ""CREATE UNIQUE INDEX catalog_variants_pkey ON public.catalog_variants USING btree (id)""
+            ],
+            ""approx_rows"": 212,
+            ""constraints"": [
+                {
+                    ""name"": ""catalog_variants_pkey"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                },
+                {
+                    ""name"": ""catalog_variants_product_id_fkey"",
+                    ""definition"": ""FOREIGN KEY (product_id) REFERENCES catalog_products(id) ON DELETE CASCADE""
+                }
+            ],
+            ""rls_enabled"": true
+        },
+        {
+            ""table"": ""collections"",
+            ""columns"": [
+                {
+                    ""type"": ""text"",
+                    ""column"": ""id"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""name"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""thumbnail"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""integer"",
+                    ""column"": ""sort_order"",
+                    ""default"": ""0"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""boolean"",
+                    ""column"": ""archived"",
+                    ""default"": ""false"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""boolean"",
+                    ""column"": ""hidden_from_home"",
+                    ""default"": ""false"",
+                    ""nullable"": true
+                }
+            ],
+            ""indexes"": [
+                ""CREATE UNIQUE INDEX collections_pkey ON public.collections USING btree (id)""
+            ],
+            ""approx_rows"": 15,
+            ""constraints"": [
+                {
+                    ""name"": ""collections_pkey"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ],
+            ""rls_enabled"": true
+        },
+        {
+            ""table"": ""orders"",
+            ""columns"": [
+                {
+                    ""type"": ""uuid"",
+                    ""column"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""timestamp with time zone"",
+                    ""column"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""jsonb"",
+                    ""column"": ""items"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""total"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""boolean"",
+                    ""column"": ""maintenance_mode"",
+                    ""default"": ""false"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""status"",
+                    ""default"": ""'pending'::text"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""customer_note"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""customer_name"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""customer_phone"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""paid_amount"",
+                    ""default"": ""0"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""maintenance_discount"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""delivery_fee"",
+                    ""default"": ""0"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""order_discount_type"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""order_discount_value"",
+                    ""default"": ""0"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""order_discount_amount"",
+                    ""default"": ""0"",
+                    ""nullable"": false
+                }
+            ],
+            ""indexes"": [
+                ""CREATE UNIQUE INDEX orders_pkey ON public.orders USING btree (id)""
+            ],
+            ""approx_rows"": 28,
+            ""constraints"": [
+                {
+                    ""name"": ""orders_pkey"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ],
+            ""rls_enabled"": true
+        },
+        {
+            ""table"": ""pricing"",
+            ""columns"": [
+                {
+                    ""type"": ""text"",
+                    ""column"": ""type"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""thickness"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""size_label"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""price"",
+                    ""default"": null,
+                    ""nullable"": false
+                }
+            ],
+            ""indexes"": [
+                ""CREATE UNIQUE INDEX pricing_pkey ON public.pricing USING btree (type, thickness, size_label)""
+            ],
+            ""approx_rows"": -1,
+            ""constraints"": [
+                {
+                    ""name"": ""pricing_pkey"",
+                    ""definition"": ""PRIMARY KEY (type, thickness, size_label)""
+                }
+            ],
+            ""rls_enabled"": true
+        },
+        {
+            ""table"": ""products"",
+            ""columns"": [
+                {
+                    ""type"": ""text"",
+                    ""column"": ""id"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""name"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""image"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""thumbnail"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""collection"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""folder"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""series"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""series_name"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""focal_x"",
+                    ""default"": ""50"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""focal_y"",
+                    ""default"": ""50"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""boolean"",
+                    ""column"": ""in_stock_ready"",
+                    ""default"": ""false"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""stock_type"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""stock_thickness"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""stock_size_label"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""stock_price"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""timestamp with time zone"",
+                    ""column"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": true
+                }
+            ],
+            ""indexes"": [
+                ""CREATE UNIQUE INDEX products_pkey ON public.products USING btree (id)""
+            ],
+            ""approx_rows"": 1846,
+            ""constraints"": [
+                {
+                    ""name"": ""products_pkey"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                }
+            ],
+            ""rls_enabled"": true
+        },
+        {
+            ""table"": ""series_links"",
+            ""columns"": [
+                {
+                    ""type"": ""uuid"",
+                    ""column"": ""id"",
+                    ""default"": ""gen_random_uuid()"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""source_collection"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""series"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""target_collection"",
+                    ""default"": null,
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""timestamp with time zone"",
+                    ""column"": ""created_at"",
+                    ""default"": ""now()"",
+                    ""nullable"": false
+                }
+            ],
+            ""indexes"": [
+                ""CREATE UNIQUE INDEX series_links_pkey ON public.series_links USING btree (id)"",
+                ""CREATE UNIQUE INDEX series_links_source_collection_series_target_collection_key ON public.series_links USING btree (source_collection, series, target_collection)""
+            ],
+            ""approx_rows"": -1,
+            ""constraints"": [
+                {
+                    ""name"": ""series_links_pkey"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                },
+                {
+                    ""name"": ""series_links_source_collection_series_target_collection_key"",
+                    ""definition"": ""UNIQUE (source_collection, series, target_collection)""
+                }
+            ],
+            ""rls_enabled"": true
+        },
+        {
+            ""table"": ""store_settings"",
+            ""columns"": [
+                {
+                    ""type"": ""integer"",
+                    ""column"": ""id"",
+                    ""default"": ""1"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""boolean"",
+                    ""column"": ""maintenance_mode"",
+                    ""default"": ""true"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""maintenance_discount"",
+                    ""default"": ""0.20"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""boolean"",
+                    ""column"": ""festival_discount_mode"",
+                    ""default"": ""false"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""numeric"",
+                    ""column"": ""festival_discount_percent"",
+                    ""default"": ""20"",
+                    ""nullable"": false
+                },
+                {
+                    ""type"": ""text"",
+                    ""column"": ""festival_discount_label"",
+                    ""default"": ""'Pchum Ben Festival Sale'::text"",
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""timestamp with time zone"",
+                    ""column"": ""festival_discount_starts_at"",
+                    ""default"": null,
+                    ""nullable"": true
+                },
+                {
+                    ""type"": ""timestamp with time zone"",
+                    ""column"": ""festival_discount_ends_at"",
+                    ""default"": null,
+                    ""nullable"": true
+                }
+            ],
+            ""indexes"": [
+                ""CREATE UNIQUE INDEX store_settings_pkey ON public.store_settings USING btree (id)""
+            ],
+            ""approx_rows"": -1,
+            ""constraints"": [
+                {
+                    ""name"": ""store_settings_pkey"",
+                    ""definition"": ""PRIMARY KEY (id)""
+                },
+                {
+                    ""name"": ""store_settings_singleton"",
+                    ""definition"": ""CHECK ((id = 1))""
+                }
+            ],
+            ""rls_enabled"": true
+        }
+    ],
+    ""policies"": [
+        {
+            ""name"": ""Public can read products"",
+            ""roles"": [
+                ""anon""
+            ],
+            ""table"": ""products"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Public can read pricing"",
+            ""roles"": [
+                ""anon""
+            ],
+            ""table"": ""pricing"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can update products"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""products"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""UPDATE"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can insert products"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""products"",
+            ""using"": null,
+            ""schema"": ""public"",
+            ""command"": ""INSERT"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can delete products"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""products"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""DELETE"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can update pricing"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""pricing"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""UPDATE"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Public Read Access"",
+            ""roles"": [
+                ""public""
+            ],
+            ""table"": ""products"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated Update Access"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""products"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""UPDATE"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated Delete Access"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""products"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""DELETE"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Public Access for Product Images"",
+            ""roles"": [
+                ""public""
+            ],
+            ""table"": ""objects"",
+            ""using"": ""(bucket_id = 'keycam-images'::text)"",
+            ""schema"": ""storage"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Public Read Access"",
+            ""roles"": [
+                ""public""
+            ],
+            ""table"": ""pricing"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can insert collections"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""collections"",
+            ""using"": null,
+            ""schema"": ""public"",
+            ""command"": ""INSERT"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can update collections"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""collections"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""UPDATE"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can upload images"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""objects"",
+            ""using"": null,
+            ""schema"": ""storage"",
+            ""command"": ""INSERT"",
+            ""with_check"": ""(bucket_id = 'keycam-images'::text)""
+        },
+        {
+            ""name"": ""Authenticated can update stored images"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""objects"",
+            ""using"": ""(bucket_id = 'keycam-images'::text)"",
+            ""schema"": ""storage"",
+            ""command"": ""UPDATE"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Public can read collections"",
+            ""roles"": [
+                ""public""
+            ],
+            ""table"": ""collections"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can delete collections"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""collections"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""DELETE"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can read orders"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""orders"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can update orders"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""orders"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""UPDATE"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Public can read store settings"",
+            ""roles"": [
+                ""public""
+            ],
+            ""table"": ""store_settings"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated admins can update store settings"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""store_settings"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""UPDATE"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Public can insert orders"",
+            ""roles"": [
+                ""anon""
+            ],
+            ""table"": ""orders"",
+            ""using"": null,
+            ""schema"": ""public"",
+            ""command"": ""INSERT"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can insert orders"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""orders"",
+            ""using"": null,
+            ""schema"": ""public"",
+            ""command"": ""INSERT"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can insert catalog_products"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_products"",
+            ""using"": null,
+            ""schema"": ""public"",
+            ""command"": ""INSERT"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can update catalog_products"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_products"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""UPDATE"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can delete catalog_products"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_products"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""DELETE"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can insert catalog_variants"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_variants"",
+            ""using"": null,
+            ""schema"": ""public"",
+            ""command"": ""INSERT"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can update catalog_variants"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_variants"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""UPDATE"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can delete catalog_variants"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_variants"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""DELETE"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can delete stored images"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""objects"",
+            ""using"": ""(bucket_id = 'keycam-images'::text)"",
+            ""schema"": ""storage"",
+            ""command"": ""DELETE"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Public can read catalog_product_images"",
+            ""roles"": [
+                ""anon""
+            ],
+            ""table"": ""catalog_product_images"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can read catalog_product_images"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_product_images"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can insert catalog_product_images"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_product_images"",
+            ""using"": null,
+            ""schema"": ""public"",
+            ""command"": ""INSERT"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can update catalog_product_images"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_product_images"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""UPDATE"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can delete catalog_product_images"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_product_images"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""DELETE"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Public read access"",
+            ""roles"": [
+                ""public""
+            ],
+            ""table"": ""catalog_product_components"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can insert catalog_product_components"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_product_components"",
+            ""using"": null,
+            ""schema"": ""public"",
+            ""command"": ""INSERT"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can update catalog_product_components"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_product_components"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""UPDATE"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can delete catalog_product_components"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_product_components"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""DELETE"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can read catalog_products"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_products"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can read catalog_variants"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""catalog_variants"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can read series_links"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""series_links"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""SELECT"",
+            ""with_check"": null
+        },
+        {
+            ""name"": ""Authenticated can insert series_links"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""series_links"",
+            ""using"": null,
+            ""schema"": ""public"",
+            ""command"": ""INSERT"",
+            ""with_check"": ""true""
+        },
+        {
+            ""name"": ""Authenticated can delete series_links"",
+            ""roles"": [
+                ""authenticated""
+            ],
+            ""table"": ""series_links"",
+            ""using"": ""true"",
+            ""schema"": ""public"",
+            ""command"": ""DELETE"",
+            ""with_check"": null
+        }
+    ],
+    ""triggers"": [
+    ],
+    ""functions"": [
+    ],
+    ""storage_buckets"": [
+        {
+            ""name"": ""keycam-images"",
+            ""public"": true,
+            ""file_size_limit"": null,
+            ""allowed_mime_types"": null
+        }
+    ]
+}"

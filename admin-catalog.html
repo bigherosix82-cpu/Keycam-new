@@ -834,6 +834,58 @@
     }
     .admin-body{ padding:24px 18px 48px; }
   }
+
+  /* ---------- mobile fixes (phones) ---------- */
+  @media (max-width: 860px){
+    /* tab strip: brand + links on row 1, scrollable tabs on their own row 2 */
+    .admin-shell-app, .admin-main{ min-width:0; max-width:100%; }
+    .admin-sidebar{ flex-wrap:wrap; }
+    .admin-brand{ order:1; flex:1 1 auto; min-width:0; border-right:none; }
+    .admin-sidebar-foot{ order:2; flex:0 0 auto; border-left:none; }
+    .admin-nav{
+      order:3; flex:1 0 100%; min-width:0; max-width:100%;
+      overflow-x:auto; overflow-y:hidden; -webkit-overflow-scrolling:touch;
+      border-top:1px solid var(--line);
+    }
+    .admin-tab-btn{ flex:0 0 auto; white-space:nowrap; }
+    /* wide tables (products, inventory, variants...) scroll inside themselves */
+    .admin-section .admin-table:not(.orders-table),
+    .admin-field > table{ display:block; max-width:100%; overflow-x:auto; -webkit-overflow-scrolling:touch; }
+  }
+  @media (max-width: 700px){
+    .admin-body{ padding:20px 12px 40px; }
+    /* inline two-column form grids -> one column, never wider than the screen */
+    .admin-tab-panel div[style*="grid-template-columns"]{ grid-template-columns:minmax(0,1fr) !important; gap:14px !important; }
+    .admin-tab-panel .admin-field, .admin-tab-panel .admin-field > *{ min-width:0; max-width:100%; }
+    .admin-field select, .admin-field input, .admin-field textarea{ max-width:100%; }
+    .component-product-picker{ min-width:0; }
+    .image-dropzone{ max-width:100%; }
+    .pending-orders-box{ padding:12px 10px 2px; }
+
+    /* orders: one stacked card per order, every field + Save/Invoice reachable */
+    .orders-table, .orders-table tbody{ display:block; width:100%; }
+    .orders-table thead{ display:none; }
+    .orders-table tr{
+      display:block; margin:0 0 12px; padding:10px 12px;
+      background:var(--surface); border:1px solid var(--line); border-radius:10px;
+    }
+    .orders-table tbody tr:hover td{ background:none; }
+    .orders-table td{
+      display:block; position:relative; min-height:26px;
+      padding:6px 0 6px 92px; border-bottom:1px solid var(--line);
+      overflow-wrap:anywhere; text-align:left;
+    }
+    .orders-table td:last-child{ border-bottom:none; padding-left:0; padding-top:10px; }
+    .orders-table td[data-label]::before{
+      content:attr(data-label); position:absolute; left:0; top:8px; width:84px;
+      font:600 10.5px var(--mono); letter-spacing:.03em; text-transform:uppercase; color:var(--ink-faint);
+    }
+    .orders-table td > .order-input{ width:100% !important; max-width:160px; }
+    .orders-table td > select,
+    .orders-table .paid-cell{ width:100%; max-width:220px; }
+    .orders-table .admin-btn-row .admin-btn{ flex:1 1 auto; min-height:38px; }
+    .orders-table td[colspan]{ padding:8px 0; }
+  }
 </style>
 </head>
 
@@ -978,7 +1030,7 @@
             <h3 class="orders-group-title">Pending orders</h3>
             <span class="orders-count" id="pendingOrdersCount">0</span>
           </div>
-          <table class="admin-table">
+          <table class="admin-table orders-table">
             <thead>
               <tr><th>Date</th><th>Customer</th><th>Items</th><th>Delivery</th><th>Total</th><th>Paid</th><th>Status</th><th></th></tr>
             </thead>
@@ -988,7 +1040,7 @@
         <div class="orders-group-head" id="otherOrdersTitle" style="display:none;">
           <h3 class="orders-group-title">Other orders</h3>
         </div>
-        <table class="admin-table">
+        <table class="admin-table orders-table">
           <thead>
             <tr><th>Date</th><th>Customer</th><th>Items</th><th>Delivery</th><th>Total</th><th>Paid</th><th>Status</th><th></th></tr>
           </thead>
@@ -1224,6 +1276,7 @@
     <div class="invoice-modal-top">
       <span>Invoice Preview</span>
       <div class="admin-btn-row">
+        <button class="admin-btn" id="invoiceReceiptBtn">Print receipt</button>
         <button class="admin-btn" id="invoiceDownloadBtn">Download PDF</button>
         <button class="admin-btn danger" id="invoiceCloseBtn">Close</button>
       </div>
@@ -1235,6 +1288,8 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="supabase-client.js"></script>
+<script src="shared/invoice.js"></script>
+<script src="shared/thermal-receipt.js"></script>
 <script src="shared/admin-create-order.js"></script>
 <script>
 /* =========================
@@ -1379,12 +1434,12 @@ function summarizeItems(items){
 function orderRowHTML(o){
   return `
       <tr data-order-id="${o.id}">
-        <td>${formatOrderDate(o.created_at)}</td>
-        <td>${escapeAttr(o.customer_name || '—')}<br><span style="color:#8a9a9f;">${escapeAttr(o.customer_phone || '')}</span></td>
-        <td>${summarizeItems(o.items)}</td>
-        <td><input type="number" class="order-input" id="odelivery-${o.id}" step="0.01" min="0" value="${Number(o.delivery_fee || 0).toFixed(2)}" oninput="onDeliveryInput('${o.id}')" aria-label="Delivery fee"></td>
-        <td><span id="ototal-${o.id}">$${Number(o.total).toFixed(2)}</span>${Number(o.order_discount_amount) > 0 ? `<br><span style="color:#8a9a9f; font-size:11px;">incl. -$${Number(o.order_discount_amount).toFixed(2)} discount</span>` : ''}</td>
-        <td>
+        <td data-label="Date">${formatOrderDate(o.created_at)}</td>
+        <td data-label="Customer">${escapeAttr(o.customer_name || '—')}<br><span style="color:#8a9a9f;">${escapeAttr(o.customer_phone || '')}</span></td>
+        <td data-label="Items">${summarizeItems(o.items)}</td>
+        <td data-label="Delivery"><input type="number" class="order-input" id="odelivery-${o.id}" step="0.01" min="0" value="${Number(o.delivery_fee || 0).toFixed(2)}" oninput="onDeliveryInput('${o.id}')" aria-label="Delivery fee"></td>
+        <td data-label="Total"><span id="ototal-${o.id}">$${Number(o.total).toFixed(2)}</span>${Number(o.order_discount_amount) > 0 ? `<br><span style="color:#8a9a9f; font-size:11px;">incl. -$${Number(o.order_discount_amount).toFixed(2)} discount</span>` : ''}</td>
+        <td data-label="Paid">
           <div class="paid-cell">
             <select class="paid-mode-select" id="opaidmode-${o.id}" onchange="updatePaidMode('${o.id}')">
               <option value="paid" ${o.paid_amount != null && Number(o.paid_amount) === Number(o.total) ? 'selected' : ''}>Paid</option>
@@ -1393,7 +1448,7 @@ function orderRowHTML(o){
             <input type="number" class="order-input" id="opaid-${o.id}" oninput="onPaidAmountInput('${o.id}')" step="0.01" min="0" value="${o.paid_amount != null ? Number(o.paid_amount).toFixed(2) : '0.00'}" ${o.paid_amount != null && Number(o.paid_amount) === Number(o.total) ? 'disabled' : ''}>
           </div>
         </td>
-        <td>
+        <td data-label="Status">
           <select class="status-select ${o.status}" id="ostatus-${o.id}" onchange="this.className='status-select ' + this.value">
             <option value="pending" ${o.status === 'pending' ? 'selected' : ''}>Pending</option>
             <option value="confirmed" ${o.status === 'confirmed' ? 'selected' : ''}>Confirmed</option>
@@ -1401,10 +1456,12 @@ function orderRowHTML(o){
             <option value="cancelled" ${o.status === 'cancelled' ? 'selected' : ''}>Cancelled</option>
           </select>
         </td>
-        <td>
+        <td data-label="">
           <div class="admin-btn-row">
             <button class="admin-btn" onclick="saveOrderStatus('${o.id}', this)">Save</button>
+            <button class="admin-btn" onclick="editOrder('${o.id}')">Edit</button>
             <button class="admin-btn" onclick="openInvoicePreview('${o.id}')">Invoice</button>
+            <button class="admin-btn" onclick="openThermalReceipt('${o.id}')">Receipt</button>
             <span class="admin-status" id="ostatus-msg-${o.id}"></span>
           </div>
         </td>
@@ -1591,313 +1648,38 @@ async function saveOrderStatus(id, btn){
 /* =========================
    INVOICE (PDF export)
 ========================= */
-const KEYCAM_BUSINESS = {
-  name: 'Keycam',
-  address: 'Toulkork Phnom Penh Cambodia',
-  phone: '0886449944',
-  telegram: 'https://t.me/Keycamm',
-  payableTo: 'Khouch Jing',
-  accountNo: '001 192 298',
-  paymentMethod: 'ABA'
-};
-
-function invoiceTypeName(t){
-  return t === 'mousepad' ? 'Mouse Pad' : t === 'fps' ? 'FPS Mouse Pad' : t === 'glass' ? 'Glass Mouse Pad' : (t || '');
-}
-
-function invoiceNumberFor(order){
-  const d = new Date(order.created_at);
-  const y = d.getFullYear();
-  const m = String(d.getMonth() + 1).padStart(2, '0');
-  const day = String(d.getDate()).padStart(2, '0');
-  const shortId = (order.id || '').replace(/-/g, '').slice(0, 6).toUpperCase();
-  return `INV-${y}${m}${day}-${shortId}`;
-}
-
-// Same QR image as deskmat/admin.html — this page lives at the project
-// root instead of inside deskmat/, so the relative path differs.
-const KEYCAM_QR_PATH = 'deskmat/ABA_QR.jpg';
-const DEFAULT_MAINTENANCE_DISCOUNT = 0.20; // fallback for orders placed before maintenance_discount was captured
-
-function loadImageAsDataURL(url){
-  return new Promise((resolve) => {
-    const img = new Image();
-    img.onload = () => {
-      try{
-        const canvas = document.createElement('canvas');
-        canvas.width = img.naturalWidth;
-        canvas.height = img.naturalHeight;
-        canvas.getContext('2d').drawImage(img, 0, 0);
-        resolve({ dataUrl: canvas.toDataURL('image/jpeg'), w: img.naturalWidth, h: img.naturalHeight });
-      }catch(e){
-        resolve(null); // e.g. blocked by CORS/tainted canvas — invoice still works, just without the QR
-      }
-    };
-    img.onerror = () => resolve(null); // file not found — fine, invoice falls back to text-only payment details
-    img.src = url;
-  });
-}
+// The invoice builder now lives in shared/invoice.js (business + bank details are at the top of that file).
+const KEYCAM_QR_PATH = 'deskmat/ABA_QR.jpg'; // ABA KHQR image, relative to this page
+let invoiceOrderId = null;
 
 async function buildInvoiceDoc(order){
-  if(!window.jspdf || !window.jspdf.jsPDF) return null;
-
-  const qr = await loadImageAsDataURL(KEYCAM_QR_PATH);
-
-  const { jsPDF } = window.jspdf;
-  const doc = new jsPDF({ unit: 'pt', format: 'a4' });
-  const pageW = doc.internal.pageSize.getWidth();
-  const margin = 40;
-  const rightX = pageW - margin;
-  let y = 50;
-
-  // --- Header: business info (left) / INVOICE title (right) ---
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(20);
-  doc.text(KEYCAM_BUSINESS.name, margin, y);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
-  doc.text(KEYCAM_BUSINESS.address, margin, y + 16);
-  doc.text(KEYCAM_BUSINESS.phone, margin, y + 28);
-  doc.text(KEYCAM_BUSINESS.telegram, margin, y + 40);
-
-  doc.setTextColor(0);
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(22);
-  doc.text('INVOICE', rightX, y, { align: 'right' });
-
-  const invoiceNo = invoiceNumberFor(order);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
-  doc.text('Invoice No.:', rightX - 90, y + 20, { align: 'right' });
-  doc.setTextColor(0);
-  doc.text(invoiceNo, rightX, y + 20, { align: 'right' });
-  doc.setTextColor(90);
-  doc.text('Date:', rightX - 90, y + 33, { align: 'right' });
-  doc.setTextColor(0);
-  doc.text(formatOrderDate(order.created_at), rightX, y + 33, { align: 'right' });
-
-  y += 60;
-  doc.setDrawColor(0); doc.setLineWidth(2);
-  doc.line(margin, y, rightX, y);
-  y += 26;
-
-  // --- Bill To ---
-  doc.setTextColor(0); doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-  doc.text('Bill To', margin, y);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(11);
-  doc.text(order.customer_name || '—', margin, y + 16);
-  if(order.customer_phone){
-    doc.setFontSize(9); doc.setTextColor(90);
-    doc.text(order.customer_phone, margin, y + 30);
-    doc.setTextColor(0);
-  }
-
-  y += 50;
-
-  // --- Items table ---
-  const items = Array.isArray(order.items) ? order.items : [];
-  const col = { no: margin, product: margin + 30, qty: rightX - 210, rate: rightX - 150, disc: rightX - 85, amt: rightX };
-  const rowH = 30;
-
-  function tableHeader(yy){
-    doc.setFillColor(0, 0, 0);
-    doc.rect(margin, yy, rightX - margin, 22, 'F');
-    doc.setTextColor(255); doc.setFont('helvetica', 'bold'); doc.setFontSize(9);
-    doc.text('No.', col.no + 4, yy + 15);
-    doc.text('Product', col.product, yy + 15);
-    doc.text('Qty', col.qty, yy + 15, { align: 'right' });
-    doc.text('Rate', col.rate, yy + 15, { align: 'right' });
-    doc.text('Discount', col.disc, yy + 15, { align: 'right' });
-    doc.text('Amount', col.amt, yy + 15, { align: 'right' });
-    doc.setTextColor(0);
-    return yy + 22;
-  }
-
-  function reconstructLinePricing(order, it){
-  const qty = Number(it.qty) || 0;
-  const finalPrice = Number(it.price) || 0; // what's actually stored — already discounted, if a discount applied
-
-  // Orders made with "Create order" store the exact per-item discount in
-  // dollars, so the invoice shows precisely what was entered.
-  if(it.lineDiscount != null && it.originalPrice != null){
-    const originalPrice = Number(it.originalPrice);
-    const discountTotal = Number(it.lineDiscount) || 0;
-    const amount = Math.round((originalPrice * qty - discountTotal) * 100) / 100;
-    return { rate: originalPrice, discountTotal, amount };
-  }
-
-  // Catalog checkout captures the pre-discount price directly on the item
-  // (shared/catalog-cart.js mapItemsForSupabase) whenever a Pchum Ben
-  // festival/product discount applied at the moment it was added to the
-  // order — that's the real source of truth, no reconstruction needed.
-  if(it.originalPrice != null && Number(it.originalPrice) > finalPrice){
-    const originalPrice = Number(it.originalPrice);
-    const amount = finalPrice * qty;
-    const discountTotal = Math.round((originalPrice * qty - amount) * 100) / 100;
-    return { rate: originalPrice, discountTotal, amount };
-  }
-
-  // Fallback: older Deskmat-style sitewide maintenance-mode discount
-  // (mousepad/fps items don't carry a per-item originalPrice).
-  const discountEligible = order.maintenance_mode && (it.type === 'mousepad' || it.type === 'fps');
-
-  if(!discountEligible){
-    return { rate: finalPrice, discountTotal: 0, amount: finalPrice * qty };
-  }
-
-  const rate = order.maintenance_discount != null
-    ? Number(order.maintenance_discount)
-    : DEFAULT_MAINTENANCE_DISCOUNT;
-  const originalPrice = rate < 1 ? finalPrice / (1 - rate) : finalPrice;
-  const roundedOriginal = Math.round(originalPrice * 100) / 100;
-  const amount = finalPrice * qty; // what the customer actually paid for this line — unchanged
-  const discountTotal = Math.round((roundedOriginal * qty - amount) * 100) / 100;
-
-  return { rate: roundedOriginal, discountTotal, amount };
+  if(!window.KeycamInvoice) return null;
+  return window.KeycamInvoice.build(order, { qrPath: KEYCAM_QR_PATH });
 }
 
-  y = tableHeader(y);
+function closeInvoicePreview(){
+  document.querySelector('#invoiceModalBackdrop').classList.remove('open');
+  document.querySelector('#invoicePreviewFrame').src = 'about:blank';
+}
 
-  let subtotal = 0;
-  let lineDiscountTotal = 0;
-  items.forEach((it, i) => {
-    const qty = Number(it.qty) || 0;
-    const { rate, discountTotal: discount, amount } = reconstructLinePricing(order, it);
-    subtotal += amount;
-    lineDiscountTotal += Number(discount) || 0;
-
-    if(y + rowH > doc.internal.pageSize.getHeight() - 140){
-      doc.addPage();
-      y = 50;
-      y = tableHeader(y);
-    }
-
-    doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-    doc.text(String(i + 1), col.no + 4, y + 13);
-    doc.text(String(it.name || ''), col.product, y + 13);
-    doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(90);
-    // Catalog-checkout items carry a variantSummary instead of type/size/thickness.
-    const subtitle = it.variantSummary || [invoiceTypeName(it.type), it.size, it.thickness].filter(Boolean).join(', ');
-    if(subtitle) doc.text(subtitle, col.product, y + 25);
-    doc.setTextColor(0); doc.setFontSize(10);
-    doc.text(String(qty), col.qty, y + 13, { align: 'right' });
-    doc.text(rate.toFixed(2), col.rate, y + 13, { align: 'right' });
-    doc.text(discount.toFixed(2), col.disc, y + 13, { align: 'right' });
-    doc.text(amount.toFixed(2), col.amt, y + 13, { align: 'right' });
-
-    doc.setDrawColor(220);
-    doc.line(margin, y + rowH, rightX, y + rowH);
-    y += rowH;
-  });
-
-  y += 26;
-
-  // --- Payment Detail (left) + Totals (right) ---
-  const payY = y;
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(10);
-  doc.text('Payment Detail', margin, payY);
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
-  doc.text('Payable To', margin, payY + 16);
-  doc.text('Account No', margin, payY + 30);
-  doc.text('Other Details', margin, payY + 44);
-  doc.setTextColor(0);
-  doc.text(KEYCAM_BUSINESS.payableTo, margin + 80, payY + 16);
-  doc.text(KEYCAM_BUSINESS.accountNo, margin + 80, payY + 30);
-  doc.text(KEYCAM_BUSINESS.paymentMethod, margin + 80, payY + 44);
-
-  if(qr && qr.dataUrl){
-    const qrSize = 74;
-    const qrX = margin + 220;
-    try{
-      doc.addImage(qr.dataUrl, 'JPEG', qrX, payY - 8, qrSize, qrSize);
-      doc.setFontSize(7.5); doc.setTextColor(120);
-      doc.text('Scan to pay', qrX + qrSize / 2, payY - 8 + qrSize + 10, { align: 'center' });
-      doc.setTextColor(0);
-    }catch(e){ /* image failed to embed — invoice still renders fine without it */ }
+// Thermal receipt (Bluetooth / USB ESC-POS printer) built from the same order
+// data and the same pricing rules as the PDF invoice — see shared/thermal-receipt.js.
+function openThermalReceipt(orderId){
+  const order = ordersCache[orderId];
+  if(!order){ alert('Order not found — try reloading the orders list.'); return; }
+  if(!window.KeycamReceipt){
+    alert('The receipt tool did not load. Make sure shared/thermal-receipt.js is uploaded with the site files.');
+    return;
   }
-
-  const orderDiscount = Number(order.order_discount_amount) || 0;
-  const deliveryFee = Number(order.delivery_fee) || 0;
-  const tax = 0;
-  let total = subtotal - orderDiscount + deliveryFee + tax;
-  // Safety net: the total stored on the order is what the customer was really
-  // charged. If the itemised lines don't add up to it (e.g. an older order that
-  // never saved each item's original price), show the gap as its own row instead
-  // of silently dropping it, so the invoice total always matches the order.
-  let adjustment = 0;
-  if(order.total !== null && order.total !== undefined && isFinite(Number(order.total)) &&
-     Math.abs(Number(order.total) - total) > 0.005){
-    adjustment = total - Number(order.total); // > 0 = a discount that wasn't itemised
-    total = Number(order.total);
-  }
-  // Paid comes from the order's tracked paid_amount (deposits, partial payments).
-  // Falls back to the old status-based full/zero rule for orders saved before that column existed.
-  const paid = (order.paid_amount !== null && order.paid_amount !== undefined)
-    ? Number(order.paid_amount)
-    : ((order.status === 'confirmed' || order.status === 'shipped') ? total : 0);
-  const balance = total - paid;
-
-  const totW = 200, totX = rightX - totW;
-  let ty = payY;
-  doc.setFontSize(9); doc.setTextColor(90);
-  const totalsRow = (label, value) => {
-    doc.setTextColor(90); doc.text(label, totX, ty);
-    doc.setTextColor(0); doc.text(value, rightX, ty, { align: 'right' });
-    ty += 18;
-  };
-  const hasLineDisc = lineDiscountTotal > 0.004;
-  const hasAdjust = Math.abs(adjustment) > 0.004;
-  // Subtotal is the price before any discount, so the rows below add up to the Total.
-  if(hasLineDisc || orderDiscount > 0 || deliveryFee > 0 || hasAdjust) totalsRow('Subtotal', `$${(subtotal + lineDiscountTotal).toFixed(2)}`);
-  if(hasLineDisc) totalsRow('Item discount', `-$${lineDiscountTotal.toFixed(2)}`);
-  if(orderDiscount > 0){
-    const pct = order.order_discount_type === 'percent' ? ` (${Number(order.order_discount_value)}%)` : '';
-    totalsRow((hasLineDisc ? 'Order discount' : 'Discount') + pct, `-$${orderDiscount.toFixed(2)}`);
-  }
-  if(adjustment > 0.004) totalsRow((hasLineDisc || orderDiscount > 0) ? 'Other discount' : 'Discount', `-$${adjustment.toFixed(2)}`);
-  if(adjustment < -0.004) totalsRow('Adjustment', `+$${Math.abs(adjustment).toFixed(2)}`);
-  if(deliveryFee > 0) totalsRow('Delivery fee', `$${deliveryFee.toFixed(2)}`);
-  doc.setTextColor(90);
-  doc.text('Tax (0.0%)', totX, ty); doc.setTextColor(0); doc.text(`$${tax.toFixed(2)}`, rightX, ty, { align: 'right' });
-  ty += 18;
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(11);
-  doc.text('Total', totX, ty); doc.text(`$${total.toFixed(2)}`, rightX, ty, { align: 'right' });
-  ty += 18;
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(90);
-  doc.text('Paid', totX, ty); doc.setTextColor(0); doc.text(`$${paid.toFixed(2)}`, rightX, ty, { align: 'right' });
-  ty += 10;
-  doc.setDrawColor(0); doc.line(totX, ty, rightX, ty);
-  ty += 16;
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(13);
-  doc.text('Balance', totX, ty); doc.text(`$${balance.toFixed(2)}`, rightX, ty, { align: 'right' });
-
-  y = Math.max(payY + 60, ty + 40);
-
-  // --- Terms & Conditions ---
-  doc.setFont('helvetica', 'bold'); doc.setFontSize(10); doc.setTextColor(0);
-  doc.text('Terms & Condition', margin, y);
-  y += 16;
-  doc.setFont('helvetica', 'normal'); doc.setFontSize(8.5); doc.setTextColor(90);
-  const terms = [
-    'No returnable to cash after purchase.',
-    '1 year warranty on a new product.',
-    'If there are any technical issues within 7 days, you can exchange for the new one.',
-    'Warranty void on electric shock, seal broken, misuse, or modification.'
-  ];
-  terms.forEach(line => {
-    const wrapped = doc.splitTextToSize('• ' + line, 280);
-    doc.text(wrapped, margin, y);
-    y += wrapped.length * 12;
-  });
-
-  // --- Signature ---
-  doc.setTextColor(0); doc.setFont('helvetica', 'normal'); doc.setFontSize(10);
-  doc.text(KEYCAM_BUSINESS.name, rightX, y - 10, { align: 'right' });
-  doc.text('Signature', rightX, y + 4, { align: 'right' });
-
-  return { doc, invoiceNo };
+  closeInvoicePreview();
+  window.KeycamReceipt.open(order, { qrPath: KEYCAM_QR_PATH, qrCaption: 'Scan to pay (ABA)' });
 }
 
 async function openInvoicePreview(orderId){
   const order = ordersCache[orderId];
   if(!order){ alert('Order not found — try reloading the orders list.'); return; }
 
+  invoiceOrderId = orderId;
   document.querySelector('#invoicePreviewFrame').srcdoc = '<body style="font-family:sans-serif;color:#8a9a9f;padding:24px;">Building invoice&hellip;';
   document.querySelector('#invoiceModalBackdrop').classList.add('open');
 
@@ -1912,15 +1694,13 @@ async function openInvoicePreview(orderId){
   document.querySelector('#invoiceDownloadBtn').onclick = () => doc.save(`${invoiceNo}.pdf`);
 }
 
-document.querySelector('#invoiceCloseBtn').addEventListener('click', () => {
-  document.querySelector('#invoiceModalBackdrop').classList.remove('open');
-  document.querySelector('#invoicePreviewFrame').src = 'about:blank';
+document.querySelector('#invoiceReceiptBtn').addEventListener('click', () => {
+  if(invoiceOrderId) openThermalReceipt(invoiceOrderId);
 });
+
+document.querySelector('#invoiceCloseBtn').addEventListener('click', closeInvoicePreview);
 document.querySelector('#invoiceModalBackdrop').addEventListener('click', (e) => {
-  if(e.target.id === 'invoiceModalBackdrop'){
-    document.querySelector('#invoiceModalBackdrop').classList.remove('open');
-    document.querySelector('#invoicePreviewFrame').src = 'about:blank';
-  }
+  if(e.target.id === 'invoiceModalBackdrop') closeInvoicePreview();
 });
 
 /* =========================
@@ -2082,6 +1862,26 @@ document.querySelector('#createOrderBtn').addEventListener('click', () => {
     }
   });
 });
+
+function editOrder(orderId){
+  const order = ordersCache[orderId];
+  if(!order){ alert('Order not found — try reloading the orders list.'); return; }
+  if(!window.KeycamCreateOrder){
+    alert('The Create order script did not load. Make sure shared/admin-create-order.js is uploaded with the site files.');
+    return;
+  }
+  window.KeycamCreateOrder.open({
+    order,
+    onSaved: async (row, openInvoice) => {
+      await loadOrders();
+      loadRevenueDashboard();
+      if(openInvoice){
+        ordersCache[row.id] = row;
+        openInvoicePreview(row.id);
+      }
+    }
+  });
+}
 
 /* =========================
    TABS

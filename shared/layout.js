@@ -5,7 +5,7 @@
    markup instead of duplicating it per file. Deskmat is NOT part of
    this — it keeps its own header/footer inline, frozen as-is.
 
-   Usage: call initLayout({ base: '' | '../', active: 'keyboard'|'accessories'|'mouse'|'deskmat'|null })
+   Usage: call initLayout({ base: '' | '../', active: 'keyboard'|'accessories'|'mouse'|'deskmat'|'resin'|null })
    Requires these placeholders in the page:
      <div id="siteHeader"></div>  ... page content ...  <div id="siteFooter"></div>
      <div id="siteOverlays"></div>  (anywhere — holds drawer/backdrop/mobile menu)
@@ -27,6 +27,7 @@ function initLayout(opts){
           <a href="${a('accessories/collection.html')}" class="${active==='accessories'?'active':''}">Accessories</a>
           <a href="${a('mouse/collection.html')}" class="${active==='mouse'?'active':''}">Mouse</a>
           <a href="${a('deskmat/index.html')}" class="${active==='deskmat'?'active':''}">Deskmat</a>
+          <a href="${a('resin/index.html')}" class="${active==='resin'?'active':''}">Resin</a>
         </nav>
         <div class="header-actions">
           <button class="icon-btn" id="searchOpen" aria-label="Search">⌕</button>
@@ -66,6 +67,7 @@ function initLayout(opts){
           <span>EXPLORE</span>
           <a href="${a('index.html')}#collections">Collections</a>
           <a href="${a('deskmat/index.html')}#products">All Designs</a>
+          <a href="${a('resin/index.html')}">Resin Keycaps</a>
           <a href="${a('deskmat/size-guide.html')}">Size Guide</a>
         </div>
         <div>
@@ -129,6 +131,7 @@ function initLayout(opts){
       <a href="${a('accessories/collection.html')}">Accessories</a>
       <a href="${a('mouse/collection.html')}">Mouse</a>
       <a href="${a('deskmat/index.html')}">Deskmat</a>
+      <a href="${a('resin/index.html')}">Resin</a>
       <a href="https://t.me/Key_Cam" target="_blank" rel="noopener">Telegram ↗</a>
     </div>
   `;

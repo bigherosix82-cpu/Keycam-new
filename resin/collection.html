@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<meta name="theme-color" content="#0b0f12">
+<meta name="description" content="Build a custom resin keycap set — pick a design, profile and row. Made to order in 2–3 days by KeyCam Cambodia.">
+<title>Resin Keycaps — Collection · KeyCam</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Space+Grotesk:wght@500;600;700&display=swap" rel="stylesheet">
+<link rel="stylesheet" href="../deskmat/styles.css">
+<link rel="stylesheet" href="../shared/catalog.css">
+<link rel="stylesheet" href="resin.css">
+</head>
+<body class="resin-page">
+
+<div id="siteHeader"></div>
+
+<main>
+<nav class="container resin-crumb" aria-label="Breadcrumb">
+  <a href="index.html">Resin</a>
+  <span aria-hidden="true">/</span>
+  <span id="resinCrumbName">Collection</span>
+</nav>
+
+<section class="container resin-collection-head">
+  <p class="eyebrow" id="resinCollectionKicker">COLLECTION</p>
+  <h1 id="resinCollectionTitle">Collection</h1>
+  <p class="resin-lede" id="resinCollectionBlurb"></p>
+  <div class="resin-collection-facts" id="resinCollectionFacts"></div>
+</section>
+
+<section class="container resin-section" id="builder">
+  <div class="resin-builder">
+    <div class="resin-custom-note" id="resinCustomNote" hidden>
+      <b>Send us your logo after you order.</b>
+      Pick the profile and row for each key, add them to your order, then send the file to us on Telegram. A PNG with a transparent background works best, at least 1000px on the longest side.
+      <a href="https://t.me/Key_Cam" target="_blank" rel="noopener">Open Telegram →</a>
+    </div>
+
+    <div class="resin-pricebar" id="resinPriceBar"></div>
+
+    <div class="resin-tabs" id="resinTabs"></div>
+
+    <div class="resin-rows" id="resinRows" hidden>
+      <span class="resin-rows-label">Row</span>
+      <div class="resin-row-chips" id="resinRowChips" role="group" aria-label="Cherry row"></div>
+      <span class="resin-rows-note" id="resinRowsNote">Showing keys for this row</span>
+      <details class="resin-row-guide">
+        <summary>Which row is my key?</summary>
+        <div class="body">
+          <p>Cherry is sculpted per row, so the row has to match the key you're replacing.</p>
+          <p><strong>R1</strong> — Esc and number row (top) · <strong>R2</strong> — QWERTY · <strong>R3</strong> — home row (ASDF) · <strong>R4</strong> — bottom letter row (ZXCV).</p>
+          <p>Not sure? Send us a photo of your keyboard on Telegram and we'll tell you.</p>
+        </div>
+      </details>
+    </div>
+
+    <div class="resin-toolbar">
+      <input class="resin-search" id="resinSearch" type="search" placeholder="Search designs" autocomplete="off" aria-label="Search resin designs">
+      <span class="resin-toolbar-note" id="resinCount"></span>
+    </div>
+
+    <div class="resin-logo-grid" id="resinGrid"></div>
+
+    <div class="resin-summary" id="resinSummary">
+      <div class="resin-summary-main">
+        <span class="resin-summary-qty" id="resinSummaryQty" aria-live="polite">0 keys</span>
+        <span class="resin-summary-unit" id="resinSummaryUnit">Pick a design to start</span>
+      </div>
+      <span class="resin-summary-total" id="resinSummaryTotal">$0</span>
+      <div class="resin-summary-actions">
+        <button class="btn btn-ghost" id="resinClear" type="button" hidden>Clear</button>
+        <button class="btn btn-primary" id="resinAdd" type="button" disabled>Add to order</button>
+      </div>
+      <p class="resin-summary-breakdown" id="resinSummaryBreakdown"></p>
+      <p class="resin-summary-hint" id="resinSummaryHint"></p>
+    </div>
+
+    <p class="resin-builder-note">Made to order — ready in 2–3 days. One order can mix designs, profiles and rows. Custom logo files are sent on Telegram after you order.</p>
+  </div>
+</section>
+
+<section class="container resin-section">
+  <div class="resin-cta">
+    <div>
+      <h2>Can't find your team?</h2>
+      <p>Send us a logo and we'll make it. Any team, any game — same price as the ready designs.</p>
+    </div>
+    <div class="resin-cta-actions">
+      <a class="btn btn-primary" href="https://t.me/Key_Cam" target="_blank" rel="noopener">Send us your logo</a>
+      <a class="btn btn-ghost" href="index.html#collections">See all collections</a>
+    </div>
+  </div>
+</section>
+</main>
+
+<div id="siteFooter"></div>
+<div id="siteOverlays"></div>
+
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+<script src="../supabase-client.js"></script>
+<script src="../shared/catalog-cart.js"></script>
+<script src="../shared/layout.js"></script>
+<script src="logos.js"></script>
+<script src="store.js"></script>
+<script src="resin.js"></script>
+</body>
+</html>

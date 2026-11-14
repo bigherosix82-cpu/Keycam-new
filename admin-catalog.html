@@ -323,6 +323,31 @@
     background:#0b1113;
     border:1px solid var(--line);
   }
+  .admin-table img.resin-admin-logo{
+    width:48px;
+    height:48px;
+    object-fit:contain;
+    padding:4px;
+    background:#e9e9ee;
+  }
+  .admin-table img.resin-admin-logo.is-dark{
+    background:#2a2a33;
+    border-color:#39424a;
+  }
+  .resin-admin-preview{
+    width:104px;
+    height:104px;
+    object-fit:contain;
+    padding:9px;
+    background:#e9e9ee;
+    border:1px solid var(--line);
+    border-radius:12px;
+    display:block;
+  }
+  .resin-admin-preview.is-dark{
+    background:#2a2a33;
+    border-color:#39424a;
+  }
   .admin-table th:nth-child(3), .admin-table td:nth-child(3),
   .admin-table th:nth-child(4), .admin-table td:nth-child(4){
     min-width:112px;
@@ -929,6 +954,7 @@
       <button class="admin-tab-btn" data-tab="products"><span class="admin-nav-tick"></span>Products</button>
       <button class="admin-tab-btn" data-tab="inventory"><span class="admin-nav-tick"></span>Inventory</button>
       <button class="admin-tab-btn" data-tab="addproduct"><span class="admin-nav-tick"></span>Add Product</button>
+      <button class="admin-tab-btn" data-tab="resin"><span class="admin-nav-tick"></span>Resin</button>
     </nav>
 
     <div class="admin-sidebar-foot">
@@ -1265,6 +1291,114 @@
       </div>
     </div>
 
+    <!-- TAB: RESIN -->
+    <div class="admin-tab-panel" id="tab-resin" style="display:none;">
+
+      <div class="admin-section">
+        <h2>Resin keycaps</h2>
+        <p class="hint">Collections, logos and prices for the Resin storefront (<code>/resin/</code>). The storefront reads these tables first and falls back to the bundled <code>resin/logos.js</code> only when the tables are missing or empty. First run <code>resin/resin-schema.sql</code> in Supabase, then click <strong>Import bundled logos</strong> once.</p>
+        <div class="admin-btn-row">
+          <button class="admin-btn secondary" type="button" onclick="seedResinData()">Import bundled logos</button>
+          <button class="admin-btn secondary" type="button" onclick="loadResinAdmin()">Reload</button>
+          <span class="admin-status" id="resinAdminStatus"></span>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <h2>Prices</h2>
+        <p class="hint">Per key, in USD. "4+ starts at" is the quantity that unlocks the lower price. Leave it blank for a fixed price (space bar).</p>
+        <table class="admin-table">
+          <thead><tr><th>Profile</th><th>1 key</th><th>4+ keys</th><th>4+ starts at</th></tr></thead>
+          <tbody id="resinPricesBody"></tbody>
+        </table>
+        <div class="admin-btn-row" style="margin-top:12px;">
+          <button class="admin-btn" type="button" id="resinSavePricesBtn" onclick="saveResinPrices()">Save prices</button>
+          <span class="admin-status" id="resinPricesStatus"></span>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+          <h2 style="margin:0;">Collections</h2>
+          <button class="admin-btn" type="button" onclick="openResinCollectionForm()">+ Add collection</button>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>Collection</th><th>ID</th><th>Group · Region</th><th>Designs</th><th>Sort</th><th>Active</th><th></th></tr></thead>
+          <tbody id="resinCollectionsBody"></tbody>
+        </table>
+
+        <div class="admin-section" id="resinCollectionForm" style="display:none;margin-top:18px;border:1px solid var(--line);">
+          <h2 id="resinCollectionFormTitle">Add collection</h2>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;max-width:1100px;">
+            <div class="admin-field" style="margin:0;"><label>ID (slug)</label><input type="text" id="resinColId" placeholder="valorant"></div>
+            <div class="admin-field" style="margin:0;"><label>Name</label><input type="text" id="resinColName" placeholder="Valorant"></div>
+            <div class="admin-field" style="margin:0;"><label>Short name</label><input type="text" id="resinColShort" placeholder="Valorant"></div>
+            <div class="admin-field" style="margin:0;"><label>Region</label><input type="text" id="resinColRegion" placeholder="VCT"></div>
+            <div class="admin-field" style="margin:0;"><label>Group</label><input type="text" id="resinColGroup" placeholder="Esports"></div>
+            <div class="admin-field" style="margin:0;"><label>Sort order</label><input type="number" id="resinColSort" step="1" value="0"></div>
+            <div class="admin-field" style="margin:0;grid-column:1/-1;"><label>Blurb</label><input type="text" id="resinColBlurb" placeholder="17 VCT team logos"></div>
+            <div class="admin-field" style="margin:0;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="resinColActive" checked style="width:auto;"> Active (shown on the site)</label>
+            </div>
+            <div class="admin-field" style="margin:0;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="resinColCustom" style="width:auto;"> Custom-logo collection (no designs)</label>
+            </div>
+          </div>
+          <div class="admin-btn-row" style="margin-top:12px;">
+            <button class="admin-btn" type="button" onclick="saveResinCollection()">Save collection</button>
+            <button class="admin-btn secondary" type="button" onclick="closeResinCollectionForm()">Cancel</button>
+            <span class="admin-status" id="resinCollectionStatus"></span>
+          </div>
+        </div>
+      </div>
+
+      <div class="admin-section">
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin-bottom:8px;">
+          <h2 style="margin:0;">Designs</h2>
+          <div class="admin-btn-row">
+            <select id="resinDesignFilter" onchange="renderResinDesigns()" style="min-width:200px;">
+              <option value="">All collections</option>
+            </select>
+            <button class="admin-btn" type="button" onclick="openResinDesignForm()">+ Add design</button>
+          </div>
+        </div>
+        <table class="admin-table">
+          <thead><tr><th>Logo</th><th>Name</th><th>ID</th><th>Collection</th><th>Tile</th><th>Sort</th><th>Active</th><th></th></tr></thead>
+          <tbody id="resinDesignsBody"></tbody>
+        </table>
+
+        <div class="admin-section" id="resinDesignForm" style="display:none;margin-top:18px;border:1px solid var(--line);">
+          <h2 id="resinDesignFormTitle">Add design</h2>
+          <div style="display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;max-width:1100px;">
+            <div class="admin-field" style="margin:0;"><label>ID (slug)</label><input type="text" id="resinDesignId" placeholder="sentinels"></div>
+            <div class="admin-field" style="margin:0;"><label>Name</label><input type="text" id="resinDesignName" placeholder="Sentinels"></div>
+            <div class="admin-field" style="margin:0;"><label>Collection</label><select id="resinDesignCollection"></select></div>
+            <div class="admin-field" style="margin:0;"><label>Tile</label>
+              <select id="resinDesignTile"><option value="light">Light tile</option><option value="dark">Dark tile</option></select>
+            </div>
+            <div class="admin-field" style="margin:0;"><label>Sort order</label><input type="number" id="resinDesignSort" step="1" value="0"></div>
+            <div class="admin-field" style="margin:0;">
+              <label style="display:flex;align-items:center;gap:8px;cursor:pointer;"><input type="checkbox" id="resinDesignActive" checked style="width:auto;"> Active (shown on the site)</label>
+            </div>
+            <div class="admin-field" style="margin:0;grid-column:1/-1;">
+              <label>Logo file</label>
+              <input type="file" id="resinDesignFile" accept="image/png,image/webp,image/svg+xml,image/jpeg" style="max-width:420px;">
+              <p class="hint" style="margin:6px 0 0;" id="resinDesignFileNote">PNG with a transparent background works best. The file is resized to 256px and stored in the keycam-images bucket.</p>
+            </div>
+          </div>
+          <div style="display:flex;align-items:center;gap:16px;margin-top:12px;">
+            <img class="resin-admin-preview" id="resinDesignPreview" alt="" style="display:none;">
+            <div class="admin-btn-row">
+              <button class="admin-btn" type="button" onclick="saveResinDesign()">Save design</button>
+              <button class="admin-btn secondary" type="button" onclick="closeResinDesignForm()">Cancel</button>
+              <span class="admin-status" id="resinDesignStatus"></span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+
   </div>
   </main>
  </div>
@@ -1288,6 +1422,7 @@
 <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 <script src="supabase-client.js"></script>
+<script src="resin/logos.js"></script>
 <script src="shared/invoice.js"></script>
 <script src="shared/thermal-receipt.js"></script>
 <script src="shared/admin-create-order.js"></script>
@@ -1896,6 +2031,7 @@ document.querySelectorAll('.admin-tab-btn').forEach(btn => {
   btn.addEventListener('click', () => {
     switchTab(btn.dataset.tab);
     if(btn.dataset.tab === 'inventory') loadInventory();
+    if(btn.dataset.tab === 'resin') loadResinAdmin();
   });
 });
 
@@ -4124,6 +4260,538 @@ document.querySelectorAll('.inventory-filter-chip').forEach(chip => {
     renderInventory();
   });
 });
+
+/* =========================
+   RESIN ADMIN
+   Collections, designs and prices for /resin. Tables + RLS come from
+   resin/resin-schema.sql. Until the tables are seeded the storefront keeps
+   using the bundled resin/logos.js, so nothing breaks in the meantime.
+========================= */
+let resinCollections = [];
+let resinDesigns = [];
+let resinPrices = null;
+let resinEditingCollection = null;
+let resinEditingDesign = null;
+
+function resinSetStatus(selector, msg, ok){
+  const el = document.querySelector(selector);
+  if(!el) return;
+  el.style.color = ok === false ? '#e05a5a' : (ok ? '#3bd1a0' : '#8a9a9f');
+  el.textContent = msg || '';
+  clearTimeout(el._resinTimer);
+  if(ok && msg){
+    el._resinTimer = setTimeout(() => { if(el.textContent === msg) el.textContent = ''; }, 3500);
+  }
+}
+
+async function loadResinAdmin(){
+  if(!window.KEYCAM_SUPABASE) return;
+  resinSetStatus('#resinAdminStatus', 'Loading…');
+
+  const [colRes, designRes, setRes] = await Promise.all([
+    window.KEYCAM_SUPABASE.from('resin_collections').select('*').order('sort_order'),
+    window.KEYCAM_SUPABASE.from('resin_designs').select('*').order('sort_order'),
+    window.KEYCAM_SUPABASE.from('store_settings').select('resin_prices').eq('id', 1).maybeSingle()
+  ]);
+
+  if(colRes.error || designRes.error){
+    // Keep the tab usable before the schema exists: the prices still render from
+    // the bundled file and every other section shows its empty state.
+    resinCollections = [];
+    resinDesigns = [];
+    resinPrices = null;
+    renderResinPrices();
+    renderResinCollections();
+    renderResinDesignOptions();
+    renderResinDesigns();
+
+    const err = colRes.error || designRes.error;
+    resinSetStatus('#resinAdminStatus',
+      'Could not load the resin tables. Run resin/resin-schema.sql in Supabase, then reload. (' + (err.message || err) + ')',
+      false);
+    return;
+  }
+
+  resinCollections = colRes.data || [];
+  resinDesigns = designRes.data || [];
+  resinPrices = (setRes.data && setRes.data.resin_prices) || null;
+
+  renderResinPrices();
+  renderResinCollections();
+  renderResinDesignOptions();
+  renderResinDesigns();
+  resinSetStatus('#resinAdminStatus', '');
+}
+
+/* ---------- prices ---------- */
+
+function renderResinPrices(){
+  const body = document.querySelector('#resinPricesBody');
+  if(!body) return;
+
+  const fallback = window.RESIN_PRICES || {};
+  const rows = ['cherry', 'sa', 'space'].map(g => {
+    const f = fallback[g] || {};
+    const p = (resinPrices && resinPrices[g]) || {};
+    return {
+      group: g,
+      label: p.label || f.label || g,
+      short: p.short || f.short || g,
+      single: p.single != null ? p.single : f.single,
+      tier: p.tier != null ? p.tier : f.tier,
+      min: 'min' in p ? p.min : f.min
+    };
+  });
+
+  body.innerHTML = rows.map(p => {
+    const fixed = p.group === 'space';
+    return `<tr data-resin-price-group="${p.group}" data-label="${escapeAttr(p.label)}" data-short="${escapeAttr(p.short)}">
+      <td><strong>${escapeAttr(p.label)}</strong></td>
+      <td><input type="number" min="0" step="0.01" data-price="single" value="${p.single ?? ''}"></td>
+      <td><input type="number" min="0" step="0.01" data-price="tier" value="${p.tier ?? ''}"${fixed ? ' disabled title="Space bar uses one fixed price"' : ''}></td>
+      <td><input type="number" min="2" step="1" data-price="min" value="${fixed ? '' : (p.min ?? '')}"${fixed ? ' disabled title="Space bar has no tier"' : ''}></td>
+    </tr>`;
+  }).join('');
+}
+
+async function saveResinPrices(){
+  const prices = {};
+  const rows = [...document.querySelectorAll('#resinPricesBody tr')];
+
+  for(const row of rows){
+    const g = row.dataset.resinPriceGroup;
+    const single = Number(row.querySelector('[data-price="single"]').value);
+    const tierRaw = row.querySelector('[data-price="tier"]').value;
+    const tier = g === 'space' ? single : Number(tierRaw);
+    let min = null;
+
+    if(!Number.isFinite(single) || single < 0){
+      resinSetStatus('#resinPricesStatus', 'Each profile needs a valid 1-key price.', false);
+      return;
+    }
+    if(g !== 'space'){
+      if(!Number.isFinite(tier) || tier < 0){
+        resinSetStatus('#resinPricesStatus', 'Each profile needs a valid 4+ price.', false);
+        return;
+      }
+      const rawMin = Number(row.querySelector('[data-price="min"]').value);
+      if(!Number.isFinite(rawMin) || rawMin < 2){
+        resinSetStatus('#resinPricesStatus', 'Set how many keys unlock the 4+ price (2 or more).', false);
+        return;
+      }
+      min = Math.max(2, Math.round(rawMin));
+    }
+
+    prices[g] = {
+      label: row.dataset.label,
+      short: row.dataset.short,
+      single,
+      tier,
+      min
+    };
+  }
+
+  const btn = document.querySelector('#resinSavePricesBtn');
+  if(btn) btn.disabled = true;
+  resinSetStatus('#resinPricesStatus', 'Saving…');
+
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('store_settings')
+    .update({ resin_prices: prices })
+    .eq('id', 1);
+
+  if(btn) btn.disabled = false;
+  if(error){
+    resinSetStatus('#resinPricesStatus', 'Save failed: ' + error.message, false);
+    return;
+  }
+  resinPrices = prices;
+  resinSetStatus('#resinPricesStatus', 'Saved ✓ — live on the storefront now', true);
+}
+
+/* ---------- collections ---------- */
+
+function renderResinCollections(){
+  const body = document.querySelector('#resinCollectionsBody');
+  if(!body) return;
+
+  if(!resinCollections.length){
+    body.innerHTML = `<tr><td colspan="7">No collections yet. Click <strong>Import bundled logos</strong> to load the five starter collections.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = resinCollections.map(c => {
+    const designs = resinDesigns.filter(d => d.collection_id === c.id);
+    const live = designs.filter(d => d.active !== false).length;
+    const count = designs.length === live
+      ? `${live}`
+      : `${live} <span class="hint" style="display:inline;">(${designs.length - live} hidden)</span>`;
+    const meta = [c.group_name, c.region].filter(Boolean).join(' · ');
+    return `<tr>
+      <td><strong>${escapeAttr(c.name)}</strong>${c.custom_only ? ' <span class="stock-badge" style="color:#ffb02e;">custom</span>' : ''}</td>
+      <td><code>${escapeAttr(c.id)}</code></td>
+      <td>${escapeAttr(meta)}</td>
+      <td>${count}</td>
+      <td>${c.sort_order ?? 0}</td>
+      <td>${c.active ? 'Yes' : 'No'}</td>
+      <td><div class="admin-btn-row">
+        <button class="admin-btn secondary" type="button" onclick="openResinCollectionForm('${escapeAttr(c.id)}')">Edit</button>
+        <button class="admin-btn danger" type="button" onclick="deleteResinCollection('${escapeAttr(c.id)}')">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openResinCollectionForm(id){
+  resinEditingCollection = id || null;
+  const c = id ? resinCollections.find(x => x.id === id) : null;
+  const form = document.querySelector('#resinCollectionForm');
+  form.style.display = 'block';
+  document.querySelector('#resinCollectionFormTitle').textContent = c ? 'Edit collection' : 'Add collection';
+  document.querySelector('#resinColId').value = c ? c.id : '';
+  document.querySelector('#resinColId').readOnly = !!c;
+  document.querySelector('#resinColName').value = c ? c.name : '';
+  document.querySelector('#resinColShort').value = c ? (c.short || '') : '';
+  document.querySelector('#resinColRegion').value = c ? (c.region || '') : '';
+  document.querySelector('#resinColGroup').value = c ? (c.group_name || '') : 'Esports';
+  document.querySelector('#resinColBlurb').value = c ? (c.blurb || '') : '';
+  document.querySelector('#resinColSort').value = c ? (c.sort_order ?? 0) : resinCollections.length;
+  document.querySelector('#resinColActive').checked = c ? c.active !== false : true;
+  document.querySelector('#resinColCustom').checked = c ? !!c.custom_only : false;
+  resinSetStatus('#resinCollectionStatus', '');
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closeResinCollectionForm(){
+  resinEditingCollection = null;
+  document.querySelector('#resinCollectionForm').style.display = 'none';
+  resinSetStatus('#resinCollectionStatus', '');
+}
+
+async function saveResinCollection(){
+  const editing = !!resinEditingCollection;
+  const name = document.querySelector('#resinColName').value.trim();
+  const rawId = document.querySelector('#resinColId').value.trim();
+  const id = editing ? resinEditingCollection : slugifyPath(rawId || name);
+
+  if(!name){ resinSetStatus('#resinCollectionStatus', 'Give the collection a name.', false); return; }
+  if(!id){ resinSetStatus('#resinCollectionStatus', 'Give the collection an ID.', false); return; }
+
+  const row = {
+    id,
+    name,
+    short: document.querySelector('#resinColShort').value.trim() || name,
+    region: document.querySelector('#resinColRegion').value.trim() || null,
+    group_name: document.querySelector('#resinColGroup').value.trim() || 'Esports',
+    blurb: document.querySelector('#resinColBlurb').value.trim(),
+    custom_only: document.querySelector('#resinColCustom').checked,
+    sort_order: Number(document.querySelector('#resinColSort').value) || 0,
+    active: document.querySelector('#resinColActive').checked
+  };
+
+  resinSetStatus('#resinCollectionStatus', 'Saving…');
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('resin_collections')
+    .upsert(row, { onConflict: 'id' });
+
+  if(error){ resinSetStatus('#resinCollectionStatus', 'Save failed: ' + error.message, false); return; }
+
+  closeResinCollectionForm();
+  await loadResinAdmin();
+  resinSetStatus('#resinAdminStatus', editing ? 'Collection updated ✓' : 'Collection added ✓', true);
+}
+
+async function deleteResinCollection(id){
+  const c = resinCollections.find(x => x.id === id);
+  if(c && c.custom_only){
+    alert('The custom-logo collection powers the "Your own logo" tile. Uncheck Active instead of deleting it.');
+    return;
+  }
+  const count = resinDesigns.filter(d => d.collection_id === id).length;
+  const msg = `Delete "${c ? c.name : id}"` + (count ? ` and its ${count} design${count === 1 ? '' : 's'}` : '') + '? This cannot be undone.';
+  if(!confirm(msg)) return;
+
+  const { error } = await window.KEYCAM_SUPABASE.from('resin_collections').delete().eq('id', id);
+  if(error){ alert('Delete failed: ' + error.message); return; }
+  await loadResinAdmin();
+  resinSetStatus('#resinAdminStatus', 'Collection deleted.', true);
+}
+
+/* ---------- designs ---------- */
+
+function renderResinDesignOptions(){
+  const filter = document.querySelector('#resinDesignFilter');
+  const select = document.querySelector('#resinDesignCollection');
+  const keep = filter ? filter.value : '';
+  // The custom-logo collection has no designs, so it is never a target.
+  const list = resinCollections.filter(c => !c.custom_only);
+  const options = list.map(c =>
+    `<option value="${escapeAttr(c.id)}">${escapeAttr(c.name)}</option>`
+  ).join('');
+
+  if(filter){
+    filter.innerHTML = `<option value="">All collections</option>` + options;
+    if(keep && list.some(c => c.id === keep)) filter.value = keep;
+  }
+  if(select) select.innerHTML = options;
+}
+
+function renderResinDesigns(){
+  const body = document.querySelector('#resinDesignsBody');
+  if(!body) return;
+
+  const filter = document.querySelector('#resinDesignFilter')?.value || '';
+  const list = resinDesigns.filter(d => !filter || d.collection_id === filter);
+
+  if(!list.length){
+    body.innerHTML = `<tr><td colspan="8">No designs${filter ? ' in this collection' : ''} yet.</td></tr>`;
+    return;
+  }
+
+  body.innerHTML = list.map(d => {
+    const col = resinCollections.find(c => c.id === d.collection_id);
+    const src = d.image_url || ('resin/logos/' + d.id + '.webp');
+    return `<tr>
+      <td><img class="resin-admin-logo${d.tile === 'dark' ? ' is-dark' : ''}" src="${escapeAttr(src)}" alt="" onerror="this.style.visibility='hidden'"></td>
+      <td>${escapeAttr(d.name)}</td>
+      <td><code>${escapeAttr(d.id)}</code></td>
+      <td>${escapeAttr(col ? col.name : d.collection_id)}</td>
+      <td>${d.tile === 'dark' ? 'Dark' : 'Light'}</td>
+      <td>${d.sort_order ?? 0}</td>
+      <td>${d.active ? 'Yes' : 'No'}</td>
+      <td><div class="admin-btn-row">
+        <button class="admin-btn secondary" type="button" onclick="openResinDesignForm('${escapeAttr(d.id)}')">Edit</button>
+        <button class="admin-btn danger" type="button" onclick="deleteResinDesign('${escapeAttr(d.id)}')">Delete</button>
+      </div></td>
+    </tr>`;
+  }).join('');
+}
+
+function openResinDesignForm(id){
+  resinEditingDesign = id || null;
+  const d = id ? resinDesigns.find(x => x.id === id) : null;
+  const form = document.querySelector('#resinDesignForm');
+  const designCollections = resinCollections.filter(c => !c.custom_only);
+  if(!designCollections.length){
+    alert('Add a regular collection first — the custom-logo collection holds no designs.');
+    return;
+  }
+
+  form.style.display = 'block';
+  document.querySelector('#resinDesignFormTitle').textContent = d ? 'Edit design' : 'Add design';
+  document.querySelector('#resinDesignId').value = d ? d.id : '';
+  document.querySelector('#resinDesignId').readOnly = !!d;
+  document.querySelector('#resinDesignName').value = d ? d.name : '';
+  document.querySelector('#resinDesignCollection').value = d
+    ? d.collection_id
+    : (document.querySelector('#resinDesignFilter').value || designCollections[0].id);
+  document.querySelector('#resinDesignTile').value = d && d.tile === 'dark' ? 'dark' : 'light';
+  document.querySelector('#resinDesignSort').value = d
+    ? (d.sort_order ?? 0)
+    : resinDesigns.filter(x => x.collection_id === document.querySelector('#resinDesignCollection').value).length;
+  document.querySelector('#resinDesignActive').checked = d ? d.active !== false : true;
+  document.querySelector('#resinDesignFile').value = '';
+
+  const preview = document.querySelector('#resinDesignPreview');
+  if(d){
+    preview.src = d.image_url || ('resin/logos/' + d.id + '.webp');
+    preview.style.display = 'block';
+    preview.className = 'resin-admin-preview' + (d.tile === 'dark' ? ' is-dark' : '');
+    document.querySelector('#resinDesignFileNote').textContent = d.image_url
+      ? 'This design uses an uploaded image. Choose a file to replace it.'
+      : 'Currently using the bundled image at resin/logos/' + d.id + '.webp. Choose a file to replace it.';
+  }else{
+    preview.removeAttribute('src');
+    preview.style.display = 'none';
+    document.querySelector('#resinDesignFileNote').textContent = 'PNG with a transparent background works best. Without a file the storefront looks for resin/logos/<id>.webp.';
+  }
+
+  resinSetStatus('#resinDesignStatus', '');
+  form.scrollIntoView({ behavior: 'smooth', block: 'start' });
+}
+
+function closeResinDesignForm(){
+  resinEditingDesign = null;
+  document.querySelector('#resinDesignForm').style.display = 'none';
+  document.querySelector('#resinDesignFile').value = '';
+  resinSetStatus('#resinDesignStatus', '');
+}
+
+function resinLogoBlob(file){
+  return new Promise((resolve, reject) => {
+    const url = URL.createObjectURL(file);
+    const img = new Image();
+    img.onload = () => {
+      const max = 256;
+      const w0 = img.naturalWidth || max;
+      const h0 = img.naturalHeight || max;
+      const scale = Math.min(1, max / Math.max(w0, h0));
+      const width = Math.max(1, Math.round(w0 * scale));
+      const height = Math.max(1, Math.round(h0 * scale));
+      const canvas = document.createElement('canvas');
+      canvas.width = width;
+      canvas.height = height;
+      const ctx = canvas.getContext('2d');
+      ctx.imageSmoothingQuality = 'high';
+      ctx.drawImage(img, 0, 0, width, height);
+      URL.revokeObjectURL(url);
+      canvas.toBlob(blob => blob ? resolve(blob) : reject(new Error('Could not encode the image')), 'image/webp', 0.9);
+    };
+    img.onerror = () => { URL.revokeObjectURL(url); reject(new Error('Could not read that image file')); };
+    img.src = url;
+  });
+}
+
+async function uploadResinLogo(file, id){
+  const blob = await resinLogoBlob(file);
+  const rand = Math.random().toString(16).slice(2, 8);
+  const path = `resin/logos/${slugifyPath(id)}-${rand}.webp`;
+  const { error } = await window.KEYCAM_SUPABASE.storage
+    .from('keycam-images')
+    .upload(path, blob, { contentType: 'image/webp', upsert: false });
+  if(error) throw new Error('Logo upload failed: ' + error.message);
+  return window.KEYCAM_SUPABASE.storage.from('keycam-images').getPublicUrl(path).data.publicUrl;
+}
+
+async function saveResinDesign(){
+  const editing = !!resinEditingDesign;
+  const name = document.querySelector('#resinDesignName').value.trim();
+  const rawId = document.querySelector('#resinDesignId').value.trim();
+  const id = editing ? resinEditingDesign : slugifyPath(rawId || name);
+  const collection_id = document.querySelector('#resinDesignCollection').value;
+  const tile = document.querySelector('#resinDesignTile').value === 'dark' ? 'dark' : 'light';
+  const fileInput = document.querySelector('#resinDesignFile');
+
+  if(!name){ resinSetStatus('#resinDesignStatus', 'Give the design a name.', false); return; }
+  if(!id){ resinSetStatus('#resinDesignStatus', 'Give the design an ID.', false); return; }
+  if(!collection_id){ resinSetStatus('#resinDesignStatus', 'Pick a collection.', false); return; }
+
+  const targetCol = resinCollections.find(c => c.id === collection_id);
+  if(!targetCol || targetCol.custom_only){
+    resinSetStatus('#resinDesignStatus', 'Pick a regular collection — the custom-logo one holds no designs.', false);
+    return;
+  }
+
+  const previous = editing ? resinDesigns.find(d => d.id === editing) : null;
+  let image_url = previous ? (previous.image_url || null) : null;
+
+  if(fileInput.files && fileInput.files[0]){
+    resinSetStatus('#resinDesignStatus', 'Uploading logo…');
+    try {
+      image_url = await uploadResinLogo(fileInput.files[0], id);
+    } catch(e){
+      resinSetStatus('#resinDesignStatus', e.message, false);
+      return;
+    }
+  }
+
+  const row = {
+    id,
+    collection_id,
+    name,
+    image_url,
+    tile,
+    sort_order: Number(document.querySelector('#resinDesignSort').value) || 0,
+    active: document.querySelector('#resinDesignActive').checked
+  };
+
+  resinSetStatus('#resinDesignStatus', 'Saving…');
+  const { error } = await window.KEYCAM_SUPABASE
+    .from('resin_designs')
+    .upsert(row, { onConflict: 'id' });
+
+  if(error){ resinSetStatus('#resinDesignStatus', 'Save failed: ' + error.message, false); return; }
+
+  closeResinDesignForm();
+  await loadResinAdmin();
+  resinSetStatus('#resinAdminStatus', editing ? 'Design updated ✓' : 'Design added ✓', true);
+}
+
+async function deleteResinDesign(id){
+  const d = resinDesigns.find(x => x.id === id);
+  if(!d) return;
+  if(!confirm(`Delete "${d.name}"? This cannot be undone.`)) return;
+
+  const { error } = await window.KEYCAM_SUPABASE.from('resin_designs').delete().eq('id', id);
+  if(error){ alert('Delete failed: ' + error.message); return; }
+
+  const path = storagePathFromUrl(d.image_url);
+  if(path){
+    await window.KEYCAM_SUPABASE.storage.from('keycam-images').remove([path]);
+  }
+
+  await loadResinAdmin();
+  resinSetStatus('#resinAdminStatus', 'Design deleted.', true);
+}
+
+/* ---------- seed from the bundled file ---------- */
+
+async function seedResinData(){
+  const collections = window.RESIN_COLLECTIONS || [];
+  const prices = window.RESIN_PRICES || null;
+  if(!collections.length){
+    alert('resin/logos.js did not load, so there is nothing to import.');
+    return;
+  }
+
+  const designs = [];
+  collections.forEach(c => (c.designs || []).forEach((d, i) => {
+    designs.push({
+      id: d.id,
+      collection_id: c.id,
+      name: d.name,
+      image_url: null,
+      tile: d.tile === 'dark' ? 'dark' : 'light',
+      sort_order: i,
+      active: true
+    });
+  }));
+
+  if(!confirm(`Import ${collections.length} collections and ${designs.length} designs into Supabase? Existing rows with the same IDs will be overwritten. Prices you have already saved are kept.`)) return;
+
+  resinSetStatus('#resinAdminStatus', 'Importing collections…');
+  const colRows = collections.map((c, i) => ({
+    id: c.id,
+    name: c.name,
+    short: c.short || c.name,
+    region: c.region || null,
+    group_name: c.group || 'Esports',
+    blurb: c.blurb || '',
+    custom_only: !!c.customOnly,
+    sort_order: i,
+    active: true
+  }));
+
+  const { error: colErr } = await window.KEYCAM_SUPABASE
+    .from('resin_collections')
+    .upsert(colRows, { onConflict: 'id' });
+  if(colErr){ resinSetStatus('#resinAdminStatus', 'Import failed: ' + colErr.message, false); return; }
+
+  resinSetStatus('#resinAdminStatus', 'Importing designs…');
+  if(designs.length){
+    const { error: designErr } = await window.KEYCAM_SUPABASE
+      .from('resin_designs')
+      .upsert(designs, { onConflict: 'id' });
+    if(designErr){ resinSetStatus('#resinAdminStatus', 'Import failed: ' + designErr.message, false); return; }
+  }
+
+  if(prices){
+    // Seed prices only on the first import — a later re-import must not wipe
+    // values the admin has already edited.
+    const { data: settings } = await window.KEYCAM_SUPABASE
+      .from('store_settings')
+      .select('resin_prices')
+      .eq('id', 1)
+      .maybeSingle();
+
+    if(!settings || !settings.resin_prices){
+      await window.KEYCAM_SUPABASE.from('store_settings').update({ resin_prices: prices }).eq('id', 1);
+    }
+  }
+
+  await loadResinAdmin();
+  resinSetStatus('#resinAdminStatus', `Imported ${colRows.length} collections and ${designs.length} designs ✓`, true);
+}
 </script>
 </body>
 </html>

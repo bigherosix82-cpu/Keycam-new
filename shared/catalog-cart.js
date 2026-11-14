@@ -64,6 +64,68 @@ function moneyFmt(n){
   return `$${Number(n).toFixed(2).replace(/\.00$/, "")}`;
 }
 
+/* =========================
+   RESIN KEYCAP PRICING
+   Resin is priced per profile, not per line: 4+ Cherry keys in the cart
+   means every Cherry key drops to the tier price, no matter how the
+   customer split the designs or which page they edited the quantity on.
+   Kept here (rather than only in resin/logos.js) so the order drawer can
+   re-price correctly from any page — resin/logos.js loads only on the
+   resin page. ensureStoreSettings() pulls store_settings.resin_prices on
+   every catalog page, and saved cart lines keep the prices they were added
+   with, so an admin price change is never reverted to these defaults.
+========================= */
+
+const RESIN_PRICE_FALLBACK = {
+  cherry: { single: 3, tier: 2.5, min: 4 },
+  sa:     { single: 5, tier: 4,   min: 4 },
+  space:  { single: 10, tier: 10, min: null }
+};
+
+function repairResinPricing(items){
+  if(!Array.isArray(items)) return items;
+
+  let table = window.RESIN_PRICES;
+
+  // Pages that don't load resin/logos.js still know the price each line was
+  // added at. Use the first saved line per profile before falling back to
+  // the hardcoded defaults.
+  if(!table){
+    const stored = {};
+    items.forEach(x => {
+      const r = x && x.resin;
+      if(!r || !r.group || stored[r.group]) return;
+      if(r.single == null || r.tier == null) return;
+      stored[r.group] = {
+        single: Number(r.single),
+        tier: Number(r.tier),
+        min: (r.min == null || r.min === "") ? null : Number(r.min)
+      };
+    });
+    table = { ...RESIN_PRICE_FALLBACK, ...stored };
+  }
+
+  const counts = {};
+  items.forEach(x => {
+    if(!x || !x.resin || !x.resin.group) return;
+    counts[x.resin.group] = (counts[x.resin.group] || 0) + (Number(x.qty) || 0);
+  });
+
+  items.forEach(x => {
+    if(!x || !x.resin || !x.resin.group) return;
+    const price = table[x.resin.group];
+    if(!price) return;
+    const count = counts[x.resin.group] || 0;
+    const useTier = price.min != null && count >= price.min;
+    x.price = useTier ? Number(price.tier) : Number(price.single);
+    x.resin.single = Number(price.single);
+    x.resin.tier = Number(price.tier);
+    x.resin.min = price.min;
+  });
+
+  return items;
+}
+
 /** Load maintenance settings on catalog pages (deskmat app.js isn't loaded there). */
 async function ensureStoreSettings(){
   if(window.KEYCAM_STORE && typeof window.KEYCAM_STORE.maintenanceMode === "boolean"){
@@ -86,6 +148,11 @@ async function ensureStoreSettings(){
       window.KEYCAM_STORE.maintenanceMode = !!data.maintenance_mode;
       if(data.maintenance_discount != null){
         window.KEYCAM_STORE.maintenanceDiscount = Number(data.maintenance_discount);
+      }
+      // Resin pages set the merged table themselves; every other page only
+      // needs the numbers for repairResinPricing().
+      if(!window.RESIN_PRICES && data.resin_prices && typeof data.resin_prices === "object"){
+        window.RESIN_PRICES = data.resin_prices;
       }
     }
   }catch(e){
@@ -180,6 +247,7 @@ function getCatalogOrder(){
   catch{ return []; }
 }
 function setCatalogOrder(o){
+  repairResinPricing(o);
   localStorage.setItem(UNIFIED_ORDER_KEY, JSON.stringify(o));
   updateCatalogOrderUI();
 }
@@ -499,7 +567,18 @@ function catalogTelegramMessage(customer){
     festivalNote = `\n\n🎉 ${label}: discounted prices above are already applied.`;
   }
 
-  return `Hi KeyCam! 👋\n\n${contact}I'd like to order:\n\n${lines.join("\n\n")}\n\nTotal: ${moneyFmt(total)}${festivalNote}${maintenanceNote}\n\nPlease confirm availability and delivery.`;
+  // Resin is made to order and a customer's own logo never reaches the
+  // website — the file comes through this chat, so the message asks for it.
+  let resinNote = "";
+  const resinItems = o.filter(x => x && x.resin);
+  if(resinItems.length){
+    resinNote = `\n\n🧪 Resin keycaps are made to order — ready in 2–3 days.`;
+    if(resinItems.some(x => x.resin.custom)){
+      resinNote += `\n📎 Your own logo: please attach the file in this chat (PNG with transparent background, 1000px or larger).`;
+    }
+  }
+
+  return `Hi KeyCam! 👋\n\n${contact}I'd like to order:\n\n${lines.join("\n\n")}\n\nTotal: ${moneyFmt(total)}${festivalNote}${resinNote}${maintenanceNote}\n\nPlease confirm availability and delivery.`;
 }
 
 function prefillCatalogOrderContact(){

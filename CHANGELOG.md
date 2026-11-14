@@ -1,5 +1,209 @@
 # Changelog
 
+## 2026-11-15 — Resin data moves to Supabase (admin-editable prices, collections, designs)
+
+The resin storefront now reads its prices, collections and designs from
+Supabase, so the Resin tab in `admin-catalog.html` can change them without a
+code deploy. If the tables are missing, empty, offline or slower than 2.5 s, the
+pages fall back to the bundled `resin/logos.js` and render exactly as before.
+
+### Files
+| File | Status | Notes |
+|---|---|---|
+| `resin/resin-schema.sql` | new | Creates `resin_collections` + `resin_designs`, adds `store_settings.resin_prices`, and sets public-read / admin-write RLS + grants. Run once in Supabase. |
+| `resin/store.js` | new | Loads the tables before render, merges prices over the bundled defaults, and falls back to `logos.js`. Exposes `window.ResinStore.ready()`. |
+| `resin/index.html`, `resin/collection.html` | modified | Load `store.js` after `logos.js`; the header/footer still render immediately. |
+| `resin/hub.js`, `resin/resin.js` | modified | Async init awaits `ResinStore.ready()`, then resolves the collection and renders. Logos use the DB `image_url` when present. |
+| `shared/catalog-cart.js` | modified | `repairResinPricing()` reads the live table (or the price saved on each cart line) instead of only the hardcoded defaults; `ensureStoreSettings()` picks up `resin_prices` on every catalog page. |
+| `admin-catalog.html` | modified | New **Resin** tab: prices, collection CRUD, design CRUD, 256px WebP logo upload, and **Import bundled logos** seeding. |
+
+### Admin
+- **Prices** — Cherry, SA and Cherry space bar read/write `store_settings.resin_prices` (same singleton row as the other settings). Tier count and 4+ price are editable; space bar stays a fixed price.
+- **Collections** — add/edit/delete name, short name, region, group, blurb, sort order, active and the custom-only flag. Deleting a collection cascades to its designs.
+- **Designs** — add/edit/delete with collection, tile, sort order, active and an optional logo upload. Uploads are resized to 256px WebP and stored in `keycam-images/resin/logos/`; without an upload the storefront keeps using `resin/logos/<id>.webp`.
+- **Import bundled logos** — one click upserts the five collections and 52 designs from `resin/logos.js`, then writes the bundled prices. Existing IDs are overwritten, so it is also the way to reset.
+- Before the schema exists the tab still opens, shows the bundled prices, and explains how to fix the missing tables.
+
+### Notes
+- The custom-logo collection is stored with `custom_only = true`; its builder keeps the "Your own logo" CTA and still has no designs.
+- New designs without an uploaded logo automatically look for `resin/logos/<id>.webp`, matching the existing static files.
+- No SQL INSERT list is kept in the repo — seeding reads the same `logos.js` the storefront ships with, so the 52-design list lives in one place.
+
+Verified in headless Chrome at 1280px and 534px: all six resin pages still render from the fallback with 23/17/4/8-design cards, no broken images and no overflow; the Resin admin tab opens, renders the three price rows from the bundled file, and shows the "run `resin/resin-schema.sql`" message while the tables are absent.
+
+The database path was exercised with a stubbed Supabase client: inactive collections and designs were filtered out, an inactive custom collection stayed hidden, DB prices overrode the defaults ($4.25, dropping to $3.75 at 5+), a missing `image_url` fell back to `resin/logos/<id>.webp`, and adding a design wrote a cart line at the DB price. The admin was tested against the same stub: price save payload, collection/design writes, and **Import bundled logos** produced 5 collections and 52 designs. The live database was seeded and verified separately (below).
+
+### Live database
+- Ran `resin/resin-schema.sql` once on the project: `resin_collections` and `resin_designs` exist with RLS enabled, and `store_settings.resin_prices` is a `jsonb` column. Seeded from `resin/logos.js` with 5 collections and 52 designs (23 MLBB Cambodia, 17 Valorant, 4 MLBB International, 8 football, custom), default prices $3 / $2.50 at 4+, $5 / $4 at 4+ and the $10 space bar.
+- Storefront proof: all five collections render from the database at 1280px and 534px with no broken images. Changing `cherry.single` to `3.33` in SQL changed the hub price card to `$3.33`; restoring it to `3` brought back `$3`.
+- Grants: `anon` has SELECT only on `resin_collections`, `resin_designs` and `store_settings`; `authenticated` keeps insert/update/delete on the resin tables and update on `store_settings`. RLS already blocked anon writes, but the unused privileges are revoked too, so an anon PATCH on `store_settings` now returns `401 permission denied` instead of a misleading `204`, and the prices stay unchanged.
+- Cart repricing was checked on non-resin pages: a saved cart line keeps its price when the live table is unavailable, and the live table wins when it is present.
+- Still to confirm with a real signed-in session: **Save prices** and **Import bundled logos** in `admin-catalog.html` (the write path has only been exercised against a stub so far).
+
+Cart pricing note: `repairResinPricing()` now prefers the live table, then the price stored on the cart lines, then the hardcoded defaults — so changing a price in the admin can't be silently reverted on pages that don't load the resin data. Re-importing bundled logos also preserves prices that have already been saved.
+
+## 2026-11-15 — Resin collections: Valorant, MLBB International, football
+
+Added three logo collections from the customer-supplied `team logo.ai` and the
+esports/football artwork folders. The hub now has five collections: MLBB
+Cambodia (23), Valorant (17), MLBB International (4), Football clubs (8) and
+Your own logo. The hero collage mixes the first three.
+
+### Files
+| File | Status | Notes |
+|---|---|---|
+| `resin/logos.js` | modified | `valorant`, `mlbb-intl` and `football` collections; coming-soon trimmed to PUBG Mobile, Free Fire, Dota 2, CS2, League of Legends, RoV. |
+| `resin/logos/` | modified | 29 new WebP logos, 256px, transparent, trimmed (306 KB total). |
+| `resin/index.html` | modified | Hero collage now 2 MLBB + 2 Valorant + 2 football tiles. |
+| `resin/resin.css` | modified | The "Your own logo" card spans both columns, so five cards end on a full-width CTA. |
+
+### Collections
+- **Valorant · VCT** — 17 designs: Sentinels, Paper Rex, T1, Cloud9, FUT
+  Esports, RRQ, MIBR, Fnatic, LOUD, 100 Thieves, NRG, Leviatán, G2 Esports,
+  Team Heretics, Team Liquid, Team Vitality and DRX.
+- **Mobile Legends: Bang Bang · International** — 4 designs: Blacklist
+  International, Red Giants, EGO and Omega Esports. Separate from the Cambodia
+  collection, which keeps its original 23.
+- **Football clubs · Europe** — 8 crests: Real Madrid, Barcelona, Manchester
+  United, Manchester City, Liverpool, Arsenal, Chelsea and Bayern Munich.
+- Every new design uses the same Cherry / SA / space-bar variants, rows and
+  prices as the existing ones; nothing else in the builder changed.
+
+### Source and exclusions
+- Logos came from the 49 images embedded in `team logo.ai`, plus 17 colour
+  Valorant PNGs in `Downloads\New folder (3)` and 5 football crest WebPs in its
+  `New folder`.
+- 13 logos in the `.ai` could not be identified, so they are **not** published
+  (per the customer's instruction to skip them): sheet numbers 6, 10, 11, 12,
+  13, 17, 18, 19, 21, 23, 24, 31 and 38.
+- 7 identified logos duplicated existing Cambodia designs (Pro Esports, See You
+  Soon, Galaxy, Flash, Vigor Apex, Rvz, Angkor Warriors) and were not re-added.
+- `tile` (light/dark) is derived from ink luminance, calibrated on the original
+  23 logos, then checked for contrast against the tile background. The G2 and
+  Liverpool crests sit in the overlap and were set to dark by eye-of-data.
+
+### Unconfirmed
+- **Chelsea** is a best guess from `.ai` id 1000 (royal blue + gold + red, OCR
+  "c*ELSE") — worth a quick look before launch.
+- The `mlbb-intl` region label "International" is ours; the four teams are
+  simply the non-Cambodian MLBB logos we could name.
+- Valorant teams that were not in the supplied artwork (ZETA DIVISION, KRU,
+  BBL, EDward Gaming, Xi Lai Gaming) are not in the collection.
+
+Verified in headless Chrome at 1280px and 534px: 5 hub cards with the right
+counts, `?c=valorant` 18 tiles, `?c=mlbb-intl` 5, `?c=football` 9, `?c=custom` 1
+(builder adds the custom tile to every collection), no broken images and no
+horizontal overflow. Functional pass: picking Sentinels, switching to R2,
+**Set R1–R4**, then adding two more R3 keys produced 6 Cherry keys at $2.50
+with per-row counts R1 ×1 · R2 ×1 · R3 ×3 · R4 ×1.
+
+## 2026-11-13 — Resin collections, rows and Deskmat nav
+
+Split the resin storefront into a collection hub and per-collection builders,
+and made Cherry row a real variant. The 23 existing logos are now labelled as
+the Mobile Legends: Bang Bang · Cambodia collection, with "Your own logo" as a
+second collection and a coming-soon strip for future ones.
+
+### Files
+| File | Status | Notes |
+|---|---|---|
+| `resin/index.html` | rewritten | Hub: hero, collections, coming-soon strip, prices, profiles, how-it's-made, FAQ. Builder moved out. |
+| `resin/collection.html` | **new** | Builder shell for `?c=<collection>` — breadcrumb, collection header, profile tabs, row chips, grid, summary. |
+| `resin/hub.js` | **new** | Renders collection cards, coming-soon names and price cards; repairs stored resin prices. |
+| `resin/resin.js` | rewritten | `?c=` routing, Cherry R1–R4 row state, row-aware cart lines, full-set shortcut, cross-profile summary. |
+| `resin/resin.css` | modified | Collection cards, coming-soon strip, breadcrumb, row chips, row guide, set button, other-row badge, compact price bar, CTA. |
+| `resin/logos.js` | modified | `RESIN_COLLECTIONS` (`mlbb`, `custom`), `RESIN_COMING_SOON`, price labels unchanged. |
+| `deskmat/*.html` (6 public pages) | modified | Resin added to the desktop and mobile topbar so the nav is the same on every page. |
+| `keyboard/index.html` | modified | Featured strip now says "Shop collections" and mentions rows. |
+
+### Rows
+- Cherry has **R1 · R2 · R3 · R4** chips above the grid. The active row gets the
+  quantities; every design keeps a separate count per row.
+- SA stays **R1 only**; the space bar has no row and hides the row bar.
+- **Set R1–R4** in a card adds one key in each missing Cherry row. A design with
+  all four rows already added shows a disabled "R1–R4 set".
+- A `+N` badge on a card counts its keys in the other rows, so switching rows
+  never hides what is already picked.
+- Prices do not change per row: all Cherry rows count together for the 4+ tier.
+
+### Cart
+- One line per **design + row**, keyed `resin|profile|row|design`, e.g.
+  `resin|cherry|R3|valhalla` / `Resin Keycap · Cherry R3` / `Valhalla`.
+- The space bar uses `resin|space|none|navi`.
+- `repairResinPricing()` is unchanged: it still groups by profile, so row lines
+  re-price together when the order crosses 4.
+- Saved phase-1 lines (`resin|profile|design`, no row) are migrated to `R1` on
+  load, merged by the new key and re-priced, so an existing drawer does not
+  break.
+
+### Pages
+- `resin/index.html` → hub. `resin/collection.html?c=mlbb` → the 23 logos.
+  `resin/collection.html?c=custom` → only the "Your own logo" tile.
+- An unknown `?c=` falls back to the first collection and rewrites the URL.
+- The summary bar is static while empty and only sticks to the bottom once a
+  key is picked; the per-group breakdown is hidden on phones to keep it short.
+- Resin still skips `shared/catalog-client.js`, so the festival banner and
+  discount do not appear.
+
+Verified in headless Chrome at 1280px and 534px (headless minimum): hub cards,
+`?c=mlbb`, `?c=custom`, row switching, set shortcut, 4+ tier crossing, SA and
+space-bar lines, legacy cart migration, and no horizontal overflow. The deskmat
+topbar keeps 5 links inside its width at 1280px and 1024px.
+
+Known, pre-existing: `deskmat/app.js` calls an undefined `createThemeToggle()`,
+which throws in the console on deskmat pages. It is unrelated to the resin work
+and is left untouched for now.
+
+## 2026-11-13 — Resin keycap storefront (phase 1)
+
+New `/resin/index.html` page for custom resin keycaps: 23 ready logo designs
+plus the customer's own logo, in Cherry (R1–R4 + space bar) and SA (R1 only).
+Page only — the admin tab comes in phase 2, so prices and the design list are
+still bundled with the page.
+
+### Files
+| File | Status | Notes |
+|---|---|---|
+| `resin/index.html` | **new** | Hero, price cards, profile drawings, logo builder, how-it's-made, FAQ. |
+| `resin/resin.css` | **new** | Page styles; catalog palette + teal `#3ad1c0` / amber `#ffb02e` accents. |
+| `resin/resin.js` | **new** | Profile tabs, search, per-design steppers, live tier total, add to order. |
+| `resin/logos.js` | **new** | 23 designs with light/dark tile mapping + `window.RESIN_PRICES`. |
+| `resin/logos/` | **new** | 23 WebP logos (391 KB total, down from 2.9 MB PNG). |
+| `shared/catalog-cart.js` | modified | `repairResinPricing()` + call from `setCatalogOrder()`, resin note in the Telegram message. |
+| `shared/layout.js` | modified | "Resin" in desktop nav, mobile menu and footer EXPLORE. |
+| `shared/catalog.css` | modified | `.resin-feature` strip styles for the keyboard landing. |
+| `keyboard/index.html` | modified | Resin featured strip below the six category tiles. |
+| `admin-catalog.html`, `shared/invoice.js`, `shared/thermal-receipt.js`, `deskmat/*` | unchanged | Invoice/receipt already do unit price × qty. |
+
+### Pricing
+- Cherry R1–R4: **$3** each, **$2.50** each at 4+ keys.
+- SA R1: **$5** each, **$4** each at 4+ keys.
+- Cherry space bar: **$10** flat, logo optional.
+- Tiers count **per profile** across the whole order (4 Cherry + 4 SA = $10 + $16).
+- Resin is not part of the Pchum Ben festival discount, so the page skips
+  `shared/catalog-client.js` and the festival banner stays hidden there.
+
+### Cart
+- One line per design, e.g. `Resin Keycap · Cherry R1–R4` / `Valhalla`, keyed
+  `resin|profile|design`.
+- `repairResinPricing()` re-prices every line of a profile whenever its total
+  quantity crosses 4 (or drops back below), including edits made in the order
+  drawer on other pages. It uses `window.RESIN_PRICES` when present and a
+  matching fallback otherwise.
+- Custom logos: same price, cart line reads `Custom logo — send file on
+  Telegram`, and the Telegram order message asks the customer to attach the
+  file (PNG, transparent, 1000px+).
+- Orders still save to Supabase through the existing `orders` insert.
+
+### Not in this phase
+- Resin admin tab (upload logos, edit prices) — next pass.
+- Customer logo uploads: the `keycam-images` bucket is admin-write only, so
+  custom files stay on Telegram by design.
+
+Verified in headless Chrome at 1280px and 390px: prices/tiers, tab switching,
+search, add-to-order merging, drawer re-pricing in both directions, and no
+horizontal overflow.
+
 ## 2026-11-12 — Thermal receipt printing for orders
 
 Imported the standalone receipt maker (`invoice-maker (3).html`) into the KeyCam

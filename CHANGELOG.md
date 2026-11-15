@@ -1,5 +1,42 @@
 # Changelog
 
+## 2026-11-15 — Football collection: 11 more club crests
+
+Expanded **Football clubs** from 8 to 20 crests using the global-following
+ranking (CIES 2026) as the guide. The two clubs missing from the global top 10
+were PSG (#4) and Juventus (#6); the rest of the additions are the next tier of
+European heavyweights.
+
+### Files
+| File | Status | Notes |
+|---|---|---|
+| `resin/logos.js` | modified | `football` gains 11 designs and `blurb` becomes "20 club crests". |
+| `resin/logos/` | modified | 11 new WebP logos, 256px on the longest side, transparent, trimmed (2–26 KB each). |
+
+### Added clubs
+Paris Saint-Germain, Juventus, AC Milan, Borussia Dortmund, Atlético Madrid,
+Napoli, Ajax, Benfica, FC Porto, Tottenham Hotspur and Newcastle United — in that
+order after Bayern Munich.
+
+### Notes
+- `tile` follows the same rule as the existing crests (light artwork sits on a
+  `light` tile): Napoli and Ajax are the only two new `dark` tiles.
+- **Inter Milan is deliberately not in `logos.js`.** The live DB already has a
+  manual `inter` design with an uploaded logo, so adding a bundled `inter` would
+  either duplicate the crest or null that row's `image_url` on the next import.
+  The bundled file therefore lists 19 football designs while the live collection
+  shows 20 (19 bundled + the manual `inter`).
+- Crests came from the football-data.org crest CDN (200×200 PNG, transparent),
+  trimmed and re-encoded with ImageMagick. Wikimedia was rate-limiting (HTTP
+  429), so its larger SVGs were not used.
+- Re-importing bundled logos from the admin is required before the 11 new
+  crests appear on the storefront — the pages prefer the `resin_designs` table
+  over `logos.js`.
+
+Verified in headless Chrome against the bundled fallback at 1280px: the football
+collection renders 19 tiles with 5 dark tiles, every `logos/<id>.webp` resolves,
+and there is no empty state.
+
 ## 2026-11-15 — Resin data moves to Supabase (admin-editable prices, collections, designs)
 
 The resin storefront now reads its prices, collections and designs from
@@ -38,7 +75,8 @@ The database path was exercised with a stubbed Supabase client: inactive collect
 - Storefront proof: all five collections render from the database at 1280px and 534px with no broken images. Changing `cherry.single` to `3.33` in SQL changed the hub price card to `$3.33`; restoring it to `3` brought back `$3`.
 - Grants: `anon` has SELECT only on `resin_collections`, `resin_designs` and `store_settings`; `authenticated` keeps insert/update/delete on the resin tables and update on `store_settings`. RLS already blocked anon writes, but the unused privileges are revoked too, so an anon PATCH on `store_settings` now returns `401 permission denied` instead of a misleading `204`, and the prices stay unchanged.
 - Cart repricing was checked on non-resin pages: a saved cart line keeps its price when the live table is unavailable, and the live table wins when it is present.
-- Still to confirm with a real signed-in session: **Save prices** and **Import bundled logos** in `admin-catalog.html` (the write path has only been exercised against a stub so far).
+- **Signed-in admin path verified against the live project** through the actual page in headless Chrome: submitted the real login form, opened the Resin tab (5 collections, 52 bundled designs), changed Cherry single to `$3.77` with **Save prices** (row persisted, then restored to `$3`), and ran **Import bundled logos** ("Imported 5 collections and 52 designs ✓", prices preserved). The sign-out button returned the login screen, and the console stayed clean.
+- A manually added football design (`inter`) with an uploaded logo is also live; the import upserts bundled IDs but does not delete extra rows, so that addition survived and renders correctly.
 
 Cart pricing note: `repairResinPricing()` now prefers the live table, then the price stored on the cart lines, then the hardcoded defaults — so changing a price in the admin can't be silently reverted on pages that don't load the resin data. Re-importing bundled logos also preserves prices that have already been saved.
 

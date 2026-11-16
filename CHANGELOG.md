@@ -1,5 +1,44 @@
 # Changelog
 
+## 2026-11-16 — Tech & dev marks (98 designs)
+
+New collection `tech-marks` ("Tech & dev marks") — 98 one-colour developer
+logos as white glyphs on dark tiles, built from the official simple-icons SVG
+set (`cdn.simpleicons.org`). It sits between Football clubs and Your own logo on
+the hub, and uses the normal dense auto-fill grid (9 across on a 1440px screen),
+with no role chips and no QWER set bar.
+
+Coverage, in display order:
+
+| Group | Marks |
+|---|---|
+| Languages | JavaScript, TypeScript, Python, Rust, Go, PHP, Ruby, Java, Kotlin, Swift, C, C++, .NET, Dart, Elixir, Lua, Zig, Haskell, HTML5, CSS, Sass |
+| Frameworks | React, Vue, Angular, Svelte, Next.js, Nuxt, Astro, Remix, Tailwind CSS, Bootstrap, Django, Flask, Laravel, Spring, Ruby on Rails, Express, Flutter, Electron, Three.js, Vite, webpack, npm, Yarn, pnpm, Deno, Bun, Node.js |
+| Tools & infra | Git, GitHub, GitLab, Docker, Kubernetes, Terraform, NGINX, Vercel, Netlify, Cloudflare, Supabase, Firebase, MongoDB, PostgreSQL, MySQL, Redis, SQLite, Prisma, GraphQL, Linux, Ubuntu, Debian, Arch Linux, Fedora, Android, Apple |
+| Editors & 3D | Vim, Neovim, JetBrains, Figma, Blender, Unity, Godot, Unreal Engine |
+| AI | Anthropic, Claude, Hugging Face, Ollama, Gemini |
+| Work & gear | Postman, Insomnia, Jira, Notion, Discord, Stack Overflow, GitHub Copilot, Raspberry Pi, Arduino, WordPress, Stripe |
+
+Simple-icons no longer ships OpenAI, Slack, VS Code, C# or CSS3 (removed for
+brand-policy reasons), so the closest official marks were used instead: **.NET**
+for C#, **CSS** for CSS3, **OpenJDK** for Java, **Nuxt** (slug change) and
+**Claude** alongside Anthropic. Everything else is the exact brand glyph.
+
+### Files
+| File | Status | Notes |
+|---|---|---|
+| `resin/logos.js` | modified | New `tech-marks` collection (98 designs, all `tile: "dark"`) after Football, before the custom card. |
+| `resin/logos/*.webp` | new | 98 assets rendered from the white simple-icons SVGs at 1200 dpi, trimmed, 1px safe border, 256px longest side, WebP q92 (0.7–10.7 KB each, 421 KB total). |
+
+### Notes
+- Re-running **Import bundled logos** from `admin-catalog.html` adds the
+  collection and its 98 rows to Supabase.
+- simple-icons logos are trademarks of their owners and are published under
+  each brand's usage terms; they are used here as product artwork, not as an
+  endorsement.
+- This collection has no `role` values, so `store.js` leaves the role filters
+  and QWER builder off for it automatically.
+
 ## 2026-11-16 — QWER ability sets (pick 4, $10 a set)
 
 Agent-ability collections can now be bought as a **4-key loadout** instead of

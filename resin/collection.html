@@ -63,6 +63,19 @@
       <span class="resin-rows-note" id="resinRolesNote">Four abilities per agent</span>
     </div>
 
+    <div class="resin-setbar" id="resinSetBar" hidden>
+      <div class="resin-setbar-text">
+        <b>Build a QWER set</b>
+        <span id="resinSetHint">Pick any 4 abilities — they go on your Q, W, E and R keys (Cherry R2).</span>
+      </div>
+      <div class="resin-setbar-actions">
+        <span class="resin-setbar-count" id="resinSetCount" hidden>0 of 4 picked</span>
+        <button class="btn btn-ghost" id="resinSetStart" type="button">Pick 4 abilities</button>
+        <button class="btn btn-ghost" id="resinSetCancel" type="button" hidden>Cancel</button>
+        <button class="btn btn-primary" id="resinSetAdd" type="button" disabled hidden>Add 4-key set</button>
+      </div>
+    </div>
+
     <div class="resin-toolbar">
       <input class="resin-search" id="resinSearch" type="search" placeholder="Search designs" autocomplete="off" aria-label="Search resin designs">
       <span class="resin-toolbar-note" id="resinCount"></span>

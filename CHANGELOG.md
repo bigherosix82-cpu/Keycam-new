@@ -1,5 +1,31 @@
 # Changelog
 
+## 2026-11-16 — QWER ability sets (pick 4, $10 a set)
+
+Agent-ability collections can now be bought as a **4-key loadout** instead of
+one key at a time. A "Build a QWER set" bar sits above the grid:
+
+1. Press **Pick 4 abilities** — the grid switches to pick mode (steppers and the
+   per-card R1–R4 shortcut step aside).
+2. Tap any four abilities — each gets a numbered badge (1–4). Tapping a picked
+   card removes it; a fifth tap is ignored.
+3. Press **Add 4-key set · $10** — the four keys are staged on **Cherry R2**
+   (the letter row that holds Q, W, E and R), then Add to order checks out.
+
+The set is priced by the existing 4+ tier ($2.50 × 4 = $10), so the bar quotes
+the same price the cart will charge. Pressing Add a second time never doubles a
+key that is already on R2. `Cancel` and `Clear` both leave pick mode.
+
+The bar only appears on collections that have agent roles (the 120 ability
+icons); team-logo and football collections are unchanged.
+
+### Files
+| File | Status | Notes |
+|---|---|---|
+| `resin/collection.html` | modified | `#resinSetBar` / `#resinSetStart` / `#resinSetCancel` / `#resinSetCount` / `#resinSetAdd` markup above the toolbar. |
+| `resin/resin.css` | modified | `.resin-setbar`, `.resin-pick-order` badge, `.is-selected` card state, `.is-set-mode` grid overrides, mobile bar layout. |
+| `resin/resin.js` | modified | `SET_SIZE` / `SET_ROW` / `setMode` / `picks` state, `isAbilityCollection()`, `renderSetBar()`, `paintPick()`, `togglePick()`, `startSet()`, `cancelSet()`, `addQwerSet()`; grid click intercepts picks while in set mode; `clearAll()` resets the picker. |
+
 ## 2026-11-16 — Hush added to Valorant Agent Abilities (120 designs)
 
 Hush — the 30th agent, a Duelist released 27 October 2026 — was not on the

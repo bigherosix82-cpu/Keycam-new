@@ -37,6 +37,12 @@
   const state = { cherry: {}, sa: {}, space: {} }; // state[group][row][designId]
   let search = "";
   let activeRole = "";
+  // QWER set builder: pick any four abilities and stage them on Cherry R2,
+  // the letter row where Q, W, E and R live.
+  const SET_SIZE = 4;
+  const SET_ROW = "R2";
+  let setMode = false;
+  let picks = [];
 
   const el = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({
@@ -224,6 +230,127 @@
     }).join("");
   }
 
+  /* ---------- QWER set builder ---------- */
+
+  function isAbilityCollection(){
+    return !!collection && !collection.customOnly && roleCounts(collection.designs || []).length > 0;
+  }
+
+  function setUnitPrice(){
+    const p = PRICES.cherry;
+    if(!p) return 0;
+    const min = p.min != null ? Number(p.min) : 0;
+    return Number(SET_SIZE >= min ? p.tier : p.single);
+  }
+
+  function setTotal(){
+    return setUnitPrice() * SET_SIZE;
+  }
+
+  function renderSetBar(){
+    const bar = el("resinSetBar");
+    if(!bar) return;
+
+    const show = isAbilityCollection();
+    bar.hidden = !show;
+    if(!show) return;
+
+    bar.classList.toggle("is-picking", setMode);
+    el("resinSetStart").hidden = setMode;
+    el("resinSetCancel").hidden = !setMode;
+
+    const count = el("resinSetCount");
+    count.hidden = !setMode;
+    count.textContent = `${picks.length} of ${SET_SIZE} picked`;
+
+    const add = el("resinSetAdd");
+    add.hidden = !setMode;
+    add.disabled = picks.length !== SET_SIZE;
+    add.textContent = `Add ${SET_SIZE}-key set · ${price(setTotal())}`;
+
+    const hint = el("resinSetHint");
+    if(!setMode){
+      hint.textContent = `Pick any ${SET_SIZE} abilities — they go on your Q, W, E and R keys (Cherry ${SET_ROW}).`;
+    }else if(picks.length === SET_SIZE){
+      hint.textContent = `Ready — they go on Q, W, E and R (Cherry ${SET_ROW}). Tap a picked ability to remove it.`;
+    }else{
+      const left = SET_SIZE - picks.length;
+      hint.textContent = `Tap any ${SET_SIZE} abilities — ${left} more to go. They go on Q, W, E and R (Cherry ${SET_ROW}).`;
+    }
+  }
+
+  function paintPick(card, id){
+    const index = picks.indexOf(id);
+    const on = index >= 0;
+    card.classList.toggle("is-selected", on);
+
+    const hit = card.querySelector(".resin-logo-hit");
+    if(hit){
+      hit.setAttribute("aria-pressed", String(on));
+      hit.setAttribute("aria-label", `${on ? "Remove" : "Pick"} ${designName(id)} ${on ? "from" : "for"} the set`);
+    }
+
+    let badge = card.querySelector(".resin-pick-order");
+    if(on){
+      if(!badge){
+        badge = document.createElement("span");
+        badge.className = "resin-pick-order";
+        badge.setAttribute("aria-hidden", "true");
+        card.appendChild(badge);
+      }
+      badge.textContent = index + 1;
+    }else if(badge){
+      badge.remove();
+    }
+  }
+
+  function togglePick(id){
+    if(id === CUSTOM_ID) return;
+    const index = picks.indexOf(id);
+    if(index >= 0) picks.splice(index, 1);
+    else if(picks.length < SET_SIZE) picks.push(id);
+
+    const card = el("resinGrid")?.querySelector(`[data-id="${id}"]`);
+    if(card) paintPick(card, id);
+    renderSetBar();
+  }
+
+  function startSet(){
+    setMode = true;
+    picks = [];
+    renderSetBar();
+    renderGrid();
+  }
+
+  function cancelSet(){
+    setMode = false;
+    picks = [];
+    renderSetBar();
+    renderGrid();
+  }
+
+  function addQwerSet(){
+    if(picks.length !== SET_SIZE) return;
+
+    activeGroup = "cherry";
+    rowByGroup.cherry = SET_ROW;
+    picks.forEach(id => {
+      // "Add set" makes sure each ability is on QWER once — pressing it again
+      // never doubles an existing key.
+      if(!qty("cherry", SET_ROW, id)) rowState("cherry", SET_ROW)[id] = 1;
+    });
+
+    setMode = false;
+    picks = [];
+    renderTabs();
+    renderRows();
+    renderSetBar();
+    renderGrid();
+    renderSummary();
+
+    el("resinSummary")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+  }
+
   /* ---------- logo grid ---------- */
 
   function setButton(id){
@@ -243,8 +370,11 @@
     const q = search.trim().toLowerCase();
     const row = activeRow();
     const designs = allDesigns();
-    // Ability collections get a fixed 4-across grid (one agent kit per row).
-    grid.classList.toggle("is-agent-grid", roleCounts(designs).length > 0);
+    // Ability collections get a fixed 8-across desktop grid (two agent kits per
+    // row) and the QWER picker.
+    const abilityGrid = isAbilityCollection();
+    grid.classList.toggle("is-agent-grid", abilityGrid);
+    grid.classList.toggle("is-set-mode", setMode);
     // Role filter hides the "your own logo" card so each row stays exactly one
     // agent's four abilities.
     const scoped = activeRole ? designs.filter(d => !d.custom && d.role === activeRole) : designs;
@@ -276,12 +406,19 @@
         : `<span class="resin-logo-art resin-tile-${d.tile || "light"}"><img src="${d.image || `logos/${d.id}.webp`}" alt="${esc(d.name)} logo" loading="lazy"></span>`;
 
       const rowLabel = row ? ` (${row})` : "";
+      const pickable = setMode && !d.custom;
+      const pickIndex = pickable ? picks.indexOf(d.id) : -1;
+      const pressed = pickable ? ` aria-pressed="${pickIndex >= 0}"` : "";
+      const label = pickable
+        ? `${pickIndex >= 0 ? "Remove" : "Pick"} ${esc(d.name)} ${pickIndex >= 0 ? "from" : "for"} the set`
+        : `Add ${esc(d.name)}${rowLabel}`;
 
-      return `<article class="resin-logo${d.custom ? " resin-logo-custom" : ""}${n ? " is-picked" : ""}" data-id="${d.id}">
-        <button class="resin-logo-hit" type="button" data-pick="${d.id}" aria-label="Add ${esc(d.name)}${rowLabel}">
+      return `<article class="resin-logo${d.custom ? " resin-logo-custom" : ""}${n ? " is-picked" : ""}${pickIndex >= 0 ? " is-selected" : ""}" data-id="${d.id}">
+        <button class="resin-logo-hit" type="button" data-pick="${d.id}" aria-label="${label}"${pressed}>
           ${art}
           <span class="resin-logo-name">${esc(d.name)}</span>
         </button>
+        ${pickIndex >= 0 ? `<span class="resin-pick-order" aria-hidden="true">${pickIndex + 1}</span>` : ""}
         <span class="resin-qty-chip" aria-hidden="true">${n}</span>
         ${other > 0 ? `<span class="resin-other-row" title="${other} ${other === 1 ? "key" : "keys"} in other rows">+${other}</span>` : ""}
         <div class="resin-stepper">
@@ -357,7 +494,10 @@
     state.cherry = {};
     state.sa = {};
     state.space = {};
+    setMode = false;
+    picks = [];
     renderRows();
+    renderSetBar();
     renderGrid();
     renderSummary();
   }
@@ -564,6 +704,7 @@
     renderTabs();
     renderRows();
     renderRoles();
+    renderSetBar();
     renderGrid();
     renderSummary();
 
@@ -607,6 +748,14 @@
         return;
       }
 
+      if(setMode){
+        const pick = e.target.closest("[data-pick]");
+        if(!pick) return;
+        e.preventDefault();
+        togglePick(pick.dataset.pick);
+        return;
+      }
+
       const pick = e.target.closest("[data-pick]");
       const plus = e.target.closest("[data-plus]");
       const minus = e.target.closest("[data-minus]");
@@ -618,6 +767,10 @@
       const next = minus ? current - 1 : current + 1;
       setQty(activeGroup, activeRow(), id, next);
     });
+
+    el("resinSetStart")?.addEventListener("click", startSet);
+    el("resinSetCancel")?.addEventListener("click", cancelSet);
+    el("resinSetAdd")?.addEventListener("click", addQwerSet);
 
     el("resinAdd")?.addEventListener("click", addToOrder);
     el("resinClear")?.addEventListener("click", clearAll);

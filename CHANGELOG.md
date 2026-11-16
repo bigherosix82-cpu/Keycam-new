@@ -9,8 +9,8 @@ Added the uploaded Valorant ability sheet as **one collection**, `valorant-abili
 
 The collection page splits the icons by agent role with a chip row —
 **All abilities 116 · Duelist 32 · Initiator 28 · Controller 28 · Sentinel 28** —
-and the grid is **4 across** on desktop (2 on phones), so each row is exactly one
-agent's four abilities.
+and the grid is **8 across** on desktop (4 on phones), so each desktop row is
+two full agent kits and each phone row is one agent's four abilities.
 
 > The icons first shipped as four separate role collections (`val-duelists`,
 > `val-initiators`, `val-controllers`, `val-sentinels`). Those were replaced by
@@ -24,7 +24,7 @@ agent's four abilities.
 | `resin/logos/Valorant-agents-abilities.svg` | new | The upload the icons were cut from (kept as the source sheet). |
 | `resin/collection.html` | modified | Role filter row (`#resinRoles` / `#resinRoleChips`). |
 | `resin/resin.js` | modified | Role chips, role+search filtering, retired-id redirect, role in the count text. |
-| `resin/resin.css` | modified | Ability collections use a fixed 4-across grid (2 at ≤560px); other collections keep the dense auto-fill grid. |
+| `resin/resin.css` | modified | Ability collections use a fixed 8-across grid (4 at ≤560px); other collections keep the dense auto-fill grid. |
 | `resin/store.js` | modified | DB rows have no `role` column, so the role label is copied from the bundled design with the same id. |
 
 ### Source and identification
@@ -41,9 +41,9 @@ agent's four abilities.
   were title-cased for consistency; ids are unchanged.
 
 ### Tested in headless Chrome
-- Bundled fallback (local, 39 checks): 116 designs, 4-column grid, 5 role chips
-  with the right counts, each role filters to 32/28/28/28 with every agent still
-  a 4-icon kit, "killjoy" inside Sentinel returns 4, 390px viewport is 2 across.
+- Bundled fallback (local): 116 designs, 8-column grid, 5 role chips with the
+  right counts, each role filters to 32/28/28/28 with every agent still a 4-icon
+  kit, "killjoy" inside Sentinel returns 4, 390px viewport is 4 across.
 - Live site after deploy: same checks against the seeded DB, plus the football
   grid still uses the dense layout and the hub lists 6 collections.
 

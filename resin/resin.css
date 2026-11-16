@@ -508,9 +508,10 @@
 
 .resin-logo-grid{
   display:grid;
-  grid-template-columns:repeat(auto-fill,minmax(112px,1fr));
+  grid-template-columns:repeat(4,minmax(0,1fr));
   gap:12px;
 }
+
 .resin-logo-grid.is-single{
   grid-template-columns:minmax(0,240px);
 }
@@ -789,7 +790,7 @@
 @media(max-width:560px){
   .resin-hero h1{ font-size:34px; }
   .resin-builder{ padding:16px; border-radius:16px; }
-  .resin-logo-grid{ grid-template-columns:repeat(auto-fill,minmax(92px,1fr)); gap:9px; }
+  .resin-logo-grid{ grid-template-columns:repeat(2,minmax(0,1fr)); gap:9px; }
   .resin-logo-grid.is-single{ grid-template-columns:minmax(0,170px); }
   .resin-logo-name{ font-size:10.5px; min-height:40px; padding:7px 8px 8px; }
   .resin-logo-art{ padding:11px; }

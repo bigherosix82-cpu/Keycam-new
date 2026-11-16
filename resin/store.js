@@ -16,6 +16,11 @@
   const FALLBACK_PRICES = window.RESIN_PRICES || {};
   const GROUPS = ["cherry", "sa", "space"];
 
+  // resin_designs has no role column yet, so the role label for the collection
+  // page filter is carried over from the bundled design with the same id.
+  const bundledById = new Map();
+  FALLBACK_COLLECTIONS.forEach(c => (c.designs || []).forEach(d => bundledById.set(d.id, d)));
+
   let done = null;
   let timedOut = false;
 
@@ -87,7 +92,8 @@
           id: d.id,
           name: d.name,
           tile: d.tile === "dark" ? "dark" : "light",
-          image: d.image_url || undefined
+          image: d.image_url || undefined,
+          role: (bundledById.get(d.id) || {}).role
         });
       });
 

@@ -1,26 +1,31 @@
 # Changelog
 
-## 2026-11-16 — Valorant ability icons: four role-based collections (116 designs)
+## 2026-11-16 — Valorant Agent Abilities (116 designs, filter by role)
 
-Split the uploaded Valorant ability sheet into four new collections, one per
-agent role, so shoppers can browse by playstyle instead of one 116-card grid.
+Added the uploaded Valorant ability sheet as **one collection**, `valorant-abilities`
+("Valorant Agent Abilities"). Every design is one agent ability, named
+`"Agent · Ability"` with the id `<agent>-<ability>` (e.g. `jett-cloudburst`,
+"Jett · Cloudburst") and a dark tile.
 
-| Collection | id | Designs |
-|---|---|---|
-| Valorant Duelists | `val-duelists` | 32 (8 agents) |
-| Valorant Initiators | `val-initiators` | 28 (7 agents) |
-| Valorant Controllers | `val-controllers` | 28 (7 agents) |
-| Valorant Sentinels | `val-sentinels` | 28 (7 agents) |
+The collection page splits the icons by agent role with a chip row —
+**All abilities 116 · Duelist 32 · Initiator 28 · Controller 28 · Sentinel 28** —
+and the grid is **4 across** on desktop (2 on phones), so each row is exactly one
+agent's four abilities.
 
-Every design is one agent ability, named `"Agent · Ability"` with the id
-`<agent>-<ability>` (e.g. `jett-cloudburst`, `"Jett · Cloudburst"`).
+> The icons first shipped as four separate role collections (`val-duelists`,
+> `val-initiators`, `val-controllers`, `val-sentinels`). Those were replaced by
+> this single collection; their old links redirect to it.
 
 ### Files
 | File | Status | Notes |
 |---|---|---|
-| `resin/logos.js` | modified | Four collections inserted after `valorant`; all 116 designs use `tile: "dark"`. |
+| `resin/logos.js` | modified | One `valorant-abilities` collection after `valorant`; each design carries `role`, all use `tile: "dark"`. |
 | `resin/logos/` | modified | 116 new WebP icons, 256px on the longest side, transparent, trimmed (2–15 KB each, 673 KB total). |
 | `resin/logos/Valorant-agents-abilities.svg` | new | The upload the icons were cut from (kept as the source sheet). |
+| `resin/collection.html` | modified | Role filter row (`#resinRoles` / `#resinRoleChips`). |
+| `resin/resin.js` | modified | Role chips, role+search filtering, retired-id redirect, role in the count text. |
+| `resin/resin.css` | modified | Design grid is `repeat(4, …)` on desktop, 2 columns at ≤560px. |
+| `resin/store.js` | modified | DB rows have no `role` column, so the role label is copied from the bundled design with the same id. |
 
 ### Source and identification
 - The upload is one A4 sprite sheet with 29 agent groups × 4 glyphs. Group ids
@@ -31,21 +36,24 @@ Every design is one agent ability, named `"Agent · Ability"` with the id
   All 29 agents matched (scores 0.938–0.999; the runner-up scored about 0.5)
   with no duplicate slots and no duplicate ids.
 - Agents are alphabetical, Astra → Yoru. **Hush is not in the sheet**, so the
-  collections cover 29 of the 30 playable agents.
+  collection covers 29 of the 30 playable agents.
+- API names that ship in all caps (Yoru's four, Killjoy's Alarmbot and Turret)
+  were title-cased for consistency; ids are unchanged.
 
-### Tested in headless Chrome (bundled fallback, 1280px)
-- `collection.html?c=val-duelists` renders 32 designs + the custom card;
-  the other three render 28 + 1.
-- Every card has a name, every `logos/<id>.webp` decodes, and every design tile
-  is dark.
-- `index.html` lists 9 collection cards, including all four new ones with the
-  right counts.
+### Tested in headless Chrome
+- Bundled fallback (local, 39 checks): 116 designs, 4-column grid, 5 role chips
+  with the right counts, each role filters to 32/28/28/28 with every agent still
+  a 4-icon kit, "killjoy" inside Sentinel returns 4, 390px viewport is 2 across.
+- Live site after deploy: same checks against the seeded DB, plus the hub lists
+  6 collections and none of the retired ids.
 
 ### Notes
-- Re-import bundled logos from the Resin tab in `admin-catalog.html` before the
-  collections appear live — the storefront prefers `resin_designs` over
-  `logos.js`. The import only sets `image_url` to null for bundled ids and does
-  not delete other rows, so it is safe to re-run.
+- The DB was migrated with **Import bundled logos** and the four role
+  collections were deleted; `resin_designs` keeps the 116 ability rows and the
+  manual `inter` crest (180 rows total). Re-running the import is still safe.
+- Because `resin_designs` has no role column, a design added later through the
+  admin (not in `logos.js`) appears under "All abilities" but not in a role
+  filter until it is added to the bundled file.
 
 ## 2026-11-15 — Football collection: 11 more club crests
 

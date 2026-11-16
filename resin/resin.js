@@ -17,6 +17,15 @@
   let COLLECTIONS = window.RESIN_COLLECTIONS || [];
   const GROUP_ORDER = ["cherry", "sa", "space"];
   const ROWS = { cherry: ["R1", "R2", "R3", "R4"], sa: ["R1"], space: [""] };
+  const ROLE_ORDER = ["Duelist", "Initiator", "Controller", "Sentinel"];
+  // The ability icons briefly shipped as four role collections; keep old
+  // links working by pointing them at the single collection.
+  const RETIRED_COLLECTIONS = {
+    "val-duelists": "valorant-abilities",
+    "val-initiators": "valorant-abilities",
+    "val-controllers": "valorant-abilities",
+    "val-sentinels": "valorant-abilities"
+  };
   const CUSTOM_ID = "custom";
   const CUSTOM_NAME = "Your own logo";
 
@@ -27,6 +36,7 @@
   const rowByGroup = { cherry: "R1", sa: "R1", space: "" };
   const state = { cherry: {}, sa: {}, space: {} }; // state[group][row][designId]
   let search = "";
+  let activeRole = "";
 
   const el = id => document.getElementById(id);
   const esc = s => String(s).replace(/[&<>"']/g, c => ({
@@ -182,6 +192,38 @@
     }).join("");
   }
 
+  /* ---------- role chips ---------- */
+
+  function roleCounts(designs){
+    const counts = {};
+    designs.forEach(d => {
+      if(!d.custom && d.role) counts[d.role] = (counts[d.role] || 0) + 1;
+    });
+    return ROLE_ORDER.filter(r => counts[r]).map(r => ({ role: r, count: counts[r] }));
+  }
+
+  function renderRoles(){
+    const box = el("resinRoles");
+    const chips = el("resinRoleChips");
+    if(!box || !chips) return;
+
+    const roles = collection && !collection.customOnly ? roleCounts(collection.designs || []) : [];
+    box.hidden = roles.length === 0;
+    if(!roles.length) return;
+
+    if(activeRole && !roles.some(r => r.role === activeRole)) activeRole = "";
+
+    const total = roles.reduce((n, r) => n + r.count, 0);
+    const items = [{ role: "", label: "All abilities", count: total }].concat(
+      roles.map(r => ({ role: r.role, label: r.role, count: r.count }))
+    );
+
+    chips.innerHTML = items.map(it => {
+      const on = it.role === activeRole;
+      return `<button class="resin-row-chip${on ? " is-active" : ""}" type="button" data-role="${esc(it.role)}" aria-pressed="${on}">${esc(it.label)}<b>${it.count}</b></button>`;
+    }).join("");
+  }
+
   /* ---------- logo grid ---------- */
 
   function setButton(id){
@@ -201,14 +243,19 @@
     const q = search.trim().toLowerCase();
     const row = activeRow();
     const designs = allDesigns();
-    const visible = designs.filter(d => !q || d.name.toLowerCase().includes(q));
+    // Role filter hides the "your own logo" card so each row stays exactly one
+    // agent's four abilities.
+    const scoped = activeRole ? designs.filter(d => !d.custom && d.role === activeRole) : designs;
+    const visible = scoped.filter(d => !q || d.name.toLowerCase().includes(q));
 
     const count = el("resinCount");
     if(count){
       if(collection.customOnly){
         count.textContent = "Pick a profile and row, then add your keys";
       }else if(q){
-        count.textContent = `${visible.length} of ${designs.length} designs`;
+        count.textContent = `${visible.length} of ${scoped.length} designs`;
+      }else if(activeRole){
+        count.textContent = `${scoped.length} ${activeRole.toLowerCase()} abilities`;
       }else{
         count.textContent = `${designs.length - 1} designs + your own logo`;
       }
@@ -482,6 +529,7 @@
 
     const params = new URLSearchParams(location.search);
     requested = (params.get("c") || "").trim();
+    requested = RETIRED_COLLECTIONS[requested] || requested;
     collection = COLLECTIONS.find(c => c.id === requested)
       || COLLECTIONS.find(c => !c.customOnly)
       || COLLECTIONS[0];
@@ -513,6 +561,7 @@
     renderPriceBar();
     renderTabs();
     renderRows();
+    renderRoles();
     renderGrid();
     renderSummary();
 
@@ -533,6 +582,14 @@
       renderRows();
       renderGrid();
       renderSummary();
+    });
+
+    el("resinRoleChips")?.addEventListener("click", e => {
+      const btn = e.target.closest("[data-role]");
+      if(!btn) return;
+      activeRole = btn.dataset.role || "";
+      renderRoles();
+      renderGrid();
     });
 
     el("resinSearch")?.addEventListener("input", e => {

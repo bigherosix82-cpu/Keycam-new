@@ -243,6 +243,8 @@
     const q = search.trim().toLowerCase();
     const row = activeRow();
     const designs = allDesigns();
+    // Ability collections get a fixed 4-across grid (one agent kit per row).
+    grid.classList.toggle("is-agent-grid", roleCounts(designs).length > 0);
     // Role filter hides the "your own logo" card so each row stays exactly one
     // agent's four abilities.
     const scoped = activeRole ? designs.filter(d => !d.custom && d.role === activeRole) : designs;

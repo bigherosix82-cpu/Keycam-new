@@ -24,7 +24,7 @@ agent's four abilities.
 | `resin/logos/Valorant-agents-abilities.svg` | new | The upload the icons were cut from (kept as the source sheet). |
 | `resin/collection.html` | modified | Role filter row (`#resinRoles` / `#resinRoleChips`). |
 | `resin/resin.js` | modified | Role chips, role+search filtering, retired-id redirect, role in the count text. |
-| `resin/resin.css` | modified | Design grid is `repeat(4, …)` on desktop, 2 columns at ≤560px. |
+| `resin/resin.css` | modified | Ability collections use a fixed 4-across grid (2 at ≤560px); other collections keep the dense auto-fill grid. |
 | `resin/store.js` | modified | DB rows have no `role` column, so the role label is copied from the bundled design with the same id. |
 
 ### Source and identification
@@ -44,8 +44,8 @@ agent's four abilities.
 - Bundled fallback (local, 39 checks): 116 designs, 4-column grid, 5 role chips
   with the right counts, each role filters to 32/28/28/28 with every agent still
   a 4-icon kit, "killjoy" inside Sentinel returns 4, 390px viewport is 2 across.
-- Live site after deploy: same checks against the seeded DB, plus the hub lists
-  6 collections and none of the retired ids.
+- Live site after deploy: same checks against the seeded DB, plus the football
+  grid still uses the dense layout and the hub lists 6 collections.
 
 ### Notes
 - The DB was migrated with **Import bundled logos** and the four role

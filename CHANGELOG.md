@@ -1,5 +1,37 @@
 # Changelog
 
+## 2026-11-16 — Hush added to Valorant Agent Abilities (120 designs)
+
+Hush — the 30th agent, a Duelist released 27 October 2026 — was not on the
+uploaded ability sheet, so she was added separately. Her four active abilities
+now sit between Harbor and Iso:
+
+| id | Name | Slot |
+|---|---|---|
+| `hush-flashbulb` | Hush · Flashbulb | Q |
+| `hush-displacement` | Hush · Displacement | E |
+| `hush-flow` | Hush · Flow | C |
+| `hush-suspension` | Hush · Suspension | X |
+
+The passive (Telekinesis) is left out, matching the four-abilities-per-agent
+rule used by every other kit in the collection.
+
+Collection counts are now **All abilities 120 · Duelist 36 · Initiator 28 ·
+Controller 28 · Sentinel 28**.
+
+### Files
+| File | Status | Notes |
+|---|---|---|
+| `resin/logos.js` | modified | Four `hush-*` designs inserted after Harbor (alphabetical), `tile: "dark"`, `role: "Duelist"`; blurb now 120. |
+| `resin/logos/hush-*.webp` | new | Four icons built from the official valorant-api.com glyphs (white on transparent, 128px source), trimmed, 256px on the longest side, WebP q92 (17–28 KB each). |
+
+### Notes
+- The glyphs come from the same valorant-api.com icons the sheet was matched
+  against, so the art is the official ability set; they are naturally a little
+  lighter than the boldest older kits.
+- Re-running **Import bundled logos** from `admin-catalog.html` adds the four
+  rows to `resin_designs` without touching existing ones.
+
 ## 2026-11-16 — Valorant Agent Abilities (116 designs, filter by role)
 
 Added the uploaded Valorant ability sheet as **one collection**, `valorant-abilities`

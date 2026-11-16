@@ -1,5 +1,52 @@
 # Changelog
 
+## 2026-11-16 — Valorant ability icons: four role-based collections (116 designs)
+
+Split the uploaded Valorant ability sheet into four new collections, one per
+agent role, so shoppers can browse by playstyle instead of one 116-card grid.
+
+| Collection | id | Designs |
+|---|---|---|
+| Valorant Duelists | `val-duelists` | 32 (8 agents) |
+| Valorant Initiators | `val-initiators` | 28 (7 agents) |
+| Valorant Controllers | `val-controllers` | 28 (7 agents) |
+| Valorant Sentinels | `val-sentinels` | 28 (7 agents) |
+
+Every design is one agent ability, named `"Agent · Ability"` with the id
+`<agent>-<ability>` (e.g. `jett-cloudburst`, `"Jett · Cloudburst"`).
+
+### Files
+| File | Status | Notes |
+|---|---|---|
+| `resin/logos.js` | modified | Four collections inserted after `valorant`; all 116 designs use `tile: "dark"`. |
+| `resin/logos/` | modified | 116 new WebP icons, 256px on the longest side, transparent, trimmed (2–15 KB each, 673 KB total). |
+| `resin/logos/Valorant-agents-abilities.svg` | new | The upload the icons were cut from (kept as the source sheet). |
+
+### Source and identification
+- The upload is one A4 sprite sheet with 29 agent groups × 4 glyphs. Group ids
+  are anonymous (`agent-01`…`agent-29`) and the icons are white (`fill="#fff"`),
+  which is why every design uses a dark tile.
+- Each glyph was matched against the official ability icons from
+  valorant-api.com by comparing 64×64 alpha masks, scored as four-icon kits.
+  All 29 agents matched (scores 0.938–0.999; the runner-up scored about 0.5)
+  with no duplicate slots and no duplicate ids.
+- Agents are alphabetical, Astra → Yoru. **Hush is not in the sheet**, so the
+  collections cover 29 of the 30 playable agents.
+
+### Tested in headless Chrome (bundled fallback, 1280px)
+- `collection.html?c=val-duelists` renders 32 designs + the custom card;
+  the other three render 28 + 1.
+- Every card has a name, every `logos/<id>.webp` decodes, and every design tile
+  is dark.
+- `index.html` lists 9 collection cards, including all four new ones with the
+  right counts.
+
+### Notes
+- Re-import bundled logos from the Resin tab in `admin-catalog.html` before the
+  collections appear live — the storefront prefers `resin_designs` over
+  `logos.js`. The import only sets `image_url` to null for bundled ids and does
+  not delete other rows, so it is safe to re-run.
+
 ## 2026-11-15 — Football collection: 11 more club crests
 
 Expanded **Football clubs** from 8 to 20 crests using the global-following

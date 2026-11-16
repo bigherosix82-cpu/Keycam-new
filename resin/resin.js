@@ -528,8 +528,8 @@
     COLLECTIONS = window.RESIN_COLLECTIONS || [];
 
     const params = new URLSearchParams(location.search);
-    requested = (params.get("c") || "").trim();
-    requested = RETIRED_COLLECTIONS[requested] || requested;
+    const requestedRaw = (params.get("c") || "").trim();
+    requested = RETIRED_COLLECTIONS[requestedRaw] || requestedRaw;
     collection = COLLECTIONS.find(c => c.id === requested)
       || COLLECTIONS.find(c => !c.customOnly)
       || COLLECTIONS[0];
@@ -539,7 +539,7 @@
       return;
     }
 
-    if(requested !== collection.id){
+    if(requestedRaw !== collection.id){
       try{ history.replaceState(null, "", `collection.html?c=${encodeURIComponent(collection.id)}`); }
       catch(e){ /* file:// preview — ignore */ }
     }
